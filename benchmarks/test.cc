@@ -43,6 +43,47 @@ const char* Parse(const char* ptr, const char* end) {
     return ptr;
 }
 
+inline uint64_t L64(const char* ptr) {
+    uint64_t x;
+    std::memcpy(&x, ptr, 8);
+    return x;
+}
+
+const char* ParseTest(const char* ptr, const char* end) {
+    uint32_t nexttag = *ptr;
+    while (ptr < end) {
+        uint32_t tag = nexttag;
+        uint64_t data = L64(ptr);
+        auto x = data | 0x7f7f7f7f7f7f7f7f;
+        auto y = x ^ (x + 1);
+        auto tagsize = __builtin_popcountll(y) / 8;
+        auto fixedsize = tagsize + (tag & 4 ? 4 : 8); 
+        x |= y;
+        y = x ^ (x + 1);
+        auto varintsz = __builtin_popcountll(y) / 8;
+        auto nextptr = ptr + (tag & 1 ? fixedsize : varintsz);
+        nexttag = *nextptr;
+        switch (tag & 7) {
+            case 0:
+            case 1:
+            case 5:
+                ptr = nextptr;
+                break;
+            case 2: {
+                ptr++;
+                uint32_t sz = google::protobuf::internal::ReadSize(&ptr);
+                ptr += sz;
+                nexttag = *ptr;
+                break;
+            }
+            default:
+                return nullptr;
+        }
+    }
+    return ptr;
+}
+
+
 void WriteRandom(std::string* s) {
     google::protobuf::io::StringOutputStream os(s);
     google::protobuf::io::CodedOutputStream out(&os);
@@ -83,3 +124,13 @@ static void BM_RegularParse(benchmark::State& state) {
     state.SetBytesProcessed(x.size());
 }
 BENCHMARK(BM_RegularParse);
+
+static void BM_NewParse(benchmark::State& state) {
+    std::string x;
+    WriteRandom(&x);
+    for (auto _ : state) {
+        if (ParseTest(x.data(), x.data() + x.size()) == nullptr) exit(-1);
+    }
+    state.SetBytesProcessed(x.size());
+}
+BENCHMARK(BM_NewParse);

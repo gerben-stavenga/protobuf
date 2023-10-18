@@ -76,7 +76,7 @@ cc_test(
         ":benchmark_descriptor_upb_proto",
         ":benchmark_descriptor_upb_proto_reflection",
         "//:protobuf",
-        "@com_google_googletest//:gtest_main",
+        #"@com_google_googletest//:gtest_main",
         "//upb:base",
         "//upb:base_internal",
         "//upb:descriptor_upb_proto",

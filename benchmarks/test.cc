@@ -94,7 +94,7 @@ void WriteRandom(std::string* s) {
     google::protobuf::io::CodedOutputStream out(&os);
     std::mt19937 gen(0x3523fa4f);
     std::uniform_int_distribution pick(1, 4);
-    for (int i = 0; i < 3000; i++) {
+    for (int i = 0; i < 10000; i++) {
         auto tag = pick(gen);
         switch (tag) {
             case 1:

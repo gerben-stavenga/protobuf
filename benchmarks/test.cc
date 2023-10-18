@@ -63,6 +63,7 @@ const char* ParseTest(const char* ptr, const char* end) {
         auto varintsz = __builtin_popcountll(y) / 8;
         auto nextptr = ptr + (tag & 1 ? fixedsize : varintsz);
         nexttag = *nextptr;
+        asm volatile(""::"r"(nexttag));
         switch (tag & 7) {
             case 0:
             case 1:
@@ -76,6 +77,10 @@ const char* ParseTest(const char* ptr, const char* end) {
                 nexttag = *ptr;
                 break;
             }
+            case 3:
+                asm volatile("");
+            case 4:
+                asm volatile("");
             default:
                 return nullptr;
         }
@@ -121,7 +126,7 @@ static void BM_RegularParse(benchmark::State& state) {
     for (auto _ : state) {
         if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
-    state.SetBytesProcessed(x.size());
+    state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK(BM_RegularParse);
 
@@ -131,6 +136,6 @@ static void BM_NewParse(benchmark::State& state) {
     for (auto _ : state) {
         if (ParseTest(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
-    state.SetBytesProcessed(x.size());
+    state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK(BM_NewParse);

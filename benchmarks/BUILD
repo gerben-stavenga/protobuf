@@ -87,6 +87,16 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "test_gerben",
+    testonly = 1,
+    srcs = ["test.cc"],
+    deps = [
+        "//:protobuf",
+        "@com_github_google_benchmark//:benchmark_main",
+    ],
+)
+
 # Size benchmarks.
 
 SIZE_BENCHMARKS = {

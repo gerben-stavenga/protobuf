@@ -64,7 +64,15 @@ const char* ParseTest(const char* ptr, const char* end) {
         auto nextptr = ptr + (tag & 1 ? fixedsize : varintsz);
         nexttag = *nextptr;
         asm volatile(""::"r"(nexttag));
-        switch (tag & 7) {
+        if (__builtin_expect((tag & 7) == 2, 0)) {
+                ptr++;
+                uint32_t sz = google::protobuf::internal::ReadSize(&ptr);
+                ptr += sz;
+                nexttag = *ptr;
+        } else {
+            ptr = nextptr;
+        }
+        /*switch (tag & 7) {
             case 0:
             case 1:
             case 5:
@@ -81,9 +89,13 @@ const char* ParseTest(const char* ptr, const char* end) {
                 asm volatile("");
             case 4:
                 asm volatile("");
-            default:
+            case 6:
+                asm volatile("");
                 return nullptr;
-        }
+            case 7:
+                asm volatile("");
+                return nullptr;
+        }*/
     }
     return ptr;
 }

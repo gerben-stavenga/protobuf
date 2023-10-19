@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+package test_benchmark;
+
+message TestProto {
+    optional int32 varint = 1;
+    optional bytes bytes = 2;
+    optional fixed64 fixed64 = 3;
+    optional fixed32 fixed32 = 4;
+}

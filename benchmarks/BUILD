@@ -87,12 +87,23 @@ cc_test(
     ],
 )
 
+proto_library(
+    name = "test_proto",
+    srcs = ["test.proto"],
+)
+
+cc_proto_library(
+    name = "test_cc_proto",
+    deps = [":test_proto"],
+)
+
 cc_test(
     name = "test_gerben",
     testonly = 1,
     srcs = ["test.cc"],
     deps = [
         "//:protobuf",
+        ":test_cc_proto",
         "@com_github_google_benchmark//:benchmark_main",
     ],
 )

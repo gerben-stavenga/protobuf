@@ -8,6 +8,7 @@
 #include "google/protobuf/parse_context.h"
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/io/zero_copy_stream_impl.h"
+#include "benchmarks/test.pb.h"
 
 const char* Parse(const char* ptr, const char* end) {
     while (ptr < end) {
@@ -131,6 +132,17 @@ void WriteRandom(std::string* s) {
         }
     }
 }
+
+static void BM_Proto2Parse(benchmark::State& state) {
+    std::string x;
+    WriteRandom(&x);
+    test_benchmark::TestProto proto;
+    for (auto _ : state) {
+        proto.ParseFromString(x);
+    }
+    state.SetBytesProcessed(state.iterations() * x.size());
+}
+BENCHMARK(BM_Proto2Parse);
 
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;

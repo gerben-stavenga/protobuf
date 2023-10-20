@@ -185,6 +185,7 @@ void WriteRandom(std::string* s) {
     std::mt19937 gen(0x3523fa4f);
     std::uniform_int_distribution pick(1, 4);
     for (int i = 0; i < 10000; i++) {
+again:
         auto tag = pick(gen);
         switch (tag) {
             case 1:
@@ -192,6 +193,7 @@ void WriteRandom(std::string* s) {
                 out.WriteVarint32(20);
                 break;
             case 2:
+                goto again;
                 out.WriteTag(16 + 2);
                 out.WriteVarint32(5);
                 out.WriteString("Hello");

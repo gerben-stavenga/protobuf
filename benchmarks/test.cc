@@ -248,9 +248,9 @@ static void BM_TableParse(benchmark::State& state) {
     for (auto _ : state) {
         ParseProto(x.data(), x.data() + x.size(), &proto);
     }
-    std::string s;
+    /*std::string s;
     google::protobuf::json::MessageToJsonString(proto, &s);
-    std::cout << s;
+    std::cout << s;*/
     state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK(BM_TableParse);

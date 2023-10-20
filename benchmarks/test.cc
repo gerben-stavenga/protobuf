@@ -1,6 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include <string.h>
+#include <x86intrin.h>
 
 #include <string>
 #include <random>
@@ -101,6 +102,77 @@ const char* ParseTest(const char* ptr, const char* end) {
     return ptr;
 }
 
+const uint64_t entries[] = {
+    0x0020000000020008,  // optional int32 varint = 1;
+    0x0018000000010012,  // optional bytes bytes = 2;
+    0x0028000000080119,  // optional fixed64 fixed64 = 3;
+    0x0024000000040025,  // optional fixed32 fixed32 = 4;
+};
+
+struct Table {
+    int offset_hasbits;
+    int entry_cutoff;
+    const uint64_t* entries;
+};
+
+const Table table = {
+    16,
+    4,
+    entries
+};
+
+template <typename T>
+T& RefAt(void* msg, ptrdiff_t offset) {
+    return *reinterpret_cast<T*>(static_cast<char*>(msg) + offset);
+}
+
+const char* ParseProto(const char* ptr, const char* end, google::protobuf::MessageLite* msg) {
+    uint64_t hasbits = uint64_t(RefAt<uint32_t>(msg, table.offset_hasbits)) << 16;
+    while (ptr < end) {
+        uint32_t tag = uint8_t(*ptr);
+        uint32_t field_num;
+        if (tag & 0x80) {
+            // TODO fix tags > 2 varint
+            field_num = (tag - 0x80 + (uint32_t(uint8_t(*ptr)) << 7)) >> 3;
+            ptr += 2;
+        } else {
+            field_num = tag >> 3;
+            ptr += 1;
+        }
+        uint64_t entry;
+        if (field_num - 1 >= table.entry_cutoff) {
+            return nullptr;
+        } else {
+            entry = table.entries[field_num - 1];
+        }
+        if (uint8_t(entry) != uint8_t(tag)) return nullptr;
+        hasbits |= entry;
+        if (__builtin_expect((tag & 7) == 2, 0)) {
+            uint32_t sz = google::protobuf::internal::ReadSize(&ptr);
+            auto offset = entry >> 48;
+            RefAt<google::protobuf::internal::ArenaStringPtr>(msg, offset).SetBytes(ptr, sz, nullptr);
+            ptr += sz;
+        } else {
+            uint64_t data = L64(ptr);
+            uint64_t mask = 0x7f7f7f7f7f7f7f7f;
+            auto x = data | mask;
+            auto y = x ^ (x + 1);
+            auto varintsize = __builtin_popcountll(y) / 8;
+            auto fixedsize = tag & 4 ? 4 : 8;
+            if (tag & 1) mask = -1;
+            auto size = (tag & 1 ? fixedsize : varintsize);
+            data = _pext_u64(data, mask);
+            data = _bextr_u64(data, 0, size * 8);
+            auto offset = entry >> 48;
+            RefAt<uint32_t>(msg, offset + ((entry & 0x100) ? 4 : 0)) = data >> 32;
+            RefAt<uint32_t>(msg, offset) = data;
+            ptr += size;
+        }
+    }
+    RefAt<uint32_t>(msg, table.offset_hasbits) = hasbits >> 16;
+    return ptr;
+}
+
 
 void WriteRandom(std::string* s) {
     google::protobuf::io::StringOutputStream os(s);
@@ -133,17 +205,6 @@ void WriteRandom(std::string* s) {
     }
 }
 
-static void BM_Proto2Parse(benchmark::State& state) {
-    std::string x;
-    WriteRandom(&x);
-    test_benchmark::TestProto proto;
-    for (auto _ : state) {
-        proto.ParseFromString(x);
-    }
-    state.SetBytesProcessed(state.iterations() * x.size());
-}
-BENCHMARK(BM_Proto2Parse);
-
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
     WriteRandom(&x);
@@ -163,3 +224,25 @@ static void BM_NewParse(benchmark::State& state) {
     state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK(BM_NewParse);
+
+static void BM_Proto2Parse(benchmark::State& state) {
+    std::string x;
+    WriteRandom(&x);
+    test_benchmark::TestProto proto;
+    for (auto _ : state) {
+        proto.ParseFromString(x);
+    }
+    state.SetBytesProcessed(state.iterations() * x.size());
+}
+BENCHMARK(BM_Proto2Parse);
+
+static void BM_TableParse(benchmark::State& state) {
+    std::string x;
+    WriteRandom(&x);
+    test_benchmark::TestProto proto;
+    for (auto _ : state) {
+        ParseProto(x.data(), x.data() + x.size(), &proto);
+    }
+    state.SetBytesProcessed(state.iterations() * x.size());
+}
+BENCHMARK(BM_TableParse);

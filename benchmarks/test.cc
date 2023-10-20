@@ -138,7 +138,7 @@ const char* ParseProto(const char* ptr, const char* end, google::protobuf::Messa
         uint32_t field_num;
         if (tag & 0x80) {
             // TODO fix tags > 2 varint
-            field_num = (tag - 0x80 + (uint32_t(uint8_t(*ptr)) << 7)) >> 3;
+            field_num = (tag - 0x80 + (uint32_t(uint8_t(ptr[1])) << 7)) >> 3;
             ptr += 2;
         } else {
             field_num = tag >> 3;

@@ -9,8 +9,11 @@
 #include "google/protobuf/parse_context.h"
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/io/zero_copy_stream_impl.h"
+#include "google/protobuf/json/json.h"
+
 #include "benchmarks/test.pb.h"
 
+__attribute__((noinline))
 const char* Parse(const char* ptr, const char* end) {
     while (ptr < end) {
         uint32_t tag;
@@ -51,6 +54,7 @@ inline uint64_t L64(const char* ptr) {
     return x;
 }
 
+__attribute__((noinline))
 const char* ParseTest(const char* ptr, const char* end) {
     uint32_t nexttag = *ptr;
     while (ptr < end) {
@@ -126,6 +130,7 @@ T& RefAt(void* msg, ptrdiff_t offset) {
     return *reinterpret_cast<T*>(static_cast<char*>(msg) + offset);
 }
 
+__attribute__((noinline))
 const char* ParseProto(const char* ptr, const char* end, google::protobuf::MessageLite* msg) {
     uint64_t hasbits = uint64_t(RefAt<uint32_t>(msg, table.offset_hasbits)) << 16;
     while (ptr < end) {
@@ -243,6 +248,9 @@ static void BM_TableParse(benchmark::State& state) {
     for (auto _ : state) {
         ParseProto(x.data(), x.data() + x.size(), &proto);
     }
+    std::string s;
+    google::protobuf::json::MessageToJsonString(proto, &s);
+    std::cout << s;
     state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK(BM_TableParse);

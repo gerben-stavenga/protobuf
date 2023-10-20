@@ -158,6 +158,16 @@ const char* ParseProto(const char* ptr, const char* end, google::protobuf::Messa
             RefAt<google::protobuf::internal::ArenaStringPtr>(msg, offset).SetBytes(ptr, sz, nullptr);
             ptr += sz;
         } else {
+            static const uint64_t size_mask[] = {
+                0xFF,
+                0xFFFF,
+                0xFFFFFF,
+                0xFFFFFFFF,
+                0xFFFFFFFFFF,
+                0xFFFFFFFFFFFF,
+                0xFFFFFFFFFFFFFF,
+                0xFFFFFFFFFFFFFFFF
+            };
             uint64_t data = L64(ptr);
             uint64_t mask = 0x7f7f7f7f7f7f7f7f;
             auto x = data | mask;
@@ -166,8 +176,8 @@ const char* ParseProto(const char* ptr, const char* end, google::protobuf::Messa
             auto fixedsize = tag & 4 ? 4 : 8;
             if (tag & 1) mask = -1;
             auto size = (tag & 1 ? fixedsize : varintsize);
+            data &= size_mask[size - 1];
             data = _pext_u64(data, mask);
-            data = _bextr_u64(data, 0, size * 8);
             auto offset = entry >> 48;
             RefAt<uint32_t>(msg, offset + ((entry & 0x100) ? 4 : 0)) = data >> 32;
             RefAt<uint32_t>(msg, offset) = data;

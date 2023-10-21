@@ -189,7 +189,7 @@ const char* ParseProto(const char* ptr, const char* end, google::protobuf::Messa
 }
 
 
-void WriteRandom(std::string* s) {
+void WriteRandom(std::string* s, bool nostring) {
     google::protobuf::io::StringOutputStream os(s);
     google::protobuf::io::CodedOutputStream out(&os);
     std::mt19937 gen(0x3523fa4f);
@@ -203,7 +203,7 @@ again:
                 out.WriteVarint32(20);
                 break;
             case 2:
-                goto again;
+                if (nostring) goto again;
                 out.WriteTag(16 + 2);
                 out.WriteVarint32(5);
                 out.WriteString("Hello");
@@ -224,7 +224,7 @@ again:
 
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x);
+    WriteRandom(&x, true);
     for (auto _ : state) {
         if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
@@ -234,7 +234,7 @@ BENCHMARK(BM_RegularParse);
 
 static void BM_NewParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x);
+    WriteRandom(&x, true);
     for (auto _ : state) {
         if (ParseTest(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
@@ -242,20 +242,21 @@ static void BM_NewParse(benchmark::State& state) {
 }
 BENCHMARK(BM_NewParse);
 
-static void BM_Proto2Parse(benchmark::State& state) {
+static void BM_Proto2Parse(benchmark::State& state, bool nostring) {
     std::string x;
-    WriteRandom(&x);
+    WriteRandom(&x, nostring);
     test_benchmark::TestProto proto;
     for (auto _ : state) {
         proto.ParseFromString(x);
     }
     state.SetBytesProcessed(state.iterations() * x.size());
 }
-BENCHMARK(BM_Proto2Parse);
+BENCHMARK_CAPTURE(BM_Proto2Parse, string, false);
+BENCHMARK_CAPTURE(BM_Proto2Parse, nostring, true);
 
-static void BM_TableParse(benchmark::State& state) {
+static void BM_TableParse(benchmark::State& state, bool nostring) {
     std::string x;
-    WriteRandom(&x);
+    WriteRandom(&x, nostring);
     test_benchmark::TestProto proto;
     for (auto _ : state) {
         ParseProto(x.data(), x.data() + x.size(), &proto);
@@ -265,4 +266,5 @@ static void BM_TableParse(benchmark::State& state) {
     std::cout << s;*/
     state.SetBytesProcessed(state.iterations() * x.size());
 }
-BENCHMARK(BM_TableParse);
+BENCHMARK_CAPTURE(BM_TableParse, string, false);
+BENCHMARK_CAPTURE(BM_TableParse, nostring, true);

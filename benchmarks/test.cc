@@ -288,11 +288,11 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
                     }
                     ptr = ParseProto(child, ptr, ctx, child_table);
                     if (ptr == nullptr) break;
-                    if (ctx->LastTag() != field_num) FAIL_AND_BREAK;
+                    if (!ctx->ConsumeEndGroup(field_num * 8 + 3)) FAIL_AND_BREAK;
                     continue;
                 } else if ((tag & 7) == 4) {
                     end_group:
-                    ctx->SetLastTag(field_num);
+                    ctx->SetLastTag(field_num * 8 + 4);
                     break;
                 }
                 FAIL_AND_BREAK;
@@ -395,9 +395,9 @@ static void BM_NewParse(benchmark::State& state) {
 }
 BENCHMARK(BM_NewParse);
 
-static void BM_Proto2Parse(benchmark::State& state, bool nostring) {
+static void BM_Proto2Parse(benchmark::State& state, int level) {
     std::string x;
-    WriteRandom(&x, nostring);
+    WriteRandom(&x, level);
     test_benchmark::TestProto proto;
     for (auto _ : state) {
         proto.ParseFromString(x);
@@ -440,9 +440,9 @@ void TestParse() {
     std::cout << s;
 }
 
-static void BM_TableParse(benchmark::State& state, bool nostring) {
+static void BM_TableParse(benchmark::State& state, int level) {
     std::string x;
-    WriteRandom(&x, nostring);
+    WriteRandom(&x, level);
     test_benchmark::TestProto proto;
     for (auto _ : state) {
         const char* ptr;

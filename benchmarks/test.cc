@@ -205,7 +205,7 @@ private:
 };
 
 __attribute__((noinline))
-const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, const ParseTable* table) {
+const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, const ParseTable* table, uint32_t ending) {
     //if (--ctx->depth_ == 0) return nullptr;
 
     #define FAIL_AND_BREAK if (true) { if (0) std::cout << __LINE__ << " error\n"; ptr = nullptr; break; } else (void)0
@@ -251,7 +251,7 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
                     child = static_cast<const MessageLite*>(child_table->default_instance)->New();
                 }
                 auto delta = ctx->PushLimit(ptr, sz);
-                ptr = ParseProto(child, ptr, ctx, child_table);
+                ptr = ParseProto(child, ptr, ctx, child_table, 0);
                 if (ptr == nullptr) break;
                 if (!ctx->PopLimit(std::move(delta))) FAIL_AND_BREAK;
             }
@@ -287,13 +287,12 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
                     } else {
                         hasbits |= entry;
                     }
-                    ptr = ParseProto(child, ptr, ctx, child_table);
+                    ptr = ParseProto(child, ptr, ctx, child_table, field_num);
                     if (ptr == nullptr) break;
-                    if (!ctx->ConsumeEndGroup(field_num * 8 + 3)) FAIL_AND_BREAK;
                     continue;
                 } else if ((tag & 7) == 4) {
                     end_group:
-                    ctx->SetLastTag(field_num * 8 + 4);
+                    if (field_num == ending) ending = 0;
                     break;
                 }
                 FAIL_AND_BREAK;
@@ -323,7 +322,8 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
     }
     // Sync hasbits
     if (table->offset_hasbits) RefAt<uint32_t>(msg, table->offset_hasbits) = hasbits >> 16;
-    if (!utf8_checker.DoTests()) return nullptr;
+    if (ending) ptr = nullptr;
+    if (!utf8_checker.DoTests()) ptr = nullptr;
     // ctx->depth_++;
     return ptr;
 }
@@ -452,7 +452,7 @@ void TestParse() {
     proto.Clear();
     const char* ptr;
     ParseContext ctx(20, false, &ptr, serialized);
-    ptr = ParseProto(&proto, ptr, &ctx, &test_proto_parse_table);
+    ptr = ParseProto(&proto, ptr, &ctx, &test_proto_parse_table, 0);
     if (ptr == nullptr) {
         std::cout << "Parse fail\n";
         exit(-1);
@@ -470,7 +470,7 @@ static void BM_TableParse(benchmark::State& state, int level) {
     for (auto _ : state) {
         const char* ptr;
         ParseContext ctx(20, false, &ptr, x);
-        ParseProto(&proto, ptr, &ctx, &test_proto_parse_table);
+        ParseProto(&proto, ptr, &ctx, &test_proto_parse_table, 0);
     }
     state.SetBytesProcessed(state.iterations() * x.size());
 }

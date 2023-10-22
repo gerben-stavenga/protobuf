@@ -97,6 +97,11 @@ cc_proto_library(
     deps = [":test_proto"],
 )
 
+upb_proto_library(
+    name = "test_upb_proto",
+    deps = [":test_proto"],
+)
+
 cc_test(
     name = "test_gerben",
     testonly = 1,
@@ -104,6 +109,7 @@ cc_test(
     deps = [
         "//:protobuf",
         ":test_cc_proto",
+        ":test_upb_proto",
         "@com_github_google_benchmark//:benchmark_main",
     ],
 )

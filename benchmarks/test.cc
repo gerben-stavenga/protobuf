@@ -204,13 +204,14 @@ private:
     unsigned utf8_idx = 0;
 };
 
+Utf8Checker utf8_checker;
+
 __attribute__((noinline))
 const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, const ParseTable* table, uint32_t ending) {
     //if (--ctx->depth_ == 0) return nullptr;
 
     #define FAIL_AND_BREAK if (true) { if (0) std::cout << __LINE__ << " error\n"; ptr = nullptr; break; } else (void)0
 
-    Utf8Checker utf8_checker;
     uint64_t hasbits = 0;
     if (table->offset_hasbits) hasbits = uint64_t(RefAt<uint32_t>(msg, table->offset_hasbits)) << 16;
     while (!ctx->Done(&ptr)) {

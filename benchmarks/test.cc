@@ -338,36 +338,36 @@ again:
         auto tag = pick(gen);
         switch (tag) {
             case 1:
-                out.WriteTag(8 + 0);
+                out.WriteTag(tag * 8 + 0);
                 out.WriteVarint32(20);
                 break;
             case 2:
                 if (level < 1) goto again;
-                out.WriteTag(16 + 2);
+                out.WriteTag(tag * 8 + 2);
                 out.WriteVarint32(5);
                 out.WriteString("Hello");
                 break;
             case 3:
-                out.WriteTag(24 + 1);
+                out.WriteTag(tag * 8 + 1);
                 out.WriteLittleEndian64(0xdeadbeef);
                 break;
             case 4:
-                out.WriteTag(32 + 5);
+                out.WriteTag(tag * 8 + 5);
                 out.WriteLittleEndian32(0xdead);
                 break;
             case 5:
                 if (level < 2) goto again;
-                out.WriteTag(40 + 2);
+                out.WriteTag(tag * 8 + 2);
                 out.WriteVarint32(2);
                 out.WriteTag(8 + 0);
                 out.WriteVarint32(1);
                 break;
             case 6:
                 if (level < 2) goto again;
-                out.WriteTag(48 + 3);
+                out.WriteTag(tag * 8 + 3);
                 out.WriteTag(8 + 0);
                 out.WriteVarint32(WireFormatLite::ZigZagEncode32(-30));
-                out.WriteTag(48 + 4);
+                out.WriteTag(tag * 8 + 4);
                 break;
             default:
                 exit(-1);

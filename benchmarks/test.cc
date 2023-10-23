@@ -329,12 +329,12 @@ error:
 }
 
 
-void WriteRandom(std::string* s, int level) {
+void WriteRandom(std::string* s, int iters, int level) {
     io::StringOutputStream os(s);
     io::CodedOutputStream out(&os);
     std::mt19937 gen(0x3523fa4f);
     std::uniform_int_distribution pick(1, 6);
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < iters; i++) {
 again:
         auto tag = pick(gen);
         switch (tag) {
@@ -378,42 +378,44 @@ again:
 
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, true);
+    WriteRandom(&x, state.range(0), true);
     for (auto _ : state) {
         if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
     state.SetBytesProcessed(state.iterations() * x.size());
 }
-BENCHMARK(BM_RegularParse);
+BENCHMARK(BM_RegularParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 static void BM_NewParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, true);
+    WriteRandom(&x, state.range(0), true);
     for (auto _ : state) {
         if (ParseTest(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
     state.SetBytesProcessed(state.iterations() * x.size());
 }
-BENCHMARK(BM_NewParse);
+BENCHMARK(BM_NewParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 static void BM_Proto2Parse(benchmark::State& state, int level) {
     std::string x;
-    WriteRandom(&x, level);
+    WriteRandom(&x, state.range(0), level);
     test_benchmark::TestProto proto;
     for (auto _ : state) {
         proto.ParseFromString(x);
     }
     state.SetBytesProcessed(state.iterations() * x.size());
 }
-BENCHMARK_CAPTURE(BM_Proto2Parse, nostring, 0);
-BENCHMARK_CAPTURE(BM_Proto2Parse, string, 1);
-BENCHMARK_CAPTURE(BM_Proto2Parse, submsg, 2);
+BENCHMARK_CAPTURE(BM_Proto2Parse, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_Proto2Parse, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_Proto2Parse, submsg, 2)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+
+#if 0
 
 int64_t buf[8191];
 
 static void BM_UpbParse(benchmark::State& state, int level) {
     std::string x;
-    WriteRandom(&x, level);
+    WriteRandom(&x, state.range(0), level);
     test_benchmark::TestProto proto;
     for (auto _ : state) {
         upb_Arena* arena = upb_Arena_Init(buf, sizeof(buf), nullptr);
@@ -430,6 +432,8 @@ static void BM_UpbParse(benchmark::State& state, int level) {
 BENCHMARK_CAPTURE(BM_UpbParse, nostring, 0);
 BENCHMARK_CAPTURE(BM_UpbParse, string, 1);
 BENCHMARK_CAPTURE(BM_UpbParse, submsg, 2);
+
+#endif
 
 void TestParse() {
     test_benchmark::TestProto proto;
@@ -465,7 +469,7 @@ void TestParse() {
 
 static void BM_TableParse(benchmark::State& state, int level) {
     std::string x;
-    WriteRandom(&x, level);
+    WriteRandom(&x, state.range(0), level);
     test_benchmark::TestProto proto;
     for (auto _ : state) {
         const char* ptr;
@@ -474,9 +478,9 @@ static void BM_TableParse(benchmark::State& state, int level) {
     }
     state.SetBytesProcessed(state.iterations() * x.size());
 }
-BENCHMARK_CAPTURE(BM_TableParse, nostring, 0);
-BENCHMARK_CAPTURE(BM_TableParse, string, 1);
-BENCHMARK_CAPTURE(BM_TableParse, submsg, 2);
+BENCHMARK_CAPTURE(BM_TableParse, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_TableParse, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_TableParse, submsg, 2)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 
 }  // namespace internal

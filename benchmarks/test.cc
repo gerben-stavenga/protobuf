@@ -135,12 +135,12 @@ struct ParseTable {
     const void* default_instance;
     const AuxData* aux;
     int offset_hasbits;
+    int start_field_num;
     int entry_cutoff;
     const uint64_t* entries;
 };
 
 const uint64_t test_proto_sub_group_entries[] = {
-    0x7,  //
     0x0018000000010008 | kZigZag,  // optional sint32 varint = 1;
 };
 
@@ -148,12 +148,12 @@ const ParseTable test_proto_sub_group_parse_table = {
     &test_benchmark::_TestProto_SubGroup_default_instance_,
     nullptr,
     16,
-    2,
+    1,
+    1,
     test_proto_sub_group_entries,
 };
 
 const uint64_t test_proto_entries[] = {
-    0x7,  // illegal tag which forces fieldnum to go into tag guard 0 != 7
     0x0030000000080008,  // optional int32 varint = 1;
     0x0018000000010012,  // optional bytes bytes = 2;
     0x0038000000200019 | k64bit,  // optional fixed64 fixed64 = 3;
@@ -172,7 +172,8 @@ const ParseTable test_proto_parse_table = {
     &test_benchmark::_TestProto_default_instance_,
     test_proto_aux,
     16,
-    7,
+    1,
+    6,
     test_proto_entries
 };
 
@@ -207,10 +208,10 @@ private:
 Utf8Checker utf8_checker;
 
 __attribute__((noinline))
-const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, const ParseTable* table, uint32_t ending) {
+const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, const ParseTable* table, int delta_or_group_num) {
     //if (--ctx->depth_ == 0) return nullptr;
 
-    #define FAIL_AND_BREAK if (true) { if (0) std::cout << __LINE__ << " error\n"; ptr = nullptr; break; } else (void)0
+    #define ERROR do { if (1) std::cout << __LINE__ << " failure\n"; goto error; } while (0)
 
     uint64_t hasbits = 0;
     if (table->offset_hasbits) hasbits = uint64_t(RefAt<uint32_t>(msg, table->offset_hasbits)) << 16;
@@ -218,47 +219,44 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
         uint32_t tag = uint8_t(*ptr);
         uint32_t field_num;
         ptr = ReadTagInlined(ptr, &field_num);
-        if (ptr == nullptr) break;
+        if (ptr == nullptr) ERROR;
         field_num >>= 3;
+        if (ABSL_PREDICT_FALSE((tag & 7) == 4)) {
+            if (field_num != -delta_or_group_num) ERROR;
+            goto group_end;
+        }
         uint64_t entry;
-        if (ABSL_PREDICT_FALSE(field_num >= table->entry_cutoff)) {
-            if ((tag & 7) == 4) goto end_group;
-            // TODO 
-            FAIL_AND_BREAK;
+        if (ABSL_PREDICT_FALSE(field_num - table->start_field_num >= table->entry_cutoff)) {
+            if (tag == 0) {
+                goto group_end;
+            }
+            // TODO search in sparse list
+            goto unknown_field;
         } else {
-            entry = table->entries[field_num];
+            entry = table->entries[field_num - table->start_field_num];
         }
+        asm("":: "r"(entry));
         if (uint8_t(entry) != uint8_t(tag)) {
-            if (tag == 0) break;
+unknown_field:
             // TODO unknown field
-            FAIL_AND_BREAK;
+            ERROR;
         }
-        if ((tag & 7) == 2) {
+        int delta;
+        if (ABSL_PREDICT_FALSE((tag & 7) == 2)) {
+            uint32_t sz = ReadSize(&ptr);
+            if (ptr == nullptr) ERROR;
             if (ABSL_PREDICT_TRUE((entry & kMessage) == 0)) {
-                uint32_t sz = ReadSize(&ptr);
-                if (ptr == nullptr) break;
                 auto offset = entry >> 48;
                 RefAt<ArenaStringPtr>(msg, offset).SetBytes(ptr, sz, nullptr);
                 utf8_checker.BatchTest(RefAt<ArenaStringPtr>(msg, offset).Get(), entry & kCheckUtf8);
                 ptr += sz;
             } else {
-                uint32_t sz = ReadSize(&ptr);
-                if (ptr == nullptr) break;
-                auto aux_idx = entry >> 48;
-                unsigned offset = table->aux[aux_idx].offset;
-                const ParseTable* child_table = static_cast<const ParseTable*>(table->aux[aux_idx].table);
-                MessageLite*& child = RefAt<MessageLite*>(msg, offset);
-                if (child == nullptr) {
-                    child = static_cast<const MessageLite*>(child_table->default_instance)->New();
-                }
-                auto delta = ctx->PushLimit(ptr, sz);
-                ptr = ParseProto(child, ptr, ctx, child_table, 0);
-                if (ptr == nullptr) break;
-                if (!ctx->PopLimit(std::move(delta))) FAIL_AND_BREAK;
+                delta = ctx->PushLimit(ptr, sz).token();
+                goto parse_submsg;
             }
             if (ABSL_PREDICT_FALSE(entry & (kExcessHasbits | kCardinality))) {
                 // TODO
-                FAIL_AND_BREAK;
+                ERROR;
             } else {
                 hasbits |= entry;
             }
@@ -273,30 +271,19 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
                 0xFFFFFFFFFFFFFF,
                 0xFFFFFFFFFFFFFFFF
             };
-            if (ABSL_PREDICT_FALSE((1 << (tag & 7)) & 0b11011000)) {
-                if ((tag & 7) == 3) {
-                    auto aux_idx = entry >> 48;
-                    unsigned offset = table->aux[aux_idx].offset;
-                    const ParseTable* child_table = static_cast<const ParseTable*>(table->aux[aux_idx].table);
-                    MessageLite*& child = RefAt<MessageLite*>(msg, offset);
-                    if (child == nullptr) {
-                        child = static_cast<const MessageLite*>(child_table->default_instance)->New();
-                    }
-                    if (ABSL_PREDICT_FALSE(entry & (kBool | kExcessHasbits | kCardinality))) {
-                        // TODO
-                        FAIL_AND_BREAK;
-                    } else {
-                        hasbits |= entry;
-                    }
-                    ptr = ParseProto(child, ptr, ctx, child_table, field_num);
-                    if (ptr == nullptr) break;
-                    continue;
-                } else if ((tag & 7) == 4) {
-                    end_group:
-                    if (field_num == ending) ending = 0;
-                    break;
+            if (ABSL_PREDICT_FALSE((tag & 7) == 3)) {
+                delta = -field_num;
+parse_submsg:
+                auto aux_idx = entry >> 48;
+                unsigned offset = table->aux[aux_idx].offset;
+                const ParseTable* child_table = static_cast<const ParseTable*>(table->aux[aux_idx].table);
+                MessageLite*& child = RefAt<MessageLite*>(msg, offset);
+                if (child == nullptr) {
+                    child = static_cast<const MessageLite*>(child_table->default_instance)->New();
                 }
-                FAIL_AND_BREAK;
+                ptr = ParseProto(child, ptr, ctx, child_table, delta);
+                if (ptr == nullptr) ERROR;
+                continue;
             }
             uint64_t data = L64(ptr);
             uint64_t mask = 0x7f7f7f7f7f7f7f7f;
@@ -311,7 +298,7 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
             if (entry & kZigZag) data = WireFormatLite::ZigZagDecode64(data);
             if (ABSL_PREDICT_FALSE(entry & (kBool | kExcessHasbits | kCardinality))) {
                 // TODO
-                FAIL_AND_BREAK;
+                ERROR;
             } else {
                 hasbits |= entry;
             }
@@ -321,12 +308,18 @@ const char* ParseProto(MessageLite* msg, const char* ptr, ParseContext* ctx, con
             ptr += size;
         }
     }
+    if (delta_or_group_num < 0) ERROR;
+    if (delta_or_group_num > 0) {
+        if (!ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group_num))) ERROR;
+    }
+group_end:
     // Sync hasbits
     if (table->offset_hasbits) RefAt<uint32_t>(msg, table->offset_hasbits) = hasbits >> 16;
-    if (ending) ptr = nullptr;
-    if (!utf8_checker.DoTests()) ptr = nullptr;
     // ctx->depth_++;
     return ptr;
+error:
+    ptr = nullptr;
+    goto group_end;
 }
 
 

@@ -918,6 +918,10 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
   auto& field_msg = RefAt<RepeatedField<FieldType>>(msg, data.offset());
   auto field = std::move(field_msg);
   const auto expected_tag = UnalignedLoad<TagType>(ptr);
+  unsigned pos, size;
+  memcpy(&pos, &field, 4);
+  memcpy(&size, reinterpret_cast<char*>(&field), 4);
+  auto array = field.mutable_data();
   do {
     ptr += sizeof(TagType);
     FieldType tmp;
@@ -925,11 +929,20 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
     if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) {
       PROTOBUF_MUSTTAIL return Error(PROTOBUF_TC_PARAM_NO_DATA_PASS);
     }
-    field.Add(ZigZagDecodeHelper<FieldType, zigzag>(tmp));
+    if (pos < size) {
+      array[pos++] = ZigZagDecodeHelper<FieldType, zigzag>(tmp);
+    } else {
+      field.Add(ZigZagDecodeHelper<FieldType, zigzag>(tmp));
+      memcpy(&pos, &field, 4);
+      memcpy(&size, reinterpret_cast<char*>(&field), 4);
+      array = field.mutable_data();
+    }
     if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) {
       PROTOBUF_MUSTTAIL return ToParseLoop(PROTOBUF_TC_PARAM_NO_DATA_PASS);
     }
   } while (UnalignedLoad<TagType>(ptr) == expected_tag);
+  memcpy(&field, &pos, 4);
+  memcpy(reinterpret_cast<char*>(&field), &size, 4);
   field_msg = std::move(field);
   PROTOBUF_MUSTTAIL return ToTagDispatch(PROTOBUF_TC_PARAM_NO_DATA_PASS);
 }

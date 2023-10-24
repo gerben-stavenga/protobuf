@@ -931,9 +931,11 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
     if (pos < size) {
       array[pos++] = ZigZagDecodeHelper<FieldType, zigzag>(tmp);
     } else {
+      memcpy(&field, &pos, 4);
+      memcpy(reinterpret_cast<char*>(&field) + 4, &size, 4);
       field.Add(ZigZagDecodeHelper<FieldType, zigzag>(tmp));
       memcpy(&pos, &field, 4);
-      memcpy(&size, reinterpret_cast<char*>(&field), 4);
+      memcpy(&size, reinterpret_cast<char*>(&field) + 4, 4);
       array = field.mutable_data();
     }
     if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) {

@@ -915,7 +915,8 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
   if (PROTOBUF_PREDICT_FALSE(data.coded_tag<TagType>() != 0)) {
     PROTOBUF_MUSTTAIL return MiniParse(PROTOBUF_TC_PARAM_NO_DATA_PASS);
   }
-  auto& field = RefAt<RepeatedField<FieldType>>(msg, data.offset());
+  auto& field_msg = RefAt<RepeatedField<FieldType>>(msg, data.offset());
+  auto field = std::move(field_msg);
   const auto expected_tag = UnalignedLoad<TagType>(ptr);
   do {
     ptr += sizeof(TagType);
@@ -929,6 +930,7 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
       PROTOBUF_MUSTTAIL return ToParseLoop(PROTOBUF_TC_PARAM_NO_DATA_PASS);
     }
   } while (UnalignedLoad<TagType>(ptr) == expected_tag);
+  field_msg = std::move(field);
   PROTOBUF_MUSTTAIL return ToTagDispatch(PROTOBUF_TC_PARAM_NO_DATA_PASS);
 }
 

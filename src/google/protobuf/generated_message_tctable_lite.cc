@@ -928,7 +928,7 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
     if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) {
       PROTOBUF_MUSTTAIL return Error(PROTOBUF_TC_PARAM_NO_DATA_PASS);
     }
-    if (pos < size) {
+    if (pos != size) {
       array[pos++] = ZigZagDecodeHelper<FieldType, zigzag>(tmp);
     } else {
       memcpy(&field, &pos, 4);

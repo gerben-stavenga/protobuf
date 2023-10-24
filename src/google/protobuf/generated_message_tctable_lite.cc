@@ -919,7 +919,7 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
   const auto expected_tag = UnalignedLoad<TagType>(ptr);
   unsigned pos, size;
   memcpy(&pos, &field, 4);
-  memcpy(&size, reinterpret_cast<char*>(&field), 4);
+  memcpy(&size, reinterpret_cast<char*>(&field) + 4, 4);
   auto array = field.mutable_data();
   do {
     ptr += sizeof(TagType);
@@ -941,7 +941,7 @@ PROTOBUF_ALWAYS_INLINE const char* TcParser::RepeatedVarint(
     }
   } while (UnalignedLoad<TagType>(ptr) == expected_tag);
   memcpy(&field, &pos, 4);
-  memcpy(reinterpret_cast<char*>(&field), &size, 4);
+  memcpy(reinterpret_cast<char*>(&field) + 4, &size, 4);
   PROTOBUF_MUSTTAIL return ToTagDispatch(PROTOBUF_TC_PARAM_NO_DATA_PASS);
 }
 

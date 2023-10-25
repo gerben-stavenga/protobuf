@@ -398,10 +398,14 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
   int size = ReadSize(&ptr);
   if (!ptr) return nullptr;
 
+  if (size <= buffer_end_ + kSlopBytes - ptr) {
+    // This prevents constructing a string preventing an allocation and simultaneous preventing
+    // a string appearing on the destructor list.
+    s->Set(ptr, size, arena);
+    return ptr + size;
+  }
   auto* str = s->NewString(arena);
-  ptr = ReadString(ptr, size, str);
-  GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-  return ptr;
+  return ReadStringFallback(ptr, size, str);
 }
 
 }  // namespace internal

@@ -25,6 +25,7 @@ const char* Parse(const char* ptr, const char* end) {
     while (ptr < end) {
         uint32_t tag;
         ptr = ReadTag(ptr, &tag);
+        if ((tag & 7) == 4) break;
         switch (tag >> 3) {
             case 1: {
                 if (tag != 8) return nullptr;
@@ -47,6 +48,16 @@ const char* Parse(const char* ptr, const char* end) {
                 if (tag != 32 + 5) return nullptr;
                 ptr += 4;
                 break;
+            }
+            case 5: {
+                if (tag != 40 + 2) return nullptr;
+                uint32_t sz = ReadSize(&ptr);
+                ptr = Parse(ptr, ptr + sz);
+                break;
+            }
+            case 6: {
+                if (tag != 48 + 3) return nullptr;
+                ptr = Parse(ptr, end);
             }
             default:
                 return nullptr;
@@ -378,7 +389,7 @@ again:
 
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, state.range(0), true);
+    WriteRandom(&x, state.range(0), 2);
     for (auto _ : state) {
         if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
@@ -386,6 +397,7 @@ static void BM_RegularParse(benchmark::State& state) {
 }
 BENCHMARK(BM_RegularParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
+#if 0
 static void BM_NewParse(benchmark::State& state) {
     std::string x;
     WriteRandom(&x, state.range(0), true);
@@ -395,6 +407,7 @@ static void BM_NewParse(benchmark::State& state) {
     state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK(BM_NewParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+#endif
 
 static void BM_Proto2Parse(benchmark::State& state, int level) {
     std::string x;

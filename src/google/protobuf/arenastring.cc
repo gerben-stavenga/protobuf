@@ -205,6 +205,15 @@ TaggedStringPtr CreateArenaString(Arena& arena, absl::string_view s) {
   return res;
 }
 
+#else
+
+// Creates an arena allocated std::string value.
+TaggedStringPtr CreateArenaString(Arena& arena, const char* s, size_t n) {
+  TaggedStringPtr res;
+  res.SetFixedSizeArena(DonateString(&arena, s, n));
+  return res;
+}
+
 #endif  // !GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
 
 }  // namespace

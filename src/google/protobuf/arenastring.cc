@@ -24,6 +24,123 @@ namespace google {
 namespace protobuf {
 namespace internal {
 
+// This pattern allows one to legally access private members, which we need to
+// implement ArenaString. By using legal c++ we ensure that we do not break
+// strict aliasing preventing potential miscompiles.
+template <typename Tag, typename Tag::type M>
+struct Robber {
+    friend constexpr typename Tag::type Get(Tag) {
+        return M;
+    }
+};
+
+#ifdef _LIBCPP_VERSION
+
+struct StringSetCap {
+    using type = void (std::string::*)(std::size_t);
+    friend constexpr type Get(StringSetCap);
+};
+
+template
+struct Robber<StringSetCap, &std::string::__set_long_cap>;
+
+struct StringSetSize {
+    using type = void (std::string::*)(std::size_t);
+    friend constexpr type Get(StringSetSize);
+};
+
+template
+struct Robber<StringSetSize, &std::string::__set_long_size>;
+
+struct StringSetPointer {
+    using type = void (std::string::*)(char*);
+    friend constexpr type Get(StringSetPointer);
+};
+
+template
+struct Robber<StringSetPointer, &std::string::__set_long_pointer>;
+
+// Using this method makes this code automatically good both for
+// normal ABI and with the _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT flag.
+class StringRep : public std::string {
+public:
+    static constexpr size_t kMaxInlinedStringSize = 22;
+
+    StringRep(char* data, size_t length, size_t capacity) {
+        (this->*Get(StringSetPointer()))(data);
+        (this->*Get(StringSetCap()))(capacity);
+        (this->*Get(StringSetSize()))(length);
+    }
+};
+
+#elif defined(__GLIBCXX__)
+
+struct StringSetCap {
+    using type = void (std::string::*)(std::size_t);
+    friend constexpr type Get(StringSetCap);
+};
+
+template
+struct Robber<StringSetCap, &std::string::_M_capacity>;
+
+struct StringSetSize {
+    using type = void (std::string::*)(std::size_t);
+    friend constexpr type Get(StringSetSize);
+};
+
+template
+struct Robber<StringSetSize, &std::string::_M_length>;
+
+// Workaround a compiler bug in clang fixed only in version 14
+template <typename Tag, typename V, V M>
+struct RobberWorkaround {
+    friend void Set(Tag, std::string* s, char* ptr) {
+        (s->*M)._M_p = ptr;
+    }
+};
+
+struct StringSetPointer {
+    friend void Set(StringSetPointer, std::string*, char*);
+};
+
+template
+struct RobberWorkaround<StringSetPointer, std::string::_Alloc_hider std::string::*, &std::string::_M_dataplus>;
+
+// This will give a compile error if libstdc++ is using cow_string
+// which cannot be supported, so compile error is good.
+class StringRep : public std::string {
+public:
+    static constexpr size_t kMaxInlinedStringSize = 15;
+
+    StringRep(char* data, size_t length, size_t capacity) {
+        Set(StringSetPointer(), this, data);
+        (this->*Get(StringSetCap()))(capacity);
+        (this->*Get(StringSetSize()))(length);
+    }
+};
+
+#else
+
+#error "arena string not ported for windows yet."
+
+#endif
+
+inline std::string* DonateString(Arena* arena, const char* s, size_t n) {
+  if (n <= internal::StringRep::kMaxInlinedStringSize) {
+    void* mem = arena->AllocateAligned(sizeof(std::string), alignof(std::string));
+    return new (mem) std::string(s, n);
+  } else {
+    // Allocate enough for string + content + terminal 0
+    void* mem = arena->AllocateAligned(sizeof(std::string) + n + 1, alignof(std::string));
+    char* data = static_cast<char*>(mem) + sizeof(std::string);
+    memcpy(data, s, n);
+    data[n] = 0;
+    auto* rep = new (mem) internal::StringRep(
+        data, /*length=*/n, /*capacity=*/n);
+    return rep;
+  }
+}
+
 namespace  {
 
 // TaggedStringPtr::Flags uses the lower 2 bits as tags.

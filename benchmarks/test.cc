@@ -482,6 +482,57 @@ unknown_field:
         switch ((entry >> 3) & 15) {
             case 0:
                 goto common_case;
+            case 1:
+                // singular bool
+            case 2:
+                // repeated bool
+            case 3:
+                // repeated int32/uint32
+            case 4:
+                // repeated sint32
+            case 5:
+                // repeated int64/uint64
+            case 6:
+                // repeated sint64
+            case 7:
+                // repeated fixed32
+            case 8:
+                // repeated fixed64            
+            case 9:
+                // repeated bytes + debug string
+            case 10:
+                // repeated string
+            case 11:
+                // repeated message
+            case 12:
+                // repeated group
+            case 13:
+                // packed bool
+            case 14:
+                // packed int32/uint32
+            case 15:
+                // packed sint32
+            case 16:
+                // packed int64/uint64
+            case 17:
+                // packed sint64
+            case 18:
+                // packed fixed32
+            case 19:
+                // packed fixed64
+            case 7:
+                // oneof bool
+            case 8:
+                // oneof uint32/int32/sint32/uint64/int64/sint64
+            case 8:
+                // oneof fixed32/fixed64
+            case 8:
+                // oneof bytes/string
+            case 7:
+                // oneof message
+            case 7:
+                // oneof group
+            
             default:
                 goto error;
         }
@@ -624,7 +675,7 @@ again:
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
     WriteRandom(&x, state.range(0), 0);
-    for (auto _ : state) {
+   for (auto _ : state) {
         if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));

@@ -58,6 +58,7 @@ const char* Parse(const char* ptr, const char* end) {
             case 6: {
                 if (tag != 48 + 3) return nullptr;
                 ptr = Parse(ptr, end);
+                break;
             }
             default:
                 return nullptr;
@@ -65,6 +66,38 @@ const char* Parse(const char* ptr, const char* end) {
     }
     return ptr;
 }
+
+__attribute__((noinline))
+const char* ParseDirect(const char* ptr, const char* end) {
+    while (ptr < end) {
+        uint32_t tag;
+        ptr = ReadTag(ptr, &tag);
+        uint32_t wt = tag & 7;
+        if (wt == 4) break;
+        
+        if (wt == 0) {
+            uint64_t x;
+            ptr = VarintParse(ptr, &x);
+        } else if (wt == 1) {
+            ptr += 8;
+        } else if (wt == 5) {
+            ptr += 4;
+        } else if (wt == 3) {
+            ptr = Parse(ptr, end);
+        } else if (ABSL_PREDICT_TRUE(wt == 2)) {
+            uint32_t sz = ReadSize(&ptr);
+            if (tag == 40 + 2) {
+                ptr = Parse(ptr, ptr + sz);                
+            } else {
+                ptr += sz;
+            }
+        } else {
+            return nullptr;
+        }
+    }
+    return ptr;
+}
+
 
 inline uint64_t L64(const char* ptr) {
     uint64_t x;
@@ -337,7 +370,188 @@ group_end:
 error:
     ptr = nullptr;
     goto group_end;
+    #undef ERROR
 }
+
+
+__attribute__((noinline))
+const char* ParseProto2(MessageLite* msg, const char* ptr, ParseContext* ctx, const ParseTable* table, int delta_or_group_num) {
+    //if (--ctx->depth_ == 0) return nullptr;
+
+    #define ERROR do { if (0) std::cout << __LINE__ << " failure\n"; goto error; } while (0)
+
+    uint64_t hasbits = 0;
+    if (table->offset_hasbits) hasbits = uint64_t(RefAt<uint32_t>(msg, table->offset_hasbits)) << 16;
+    while (!ctx->Done(&ptr)) {
+        uint32_t opcode = uint8_t(*ptr) & 7;
+        uint32_t tag;
+        ptr = ReadTagInlined(ptr, &tag);
+        if (ptr == nullptr) ERROR;
+        if (ABSL_PREDICT_FALSE((tag & 7) == 4)) {
+            if (tag != -delta_or_group_num) ERROR;
+            goto group_end;
+        }
+        uint32_t idx = (tag >> 3) - table->start_field_num;
+        uint64_t entry;
+        if (ABSL_PREDICT_FALSE(idx >= table->entry_cutoff)) {
+            if (tag == 0) {
+                goto group_end;
+            }
+            // TODO search in sparse list
+            goto unknown_field;
+        } else {
+            entry = table->entries[idx];
+        }
+        asm("":: "r"(entry));
+        if (uint8_t(entry & 7) != uint8_t(opcode)) {
+unknown_field:
+            // TODO unknown field
+            ERROR;
+        }
+        // Here we are guaranteed that opcode is a valid wiretype (ie. 0, ..., 5) assuming correctness of the tables.
+        // Here we are at the crux of proto parsing performance. What to do next depends on the field indicated by the
+        // tag. In production where in between proto parsing 100 millions of other instructions are run, poluting the
+        // branch predictor caches to make it unlikely to achieve good hit rates for protos with sufficient mix of types
+        // fields.
+        // The flexibility of protos results in a huge set of types. The bigger the sets the less chance of a correct
+        // target predict. When a branch miss happens this can be modelled as a explicit dependency of all subsequent
+        // instructions on that branch instruction, including the latency of the resteer (pipeline bubble). In case
+        // of a correct prediction the latency of the computation of the branch target do not matter for the
+        // throughput of the body of the parse loop. The fundamental dependency chain is carried by ptr.
+        //
+        // The original parser, which was generated code contained a switch on field number. Which leads to
+        // 1) ptr -> tag = Load(ptr) -> target = Load(jump_table + tag) -> branch miss -> ptr += size(field)
+        // Which contains two load-to-use latency + branch miss latency on the critical path (5 + 5 + 15 = 25 cycles).
+        //
+        // In a naive table driven parser, you'd store a fieldtype in a table and switch on the fieldtype in a very
+        // big universal parse loop. Unfortunately this adds an extra load-to-use on the critical path. Notice you
+        // don't see this effect in micro benchmarks where unless you are careful the BP is able to memorize the data
+        // perfectly,
+        // 2) ptr -> tag = Load(ptr) -> type -> parse_t[tag] -> target = jump_t[type] -> branch miss -> ptr += size(field)
+        //
+        // The crux of the TCParser is that using tail calling we can embed the function pointers directly in the
+        // parse tables and hence approaching the performance of the generated code.
+        //
+        // To fundamentally improve the performance we need to structurally improve the above bottlenecks. Improving
+        // hit rates / reducing the throughput latency. For instance conditional branches have a fixed target, so 
+        // they do not involve an additional load from a jump table, potentially shaving off cycles. However there
+        // is a competing concern where it's very expensive to have further additional branch misses in a single 
+        // parse loop iteration. If one incurs a branch miss, it's imperative to learn as much as possible from the
+        // branch miss to minimize any additional branch miss.
+        //
+        // There is no best solution for all cases, everything decission is a trade off. There is only good solutions
+        // optimizing a workload representative of production. Now there are certain pertinent observations.
+        // Clearly not all field types are equally common. For instance it's clear from fleetbench protos, that claim
+        // to be a representable to at least googles workload, that singular strings/bytes and primitive scalars
+        // constitutes the far majority of fields. 
+        //
+        // The idea is too separate fields into common / easy and rare / complex. We can take care of the rare/complex
+        // by the chain 2. Yes it has an extra load, but the fast majority it will branch to the common case, which
+        // will be accurately predicted and hence the chain does not participate in the bottleneck. Importantly,
+        // when a mispredict does happen we jump to a fine grained parser dedicated to dealing with the field.
+        //
+        // The common / easy case should happen > 80(90) percent of the time. In this case we should find a code
+        // path with a substantial lower critical chain than the TCParser. Here it pays to try as much as possible
+        // using branchless code to unify different field paths. Instead of branching on the field number
+        // we can branch on wiretype, determining the structure of the field to follow. Because the wiretypes are
+        // very limited (only 6) we will use conditional branches removing an additional load fron the chain on
+        // branch miss. We use branchless code to unify singular int32/int64 zigzag/normal into one branch for varints.
+        // Fixed 32 and 64 wiretypes are automatically generic for all different types. For length delimited
+        // bytes and strings we branchless batch utf8 verification. 
+
+        switch ((entry >> 3) & 15) {
+            case 0:
+                goto common_case;
+            default:
+                goto error;
+        }
+        continue;
+common_case:
+        int delta;
+        if (ABSL_PREDICT_FALSE(opcode == 2)) {
+            uint32_t sz = ReadSize(&ptr);
+            if (ptr == nullptr) ERROR;
+            if (ABSL_PREDICT_TRUE((entry & kMessage) == 0)) {
+                auto offset = entry >> 48;
+                RefAt<ArenaStringPtr>(msg, offset).SetBytes(ptr, sz, nullptr);
+                utf8_checker.BatchTest(RefAt<ArenaStringPtr>(msg, offset).Get(), entry & kCheckUtf8);
+                ptr += sz;
+            } else {
+                delta = ctx->PushLimit(ptr, sz).token();
+                goto parse_submsg;
+            }
+            if (ABSL_PREDICT_FALSE(entry & (kExcessHasbits | kCardinality))) {
+                // TODO
+                ERROR;
+            } else {
+                hasbits |= entry;
+            }
+        } else {
+            static const uint64_t size_mask[] = {
+                0xFF,
+                0xFFFF,
+                0xFFFFFF,
+                0xFFFFFFFF,
+                0xFFFFFFFFFF,
+                0xFFFFFFFFFFFF,
+                0xFFFFFFFFFFFFFF,
+                0xFFFFFFFFFFFFFFFF
+            };
+            if (ABSL_PREDICT_FALSE(opcode == 3)) {
+                //delta = -field_num;
+parse_submsg:
+                auto aux_idx = entry >> 48;
+                unsigned offset = table->aux[aux_idx].offset;
+                const ParseTable* child_table = static_cast<const ParseTable*>(table->aux[aux_idx].table);
+                MessageLite*& child = RefAt<MessageLite*>(msg, offset);
+                if (child == nullptr) {
+                    child = static_cast<const MessageLite*>(child_table->default_instance)->New();
+                }
+                ptr = ParseProto(child, ptr, ctx, child_table, delta);
+                if (ptr == nullptr) ERROR;
+                continue;
+            }
+            uint64_t data = L64(ptr);
+            uint64_t mask = 0x7f7f7f7f7f7f7f7f;
+            auto x = data | mask;
+            auto y = x ^ (x + 1);
+            auto varintsize = __builtin_popcountll(y) / 8;
+            auto fixedsize = tag & 4 ? 4 : 8;
+            if (tag & 1) mask = -1;
+            auto size = (tag & 1 ? fixedsize : varintsize);
+            data &= size_mask[size - 1];
+#ifdef __X86_64__
+            data = _pext_u64(data, mask);
+#else
+            // TODO find good sequence for arm
+#endif
+            if (entry & kZigZag) data = WireFormatLite::ZigZagDecode64(data);
+            if (ABSL_PREDICT_FALSE(entry & (kBool | kExcessHasbits | kCardinality))) {
+                // TODO
+                ERROR;
+            } else {
+                hasbits |= entry;
+            }
+            auto offset = entry >> 48;
+            RefAt<uint32_t>(msg, offset + ((entry & k64bit) ? 4 : 0)) = data >> 32;
+            RefAt<uint32_t>(msg, offset) = data;
+            ptr += size;
+        }
+    }
+    if (delta_or_group_num < 0) ERROR;
+    if (delta_or_group_num > 0) {
+        if (!ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group_num))) ERROR;
+    }
+group_end:
+    // Sync hasbits
+    if (table->offset_hasbits) RefAt<uint32_t>(msg, table->offset_hasbits) = hasbits >> 16;
+    // ctx->depth_++;
+    return ptr;
+error:
+    ptr = nullptr;
+    goto group_end;
+}
+
 
 
 void WriteRandom(std::string* s, int iters, int level) {
@@ -396,6 +610,16 @@ static void BM_RegularParse(benchmark::State& state) {
     state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK(BM_RegularParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+
+static void BM_ParseDirect(benchmark::State& state) {
+    std::string x;
+    WriteRandom(&x, state.range(0), 2);
+    for (auto _ : state) {
+        if (ParseDirect(x.data(), x.data() + x.size()) == nullptr) exit(-1);
+    }
+    state.SetBytesProcessed(state.iterations() * x.size());
+}
+BENCHMARK(BM_ParseDirect)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 #if 0
 static void BM_NewParse(benchmark::State& state) {

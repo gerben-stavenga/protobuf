@@ -615,35 +615,34 @@ again:
 
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, state.range(0), 2);
+    WriteRandom(&x, state.range(0), 0);
     for (auto _ : state) {
         if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
-    state.SetBytesProcessed(state.iterations() * x.size());
+    state.SetItemsProcessed(state.iterations() * state.range(0));
 }
+
 BENCHMARK(BM_RegularParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 static void BM_ParseDirect(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, state.range(0), 2);
+    WriteRandom(&x, state.range(0), 0);
     for (auto _ : state) {
         if (ParseDirect(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
-    state.SetBytesProcessed(state.iterations() * x.size());
+    state.SetItemsProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK(BM_ParseDirect)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
-#if 0
 static void BM_NewParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, state.range(0), true);
+    WriteRandom(&x, state.range(0), 0);
     for (auto _ : state) {
         if (ParseTest(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
-    state.SetBytesProcessed(state.iterations() * x.size());
+    state.SetItemsProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK(BM_NewParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
-#endif
 
 static void BM_Proto2Parse(benchmark::State& state, int level) {
     std::string x;
@@ -652,7 +651,7 @@ static void BM_Proto2Parse(benchmark::State& state, int level) {
     for (auto _ : state) {
         proto.ParseFromString(x);
     }
-    state.SetBytesProcessed(state.iterations() * x.size());
+    state.SetItemsProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK_CAPTURE(BM_Proto2Parse, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_CAPTURE(BM_Proto2Parse, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);
@@ -725,7 +724,7 @@ static void BM_TableParse(benchmark::State& state, int level) {
         ParseContext ctx(20, false, &ptr, x);
         ParseProto(&proto, ptr, &ctx, &test_proto_parse_table, 0);
     }
-    state.SetBytesProcessed(state.iterations() * x.size());
+    state.SetItemsProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK_CAPTURE(BM_TableParse, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_CAPTURE(BM_TableParse, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);

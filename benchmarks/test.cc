@@ -78,9 +78,13 @@ const char* ParseDirect(const char* ptr, const char* end) {
         if (wt == 0) {
             uint64_t x;
             ptr = VarintParse(ptr, &x);
+            continue;
         } else if (wt == 1) {
             ptr += 8;
-        } else if (wt == 5) {
+            continue;
+        }
+        asm volatile("");
+        if (wt == 5) {
             ptr += 4;
         } else if (ABSL_PREDICT_FALSE(wt == 3)) {
             ptr = Parse(ptr, end);

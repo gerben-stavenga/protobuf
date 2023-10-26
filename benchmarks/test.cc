@@ -20,6 +20,13 @@ namespace google {
 namespace protobuf {
 namespace internal {
 
+
+inline uint64_t L64(const char* ptr) {
+    uint64_t x;
+    std::memcpy(&x, ptr, 8);
+    return x;
+}
+
 __attribute__((noinline))
 const char* Parse(const char* ptr, const char* end) {
     while (ptr < end) {
@@ -67,32 +74,39 @@ const char* Parse(const char* ptr, const char* end) {
     return ptr;
 }
 
+template <bool use_preload>
 __attribute__((noinline))
 const char* ParseDirect(const char* ptr, const char* end) {
+    uint32_t nexttag = *ptr;
     while (ptr < end) {
         uint32_t tag;
+        uint64_t preload = L64(ptr + 2);
         ptr = ReadTag(ptr, &tag);
-        uint32_t wt = tag & 7;
+        uint32_t wt = use_preload ? nexttag & 7 : tag & 7;
         if (ABSL_PREDICT_FALSE(wt == 4)) break;
         asm volatile("");
         if (ABSL_PREDICT_FALSE(wt == 0)) {
             uint64_t x;
             ptr = VarintParse(ptr, &x);
+            nexttag = preload;
             continue;
         }
         asm volatile("");
         if (ABSL_PREDICT_FALSE(wt == 1)) {
             ptr += 8;
+            nexttag = preload >> (7 * 8);
             continue;
         }
         asm volatile("");
         if (ABSL_PREDICT_FALSE(wt == 5)) {
             ptr += 4;
+            nexttag = preload >> (3 * 8);
             continue;
         }
         asm volatile("");
         if (ABSL_PREDICT_FALSE(wt == 3)) {
             ptr = Parse(ptr, end);
+            nexttag = *ptr;
             continue;
         }
         asm volatile("");
@@ -103,18 +117,12 @@ const char* ParseDirect(const char* ptr, const char* end) {
             } else {
                 ptr += sz;
             }
+            nexttag = *ptr;
         } else {
             return nullptr;
         }
     }
     return ptr;
-}
-
-
-inline uint64_t L64(const char* ptr) {
-    uint64_t x;
-    std::memcpy(&x, ptr, 8);
-    return x;
 }
 
 __attribute__((noinline))
@@ -624,15 +632,17 @@ static void BM_RegularParse(benchmark::State& state) {
 
 BENCHMARK(BM_RegularParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
+template <bool use_preload>
 static void BM_ParseDirect(benchmark::State& state) {
     std::string x;
     WriteRandom(&x, state.range(0), 0);
     for (auto _ : state) {
-        if (ParseDirect(x.data(), x.data() + x.size()) == nullptr) exit(-1);
+        if (ParseDirect<use_preload>(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));
 }
-BENCHMARK(BM_ParseDirect)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_TEMPLATE(BM_ParseDirect, false)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_TEMPLATE(BM_ParseDirect, true)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 static void BM_NewParse(benchmark::State& state) {
     std::string x;

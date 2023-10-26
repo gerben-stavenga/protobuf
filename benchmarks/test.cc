@@ -73,18 +73,18 @@ const char* ParseDirect(const char* ptr, const char* end) {
         uint32_t tag;
         ptr = ReadTag(ptr, &tag);
         uint32_t wt = tag & 7;
-        if (wt == 4) break;
+        if (ABSL_PREDICT_FALSE(wt == 4)) break;
         asm volatile("");
-        if (wt == 0) {
+        if (ABSL_PREDICT_FALSE(wt == 0)) {
             uint64_t x;
             ptr = VarintParse(ptr, &x);
             continue;
-        } else if (wt == 1) {
+        } else if (ABSL_PREDICT_FALSE(wt == 1)) {
             ptr += 8;
             continue;
         }
         asm volatile("");
-        if (wt == 5) {
+        if (ABSL_PREDICT_FALSE(wt == 5)) {
             ptr += 4;
         } else if (ABSL_PREDICT_FALSE(wt == 3)) {
             ptr = Parse(ptr, end);

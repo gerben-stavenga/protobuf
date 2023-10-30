@@ -11,6 +11,7 @@
 #include "google/protobuf/parse_context.h"
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/io/zero_copy_stream_impl.h"
+#include "google/protobuf/generated_message_tctable_impl.h"
 #include "google/protobuf/json/json.h"
 
 #include "benchmarks/test.pb.h"
@@ -124,6 +125,222 @@ const char* ParseDirect(const char* ptr, const char* end) {
     }
     return ptr;
 }
+
+struct SkipEntry16 {
+  uint16_t skipmap;
+  uint16_t field_entry_offset;
+};
+
+const TcParseTableBase::FieldEntry* FindFieldEntry(
+    const TcParseTableBase* table, uint32_t field_num) {
+  using FieldEntry = TcParseTableBase::FieldEntry;
+  const FieldEntry* const field_entries = table->field_entries_begin();
+
+  uint32_t fstart = 1;
+  uint32_t adj_fnum = field_num - fstart;
+
+  if (ABSL_PREDICT_TRUE(adj_fnum < 32)) {
+    uint32_t skipmap = table->skipmap32;
+    uint32_t skipbit = 1 << adj_fnum;
+    if (ABSL_PREDICT_FALSE(skipmap & skipbit)) return nullptr;
+    skipmap &= skipbit - 1;
+    adj_fnum -= absl::popcount(skipmap);
+    auto* entry = field_entries + adj_fnum;
+    ABSL_ASSUME(entry != nullptr);
+    return entry;
+  }
+  const uint16_t* lookup_table = table->field_lookup_begin();
+  for (;;) {
+#ifdef PROTOBUF_LITTLE_ENDIAN
+    memcpy(&fstart, lookup_table, sizeof(fstart));
+#else
+    fstart = lookup_table[0] | (lookup_table[1] << 16);
+#endif
+    lookup_table += sizeof(fstart) / sizeof(*lookup_table);
+    uint32_t num_skip_entries = *lookup_table++;
+    if (field_num < fstart) return nullptr;
+    adj_fnum = field_num - fstart;
+    uint32_t skip_num = adj_fnum / 16;
+    if (ABSL_PREDICT_TRUE(skip_num < num_skip_entries)) {
+      // for each group of 16 fields we have:
+      // a bitmap of 16 bits
+      // a 16-bit field-entry offset for the first of them.
+      auto* skip_data = lookup_table + (adj_fnum / 16) * (sizeof(SkipEntry16) /
+                                                          sizeof(uint16_t));
+      SkipEntry16 se = {skip_data[0], skip_data[1]};
+      adj_fnum &= 15;
+      uint32_t skipmap = se.skipmap;
+      uint16_t skipbit = 1 << adj_fnum;
+      if (ABSL_PREDICT_FALSE(skipmap & skipbit)) return nullptr;
+      skipmap &= skipbit - 1;
+      adj_fnum += se.field_entry_offset;
+      adj_fnum -= absl::popcount(skipmap);
+      auto* entry = field_entries + adj_fnum;
+      ABSL_ASSUME(entry != nullptr);
+      return entry;
+    }
+    lookup_table +=
+        num_skip_entries * (sizeof(SkipEntry16) / sizeof(*lookup_table));
+  }
+}
+
+inline void SetHasBit(void* x, unsigned b) {
+    static_cast<char*>(x)[b / 8] |= 1 << (b & 7);
+}
+
+inline uint32_t GetSplitOffset(const TcParseTableBase* table) {
+  return table->field_aux(kSplitOffsetAuxIdx)->offset;
+}
+
+inline uint32_t GetSizeofSplit(const TcParseTableBase* table) {
+  return table->field_aux(kSplitSizeAuxIdx)->offset;
+}
+
+void* MaybeGetSplitBase(MessageLite* msg, const bool is_split,
+                                  const TcParseTableBase* table) {
+  void* out = msg;
+  if (is_split) {
+    const uint32_t split_offset = GetSplitOffset(table);
+    void* default_split =
+        TcParser::RefAt<void*>(table->default_instance, split_offset);
+    void*& split = TcParser::RefAt<void*>(msg, split_offset);
+    if (split == default_split) {
+      // Allocate split instance when needed.
+      uint32_t size = GetSizeofSplit(table);
+      Arena* arena = msg->GetArena();
+      split = (arena == nullptr) ? ::operator new(size)
+                                 : arena->AllocateAligned(size);
+      memcpy(split, default_split, size);
+    }
+    out = split;
+  }
+  return out;
+}
+
+
+
+__attribute__((noinline))
+const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table) {
+    using namespace field_layout;
+
+    constexpr int kMaxDepth = 100;
+    unsigned depth = kMaxDepth;
+
+    struct StackEntry {
+        void* msg;
+        const void* table;
+        int delta_or_group;
+    };
+
+    StackEntry stack[kMaxDepth];
+    auto push = [&](int size) {
+        if (depth == 0) return false;
+        stack[--depth] = {msg, table, size};
+        return true;
+    };
+    auto pop = [&]() {
+        auto stack_entry = stack[++depth];
+        msg = stack_entry.msg;
+        table = stack_entry.table;        
+        return stack_entry.delta_or_group;
+    };
+    auto empty = [&]() {
+        return depth >= kMaxDepth;
+    };
+
+    while (true) {
+        while (!ctx->Done(&ptr)) {
+            uint32_t tag;
+            ptr = ReadTagInlined(ptr, &tag);
+            uint32_t wt = tag & 7;
+            if (ABSL_PREDICT_FALSE(wt == 4)) {
+                if (empty()) return nullptr;
+                if (pop() != ~(tag >> 3)) return nullptr;
+                continue;
+            }
+            auto entry = FindFieldEntry(table, tag >> 8);
+            uint64_t value;
+            switch (wt) {
+                case 0:
+                    if (entry->type_card & kFkMask != kFkVarint) goto unusual;
+                    value = ReadVarint64(&ptr);
+                    if (ABSL_PREDICT_TRUE(entry->type_card & kFcMask <= kFcOptional)) {
+                        SetHasBit(msg, entry->has_idx);
+                        auto base = MaybeGetSplitBase(msg, entry->type_card & kSplitMask, table);
+                        if (entry->type_card & kRepMask == kRep8Bits) {
+                            RefAt<bool>(base, entry->offset) = value;
+                        } else {
+
+                        }
+                        // StoreScalar
+                    } else if ((ABSL_PREDICT_TRUE(entry->type_card & kFcMask == kFcRepeated))) {
+
+                    } else {
+                        // oneof
+                        return nullptr;
+                    }
+                    break;
+                case 1:
+                    value = L64(ptr); ptr += 8;
+                    if (entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask) != 
+                        FieldKind::kFkFixed | FieldRep::kRep64Bits) goto unusual;
+                    if (ABSL_PREDICT_TRUE(entry->type_card & kFcMask <= kFcOptional)) {
+                        // StoreScalar
+                    } else if ((ABSL_PREDICT_TRUE(entry->type_card & kFcMask == kFcRepeated))) {
+
+                    } else {
+                        // oneof
+                        return nullptr;
+                    }
+                    break;
+                case 5:
+                    value = L64(ptr); ptr += 4;
+                    if (entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask) != 
+                        FieldKind::kFkFixed | FieldRep::kRep32Bits) goto unusual;
+                    break;
+                case 3:
+                    if (entry->type_card & FieldKind::kFkMask != FieldKind::kFkMessage) goto unusual;
+                    if (!push(~(tag >> 3))) return nullptr;
+submessage:
+                    
+                    break;
+                case 2: {
+                    auto sz = ReadSize(&ptr);
+                    switch (__builtin_expect(entry->type_card & FieldKind::kFkMask, FieldKind::kFkString)) {
+                        case FieldKind::kFkString:
+                            break;
+                        case FieldKind::kFkMessage:
+                            if (!push(sz)) return nullptr;
+                            goto submessage;
+                        case FieldKind::kFkPackedFixed:
+                        case FieldKind::kFkPackedVarint:
+                        case FieldKind::kFkMap:
+                            // TODO
+                            return nullptr;
+                    }
+                    switch (__builtin_expect(entry->type_card & kRepMask, kRepAString)) {
+                        case kRepAString:
+                            break;
+                        default:
+                            // TODO
+                            return nullptr;
+                    }
+                }
+                case 6:
+                case 7:
+unusual:
+                    return nullptr;
+            }
+        }
+        if (ptr == nullptr) return nullptr;
+        if (empty()) break;
+        int delta_or_group = pop();
+        if (delta_or_group < 0) return nullptr;
+        ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
+    }
+    return ptr;
+}
+
 
 __attribute__((noinline))
 const char* ParseTest(const char* ptr, const char* end) {
@@ -393,7 +610,7 @@ error:
     #undef ERROR
 }
 
-
+#if 0
 __attribute__((noinline))
 const char* ParseProto2(MessageLite* msg, const char* ptr, ParseContext* ctx, const ParseTable* table, int delta_or_group_num) {
     //if (--ctx->depth_ == 0) return nullptr;
@@ -622,7 +839,7 @@ error:
     ptr = nullptr;
     goto group_end;
 }
-
+#endif
 
 
 void WriteRandom(std::string* s, int iters, int level) {
@@ -674,7 +891,7 @@ again:
 
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, state.range(0), 0);
+    WriteRandom(&x, state.range(0), 2);
    for (auto _ : state) {
         if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
@@ -686,7 +903,7 @@ BENCHMARK(BM_RegularParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 template <bool use_preload>
 static void BM_ParseDirect(benchmark::State& state) {
     std::string x;
-    WriteRandom(&x, state.range(0), 0);
+    WriteRandom(&x, state.range(0), 2);
     for (auto _ : state) {
         if (ParseDirect<use_preload>(x.data(), x.data() + x.size()) == nullptr) exit(-1);
     }
@@ -694,6 +911,20 @@ static void BM_ParseDirect(benchmark::State& state) {
 }
 BENCHMARK_TEMPLATE(BM_ParseDirect, false)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_TEMPLATE(BM_ParseDirect, true)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+
+static void BM_ParseBranchless(benchmark::State& state) {
+    std::string x;
+    WriteRandom(&x, state.range(0), 2);
+    x.reserve(x.size() + 10000000);
+    for (auto _ : state) {
+        const char* ptr;
+        ParseContext ctx(20, false, &ptr, x);
+        if (ParseBranchless(ptr, &ctx) == nullptr) exit(-1);
+    }
+    state.SetBytesProcessed(state.iterations() * x.size());
+    state.SetItemsProcessed(state.iterations() * state.range(0));
+}
+BENCHMARK(BM_ParseBranchless)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 static void BM_NewParse(benchmark::State& state) {
     std::string x;

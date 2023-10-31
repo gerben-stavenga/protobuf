@@ -286,12 +286,12 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
                 value = ReadVarint64(&ptr);
                 if ((entry->type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
                 if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
-                    SetHasBit(base, entry, &proto3_hasbits_dummy);
                     if (ABSL_PREDICT_FALSE((entry->type_card & kRepMask) == kRep8Bits)) {
                         RefAt<bool>(base, offset) = value;
                     } else {
                         Store(value, entry->type_card, &RefAt<uint32_t>(base, offset)); 
                     }
+                    SetHasBit(base, entry, &proto3_hasbits_dummy);
                 } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
                 } else {

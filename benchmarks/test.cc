@@ -17,10 +17,16 @@
 #include "benchmarks/test.pb.h"
 #include "benchmarks/test.upb.h"
 
+#define EXIT do { std::cout << "Exit at line " << __LINE__ << "\n"; exit(-1); } while(0)
+
 namespace google {
 namespace protobuf {
 namespace internal {
 
+template <typename T>
+T& RefAt(void* msg, ptrdiff_t offset) {
+    return *reinterpret_cast<T*>(static_cast<char*>(msg) + offset);
+}
 
 inline uint64_t L64(const char* ptr) {
     uint64_t x;
@@ -131,7 +137,7 @@ struct SkipEntry16 {
   uint16_t field_entry_offset;
 };
 
-const TcParseTableBase::FieldEntry* FindFieldEntry(
+inline const TcParseTableBase::FieldEntry* FindFieldEntry(
     const TcParseTableBase* table, uint32_t field_num) {
   using FieldEntry = TcParseTableBase::FieldEntry;
   const FieldEntry* const field_entries = table->field_entries_begin();
@@ -140,11 +146,11 @@ const TcParseTableBase::FieldEntry* FindFieldEntry(
   uint32_t adj_fnum = field_num - fstart;
 
   if (ABSL_PREDICT_TRUE(adj_fnum < 32)) {
-    uint32_t skipmap = table->skipmap32;
+/*    uint32_t skipmap = table->skipmap32;
     uint32_t skipbit = 1 << adj_fnum;
     if (ABSL_PREDICT_FALSE(skipmap & skipbit)) return nullptr;
     skipmap &= skipbit - 1;
-    adj_fnum -= absl::popcount(skipmap);
+    adj_fnum -= absl::popcount(skipmap); */
     auto* entry = field_entries + adj_fnum;
     ABSL_ASSUME(entry != nullptr);
     return entry;
@@ -184,8 +190,11 @@ const TcParseTableBase::FieldEntry* FindFieldEntry(
   }
 }
 
-inline void SetHasBit(void* x, unsigned b) {
-    static_cast<char*>(x)[b / 8] |= 1 << (b & 7);
+inline void SetHasBit(void* x, const TcParseTableBase::FieldEntry* entry, void* dummy) {
+    using namespace field_layout;
+    x = (entry->type_card & kFcMask) == kFcSingular ? dummy : x;
+    auto idx = entry->has_idx;
+    static_cast<char*>(x)[idx / 8] |= 1 << (idx & 7);
 }
 
 inline uint32_t GetSplitOffset(const TcParseTableBase* table) {
@@ -196,10 +205,10 @@ inline uint32_t GetSizeofSplit(const TcParseTableBase* table) {
   return table->field_aux(kSplitSizeAuxIdx)->offset;
 }
 
-void* MaybeGetSplitBase(MessageLite* msg, const bool is_split,
+inline void* MaybeGetSplitBase(MessageLite* msg, const bool is_split,
                                   const TcParseTableBase* table) {
   void* out = msg;
-  if (is_split) {
+  if (ABSL_PREDICT_FALSE(is_split)) {
     const uint32_t split_offset = GetSplitOffset(table);
     void* default_split =
         TcParser::RefAt<void*>(table->default_instance, split_offset);
@@ -217,8 +226,12 @@ void* MaybeGetSplitBase(MessageLite* msg, const bool is_split,
   return out;
 }
 
-
-
+inline void Store(uint64_t value, uint16_t typecard, uint32_t* out) {
+    using namespace field_layout;
+    *(out + ((typecard & kRepMask) == kRep64Bits ? 1 : 0)) = value >> 32;
+    *out = value;
+}
+ 
 __attribute__((noinline))
 const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table) {
     using namespace field_layout;
@@ -227,8 +240,8 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
     unsigned depth = kMaxDepth;
 
     struct StackEntry {
-        void* msg;
-        const void* table;
+        MessageLite* msg;
+        const TcParseTableBase* table;
         int delta_or_group;
     };
 
@@ -239,7 +252,7 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
         return true;
     };
     auto pop = [&]() {
-        auto stack_entry = stack[++depth];
+        auto stack_entry = stack[depth++];
         msg = stack_entry.msg;
         table = stack_entry.table;        
         return stack_entry.delta_or_group;
@@ -248,95 +261,130 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
         return depth >= kMaxDepth;
     };
 
+    char proto3_hasbits_dummy = 0;
+    Arena* arena = msg->GetArena();
     while (true) {
         while (!ctx->Done(&ptr)) {
             uint32_t tag;
+            uint32_t wt = *ptr & 7;
             ptr = ReadTagInlined(ptr, &tag);
-            uint32_t wt = tag & 7;
             if (ABSL_PREDICT_FALSE(wt == 4)) {
                 if (empty()) return nullptr;
                 if (pop() != ~(tag >> 3)) return nullptr;
                 continue;
             }
-            auto entry = FindFieldEntry(table, tag >> 8);
+            auto entry = FindFieldEntry(table, tag >> 3);
+            auto base = MaybeGetSplitBase(msg, entry->type_card & kSplitMask, table);
+            unsigned offset = entry->offset;
             uint64_t value;
-            switch (wt) {
-                case 0:
-                    if (entry->type_card & kFkMask != kFkVarint) goto unusual;
-                    value = ReadVarint64(&ptr);
-                    if (ABSL_PREDICT_TRUE(entry->type_card & kFcMask <= kFcOptional)) {
-                        SetHasBit(msg, entry->has_idx);
-                        auto base = MaybeGetSplitBase(msg, entry->type_card & kSplitMask, table);
-                        if (entry->type_card & kRepMask == kRep8Bits) {
-                            RefAt<bool>(base, entry->offset) = value;
-                        } else {
-
-                        }
-                        // StoreScalar
-                    } else if ((ABSL_PREDICT_TRUE(entry->type_card & kFcMask == kFcRepeated))) {
-
+            if (ABSL_PREDICT_FALSE(wt == 0)) {
+                if ((entry->type_card & kFkMask) != kFkVarint) goto unusual;
+                value = ReadVarint64(&ptr);
+                if ((entry->type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
+                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
+                    SetHasBit(base, entry, &proto3_hasbits_dummy);
+                    if (ABSL_PREDICT_FALSE((entry->type_card & kRepMask) == kRep8Bits)) {
+                        RefAt<bool>(base, offset) = value;
                     } else {
-                        // oneof
-                        return nullptr;
+                        Store(value, entry->type_card, &RefAt<uint32_t>(base, offset)); 
                     }
-                    break;
-                case 1:
-                    value = L64(ptr); ptr += 8;
-                    if (entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask) != 
-                        FieldKind::kFkFixed | FieldRep::kRep64Bits) goto unusual;
-                    if (ABSL_PREDICT_TRUE(entry->type_card & kFcMask <= kFcOptional)) {
-                        // StoreScalar
-                    } else if ((ABSL_PREDICT_TRUE(entry->type_card & kFcMask == kFcRepeated))) {
-
-                    } else {
-                        // oneof
-                        return nullptr;
-                    }
-                    break;
-                case 5:
-                    value = L64(ptr); ptr += 4;
-                    if (entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask) != 
-                        FieldKind::kFkFixed | FieldRep::kRep32Bits) goto unusual;
-                    break;
-                case 3:
-                    if (entry->type_card & FieldKind::kFkMask != FieldKind::kFkMessage) goto unusual;
-                    if (!push(~(tag >> 3))) return nullptr;
-submessage:
-                    
-                    break;
-                case 2: {
-                    auto sz = ReadSize(&ptr);
-                    switch (__builtin_expect(entry->type_card & FieldKind::kFkMask, FieldKind::kFkString)) {
-                        case FieldKind::kFkString:
-                            break;
-                        case FieldKind::kFkMessage:
-                            if (!push(sz)) return nullptr;
-                            goto submessage;
-                        case FieldKind::kFkPackedFixed:
-                        case FieldKind::kFkPackedVarint:
-                        case FieldKind::kFkMap:
-                            // TODO
-                            return nullptr;
-                    }
-                    switch (__builtin_expect(entry->type_card & kRepMask, kRepAString)) {
-                        case kRepAString:
-                            break;
-                        default:
-                            // TODO
-                            return nullptr;
-                    }
+                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                    EXIT;
+                } else {
+                    EXIT;
                 }
-                case 6:
-                case 7:
+                continue;
+            }
+            asm volatile("");
+            if (ABSL_PREDICT_FALSE(wt == 1)) {
+                value = L64(ptr); ptr += 8;
+                if ((entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask)) != 
+                    (FieldKind::kFkFixed | FieldRep::kRep64Bits)) goto unusual;
+                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
+                    SetHasBit(base, entry, &proto3_hasbits_dummy);
+                    RefAt<uint64>(base, offset) = value; 
+                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                    EXIT;
+                } else {
+                    EXIT;
+                }
+                continue;
+            }
+            asm volatile("");
+            if (ABSL_PREDICT_FALSE(wt == 5)) {
+                value = L64(ptr); ptr += 4;
+                if ((entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask)) != 
+                    (FieldKind::kFkFixed | FieldRep::kRep32Bits)) goto unusual;
+                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
+                    SetHasBit(base, entry, &proto3_hasbits_dummy); 
+                    RefAt<uint32>(base, offset) = value; 
+                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                    EXIT;
+                } else {
+                    EXIT;
+                }
+                continue;
+            }
+            asm volatile("");
+            if (ABSL_PREDICT_FALSE(wt == 3)) {
+                if ((entry->type_card & FieldKind::kFkMask) != FieldKind::kFkMessage) goto unusual;
+                if (!push(~(tag >> 3))) return nullptr;
+submessage:
+                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
+                    SetHasBit(base, entry, &proto3_hasbits_dummy); 
+                    auto& field = RefAt<MessageLite*>(base, offset);
+                    table = table->field_aux(entry->aux_idx)->table;
+                    if (field == nullptr) {
+                        field = table->default_instance->New(arena);
+                    }
+                    msg = field;
+                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                    EXIT;
+                } else {
+                    EXIT;
+                }                    
+                continue;
+            }
+            asm volatile("");
+            if (ABSL_PREDICT_TRUE(wt == 2)) {
+                auto sz = ReadSize(&ptr);
+                switch (__builtin_expect(entry->type_card & FieldKind::kFkMask, FieldKind::kFkString)) {
+                    case FieldKind::kFkString:
+                        break;
+                    case FieldKind::kFkMessage:
+                        if (!push(ctx->PushLimit(ptr, sz).token())) return nullptr;
+                        goto submessage;
+                    case FieldKind::kFkPackedFixed:
+                    case FieldKind::kFkPackedVarint:
+                    case FieldKind::kFkMap:
+                        // TODO
+                        EXIT;
+                    default:
+                        goto unusual;
+                }
+                switch (__builtin_expect(entry->type_card & kRepMask, kRepAString)) {
+                    case kRepAString:
+                        break;
+                    default:
+                        // TODO
+                        EXIT;
+                }
+                SetHasBit(base, entry, &proto3_hasbits_dummy);
+                auto& field = RefAt<ArenaStringPtr>(base, offset);
+                RefAt<ArenaStringPtr>(msg, offset).SetBytes(ptr, sz, arena);
+                ptr += sz;
+                continue;
+            } else {
+                return nullptr;
 unusual:
-                    return nullptr;
+                EXIT;
             }
         }
         if (ptr == nullptr) return nullptr;
         if (empty()) break;
         int delta_or_group = pop();
         if (delta_or_group < 0) return nullptr;
-        ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
+        (void)ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
     }
     return ptr;
 }
@@ -459,11 +507,6 @@ const ParseTable test_proto_parse_table = {
     6,
     test_proto_entries
 };
-
-template <typename T>
-T& RefAt(void* msg, ptrdiff_t offset) {
-    return *reinterpret_cast<T*>(static_cast<char*>(msg) + offset);
-}
 
 class Utf8Checker {
 public:
@@ -884,16 +927,16 @@ again:
                 out.WriteTag(tag * 8 + 4);
                 break;
             default:
-                exit(-1);
+                EXIT;
         }
     }
 }
-
+#if 0
 static void BM_RegularParse(benchmark::State& state) {
     std::string x;
     WriteRandom(&x, state.range(0), 2);
    for (auto _ : state) {
-        if (Parse(x.data(), x.data() + x.size()) == nullptr) exit(-1);
+        if (Parse(x.data(), x.data() + x.size()) == nullptr) EXIT;
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));
 }
@@ -905,36 +948,61 @@ static void BM_ParseDirect(benchmark::State& state) {
     std::string x;
     WriteRandom(&x, state.range(0), 2);
     for (auto _ : state) {
-        if (ParseDirect<use_preload>(x.data(), x.data() + x.size()) == nullptr) exit(-1);
+        if (ParseDirect<use_preload>(x.data(), x.data() + x.size()) == nullptr) EXIT;
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK_TEMPLATE(BM_ParseDirect, false)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_TEMPLATE(BM_ParseDirect, true)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+#endif
+// This pattern allows one to legally access private members, which we need to
+// implement ArenaString. By using legal c++ we ensure that we do not break
+// strict aliasing preventing potential miscompiles.
+template <typename Tag, typename Tag::type M>
+struct Robber {
+    friend constexpr typename Tag::type Get(Tag) {
+        return M;
+    }
+};
 
-static void BM_ParseBranchless(benchmark::State& state) {
+struct GetTable {
+    using type = const TcParseTable<
+      3, 6, 2,
+      0, 2>*;
+    friend constexpr type Get(GetTable);
+};
+
+template
+struct Robber<GetTable, &test_benchmark::TestProto::_table_>;
+
+
+static void BM_ParseBranchless(benchmark::State& state, int level) {
     std::string x;
-    WriteRandom(&x, state.range(0), 2);
+    WriteRandom(&x, state.range(0), level);
     x.reserve(x.size() + 10000000);
+    test_benchmark::TestProto proto;
     for (auto _ : state) {
         const char* ptr;
         ParseContext ctx(20, false, &ptr, x);
-        if (ParseBranchless(ptr, &ctx) == nullptr) exit(-1);
+        if (ParseBranchless(&proto, ptr, &ctx, &Get(GetTable())->header) == nullptr) EXIT;
     }
-    state.SetBytesProcessed(state.iterations() * x.size());
     state.SetItemsProcessed(state.iterations() * state.range(0));
 }
-BENCHMARK(BM_ParseBranchless)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_ParseBranchless, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_ParseBranchless, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_ParseBranchless, submsg, 2)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
+#if 0
 static void BM_NewParse(benchmark::State& state) {
     std::string x;
     WriteRandom(&x, state.range(0), 0);
     for (auto _ : state) {
-        if (ParseTest(x.data(), x.data() + x.size()) == nullptr) exit(-1);
+        if (ParseTest(x.data(), x.data() + x.size()) == nullptr) EXIT;
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));
 }
 BENCHMARK(BM_NewParse)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+#endif
 
 static void BM_Proto2Parse(benchmark::State& state, int level) {
     std::string x;
@@ -999,7 +1067,7 @@ void TestParse() {
     ptr = ParseProto(&proto, ptr, &ctx, &test_proto_parse_table, 0);
     if (ptr == nullptr) {
         std::cout << "Parse fail\n";
-        exit(-1);
+        EXIT;
     }
     std::string s;
     json::PrintOptions print_options{true};

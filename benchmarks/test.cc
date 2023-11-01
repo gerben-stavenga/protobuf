@@ -374,7 +374,6 @@ submessage:
                         EXIT;
                 }
                 SetHasBit(base, entry, &proto3_hasbits_dummy);
-                auto& field = RefAt<ArenaStringPtr>(base, offset);
                 RefAt<ArenaStringPtr>(msg, offset).SetBytes(ptr, sz, arena);
                 ptr += sz;
                 continue;

@@ -362,7 +362,7 @@ struct alignas(uint64_t) TcParseTableBase {
 
   // Field entry for all fields.
   struct FieldEntry {
-    uint32_t offset;     // offset in the message object
+    uint16_t offset;     // offset in the message object
     int32_t has_idx;     // has-bit index, relative to the message object
     uint16_t aux_idx;    // index for `field_aux`.
     uint16_t type_card;  // `FieldType` and `Cardinality` (see _impl.h)

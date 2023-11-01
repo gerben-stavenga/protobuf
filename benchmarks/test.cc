@@ -17,7 +17,13 @@
 #include "benchmarks/test.pb.h"
 #include "benchmarks/test.upb.h"
 
-#define EXIT do { std::cout << "Exit at line " << __LINE__ << "\n"; exit(-1); } while(0)
+ABSL_ATTRIBUTE_NOINLINE
+void QuitMsg [[noreturn]] (int line) {
+    std::cout << "Exit at line " << __LINE__ << "\n";
+    exit(-1);
+}
+
+#define EXIT QuitMsg(__LINE__)
 
 namespace google {
 namespace protobuf {
@@ -408,7 +414,6 @@ submessage:
             } else {
                 return nullptr;
 unusual:
-                std::cout << wt << "\n";
                 EXIT;
             }
         }

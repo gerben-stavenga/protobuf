@@ -266,9 +266,10 @@ inline void* MaybeGetSplitBase(MessageLite* msg, const bool is_split,
   return out;
 }
 
-inline void Store(uint64_t value, TcParseTableBase::FieldEntry entry, uint32_t* out) {
-    *(out + ((entry.type_card & kRepMask) == kRep64Bits ? 1 : 0)) = value >> 32;
-    *out = value;
+inline void Store(uint64_t value, TcParseTableBase::FieldEntry entry, void* out, void* dummy) {
+    *static_cast<bool*>(out) = value;
+    *static_cast<uint32_t*>((entry.type_card & kRepMask) == kRep32Bits ? out : dummy) = value;
+    *static_cast<uint64_t*>((entry.type_card & kRepMask) == kRep64Bits ? out : dummy) = value;
 }
 
 __attribute__((noinline))
@@ -298,7 +299,7 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
         return depth >= kMaxDepth;
     };
 
-    char proto3_hasbits_dummy = 0;
+    char dummy[8] = {};
     Arena* arena = msg->GetArena();
     while (true) {
         while (!ctx->Done(&ptr)) {
@@ -320,12 +321,8 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
                 value = ReadVarint64(&ptr);
                 if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
                 if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    if (ABSL_PREDICT_FALSE((entry.type_card & kRepMask) == kRep8Bits)) {
-                        RefAt<bool>(base, entry.offset) = value;
-                    } else {
-                        Store(value, entry, &RefAt<uint32_t>(base, entry.offset)); 
-                    }
-                    SetHasBit(base, entry, &proto3_hasbits_dummy);
+                    Store(value, entry, &RefAt<char>(base, entry.offset), dummy); 
+                    SetHasBit(base, entry, dummy);
                 } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
                 } else {
@@ -338,7 +335,7 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
                 ptr += 8;
                 if ((entry.type_card & (kFkMask | kRepMask)) != (kFkFixed | kRep64Bits)) goto unusual;
                 if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    SetHasBit(base, entry, &proto3_hasbits_dummy);
+                    SetHasBit(base, entry, dummy);
                     RefAt<uint64>(base, entry.offset) = value; 
                 } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
@@ -352,7 +349,7 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
                 ptr += 4;
                 if ((entry.type_card & (kFkMask | kRepMask)) != (kFkFixed | kRep32Bits)) goto unusual;
                 if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    SetHasBit(base, entry, &proto3_hasbits_dummy); 
+                    SetHasBit(base, entry, dummy); 
                     RefAt<uint32>(base, entry.offset) = value; 
                 } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
@@ -367,7 +364,7 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
                 if (!push(~(tag >> 3))) return nullptr;
 submessage:
                 if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    SetHasBit(base, entry, &proto3_hasbits_dummy); 
+                    SetHasBit(base, entry, dummy); 
                     auto& field = RefAt<MessageLite*>(base, entry.offset);
                     auto aux_idx = entry.aux_idx; 
                     table = table->field_aux(aux_idx)->table;
@@ -408,7 +405,7 @@ submessage:
                         // TODO
                         EXIT;
                 }
-                SetHasBit(base, entry, &proto3_hasbits_dummy);
+                SetHasBit(base, entry, dummy);
                 ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
                 ptr += 1 + (value & 0xFF);
                 continue;
@@ -610,7 +607,7 @@ unknown_field:
        // asm volatile(""::"r"(data));
         if (ABSL_PREDICT_FALSE((tag & 7) == 2)) {
             uint32_t sz = data & 0xFF; ptr++;
-            // uint32_t sz = ReadSize(&ptr);
+            //uint32_t sz = ReadSize(&ptr);
             if (ptr == nullptr) ERROR;
             if (ABSL_PREDICT_TRUE((entry & kMessage) == 0)) {
                 auto offset = entry >> 48;

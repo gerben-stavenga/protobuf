@@ -190,10 +190,10 @@ inline const TcParseTableBase::FieldEntry* FindFieldEntry(
   }
 }
 
-inline void SetHasBit(void* x, const TcParseTableBase::FieldEntry* entry, void* dummy) {
+inline void SetHasBit(void* x, const TcParseTableBase::FieldEntry entry, void* dummy) {
     using namespace field_layout;
-    x = (entry->type_card & kFcMask) == kFcSingular ? dummy : x;
-    auto idx = entry->has_idx;
+    x = (entry.type_card & kFcMask) == kFcSingular ? dummy : x;
+    auto idx = entry.has_idx;
 #if defined(__x86_64__) && defined(__GNUC__)
     asm("bts %1, %0\n" : "+m"(*static_cast<char*>(x)) : "r"(idx));
 #else
@@ -277,22 +277,22 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
                 if (pop() != ~(tag >> 3)) return nullptr;
                 continue;
             }
-            auto entry = FindFieldEntry(table, tag >> 3);
-            auto base = MaybeGetSplitBase(msg, entry->type_card & kSplitMask, table);
-            unsigned offset = entry->offset;
+            auto entry = *FindFieldEntry(table, tag >> 3);
+            auto base = MaybeGetSplitBase(msg, entry.type_card & kSplitMask, table);
+            unsigned offset = entry.offset;
             uint64_t value;
             if (ABSL_PREDICT_FALSE(wt == 0)) {
-                if ((entry->type_card & kFkMask) != kFkVarint) goto unusual;
+                if ((entry.type_card & kFkMask) != kFkVarint) goto unusual;
                 value = ReadVarint64(&ptr);
-                if ((entry->type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
-                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
-                    if (ABSL_PREDICT_FALSE((entry->type_card & kRepMask) == kRep8Bits)) {
+                if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
+                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
+                    if (ABSL_PREDICT_FALSE((entry.type_card & kRepMask) == kRep8Bits)) {
                         RefAt<bool>(base, offset) = value;
                     } else {
-                        Store(value, entry->type_card, &RefAt<uint32_t>(base, offset)); 
+                        Store(value, entry.type_card, &RefAt<uint32_t>(base, offset)); 
                     }
                     SetHasBit(base, entry, &proto3_hasbits_dummy);
-                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
                 } else {
                     EXIT;
@@ -302,12 +302,12 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
             asm volatile("");
             if (ABSL_PREDICT_FALSE(wt == 1)) {
                 value = L64(ptr); ptr += 8;
-                if ((entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask)) != 
+                if ((entry.type_card & (FieldKind::kFkMask | FieldRep::kRepMask)) != 
                     (FieldKind::kFkFixed | FieldRep::kRep64Bits)) goto unusual;
-                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
+                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                     SetHasBit(base, entry, &proto3_hasbits_dummy);
                     RefAt<uint64>(base, offset) = value; 
-                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
                 } else {
                     EXIT;
@@ -317,12 +317,12 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
             asm volatile("");
             if (ABSL_PREDICT_FALSE(wt == 5)) {
                 value = L64(ptr); ptr += 4;
-                if ((entry->type_card & (FieldKind::kFkMask | FieldRep::kRepMask)) != 
+                if ((entry.type_card & (FieldKind::kFkMask | FieldRep::kRepMask)) != 
                     (FieldKind::kFkFixed | FieldRep::kRep32Bits)) goto unusual;
-                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
+                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                     SetHasBit(base, entry, &proto3_hasbits_dummy); 
                     RefAt<uint32>(base, offset) = value; 
-                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
                 } else {
                     EXIT;
@@ -331,18 +331,18 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
             }
             asm volatile("");
             if (ABSL_PREDICT_FALSE(wt == 3)) {
-                if ((entry->type_card & FieldKind::kFkMask) != FieldKind::kFkMessage) goto unusual;
+                if ((entry.type_card & FieldKind::kFkMask) != FieldKind::kFkMessage) goto unusual;
                 if (!push(~(tag >> 3))) return nullptr;
 submessage:
-                if (ABSL_PREDICT_TRUE((entry->type_card & kFcMask) <= kFcOptional)) {
+                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                     SetHasBit(base, entry, &proto3_hasbits_dummy); 
                     auto& field = RefAt<MessageLite*>(base, offset);
-                    table = table->field_aux(entry->aux_idx)->table;
+                    table = table->field_aux(entry.aux_idx)->table;
                     if (field == nullptr) {
                         field = table->default_instance->New(arena);
                     }
                     msg = field;
-                } else if ((ABSL_PREDICT_TRUE((entry->type_card & kFcMask) == kFcRepeated))) {
+                } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
                     EXIT;
                 } else {
                     EXIT;
@@ -352,7 +352,7 @@ submessage:
             asm volatile("");
             if (ABSL_PREDICT_TRUE(wt == 2)) {
                 auto sz = ReadSize(&ptr);
-                switch (__builtin_expect(entry->type_card & FieldKind::kFkMask, FieldKind::kFkString)) {
+                switch (__builtin_expect(entry.type_card & FieldKind::kFkMask, FieldKind::kFkString)) {
                     case FieldKind::kFkString:
                         break;
                     case FieldKind::kFkMessage:
@@ -366,7 +366,7 @@ submessage:
                     default:
                         goto unusual;
                 }
-                switch (__builtin_expect(entry->type_card & kRepMask, kRepAString)) {
+                switch (__builtin_expect(entry.type_card & kRepMask, kRepAString)) {
                     case kRepAString:
                         break;
                     default:

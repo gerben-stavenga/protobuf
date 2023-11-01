@@ -19,7 +19,7 @@
 
 ABSL_ATTRIBUTE_NOINLINE
 void QuitMsg [[noreturn]] (int line) {
-    std::cout << "Exit at line " << __LINE__ << "\n";
+    std::cout << "Exit at line " << line << "\n";
     exit(-1);
 }
 

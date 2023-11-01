@@ -383,13 +383,14 @@ submessage:
             }
             asm volatile("");
             if (ABSL_PREDICT_TRUE(wt == 2)) {
-                auto sz = ReadSize(&ptr);
                 switch (__builtin_expect(entry.type_card & kFkMask, kFkString)) {
                     case kFkString:
                         break;
-                    case kFkMessage:
+                    case kFkMessage: {
+                        auto sz = ReadSize(&ptr);
                         if (!push(ctx->PushLimit(ptr, sz).token())) return nullptr;
                         goto submessage;
+                    }
                     case kFkPackedFixed:
                     case kFkPackedVarint:
                     case kFkMap:
@@ -407,8 +408,7 @@ submessage:
                         EXIT;
                 }
                 SetHasBit(base, entry, &proto3_hasbits_dummy);
-                RefAt<ArenaStringPtr>(msg, entry.offset).SetBytes(ptr, sz, arena);
-                ptr += sz;
+                ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
                 continue;
             } else {
                 return nullptr;

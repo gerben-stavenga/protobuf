@@ -274,7 +274,7 @@ inline void Store(uint64_t value, uint64_t entry, uint32_t* out) {
 __attribute__((noinline))
 const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table) {
     constexpr int kMaxDepth = 100;
-    unsigned depth = kMaxDepth;
+    volatile unsigned depth = kMaxDepth;
 
     struct StackEntry {
         MessageLite* msg;

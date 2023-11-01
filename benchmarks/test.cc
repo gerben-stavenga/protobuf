@@ -606,8 +606,11 @@ unknown_field:
             ERROR;
         }
         int delta;
+        uint64_t data = L64(ptr);
+       // asm volatile(""::"r"(data));
         if (ABSL_PREDICT_FALSE((tag & 7) == 2)) {
-            uint32_t sz = ReadSize(&ptr);
+            uint32_t sz = data & 0xFF; ptr++;
+            // uint32_t sz = ReadSize(&ptr);
             if (ptr == nullptr) ERROR;
             if (ABSL_PREDICT_TRUE((entry & kMessage) == 0)) {
                 auto offset = entry >> 48;
@@ -649,7 +652,6 @@ parse_submsg:
                 if (ptr == nullptr) ERROR;
                 continue;
             }
-            uint64_t data = L64(ptr);
             uint64_t mask = 0x7f7f7f7f7f7f7f7f;
             auto x = data | mask;
             auto y = x ^ (x + 1);

@@ -313,7 +313,8 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
             
             auto entry = *FindFieldEntry(table, tag >> 3);
             auto base = MaybeGetSplitBase(msg, entry.type_card & kSplitMask, table);
-            uint64_t value;
+            uint64_t value = L64(ptr);
+            asm volatile(""::"r"(value));
             if (ABSL_PREDICT_FALSE(wt == 0)) {
                 if ((entry.type_card & kFkMask) != kFkVarint) goto unusual;
                 value = ReadVarint64(&ptr);
@@ -334,7 +335,7 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
             }
             asm volatile("");
             if (ABSL_PREDICT_FALSE(wt == 1)) {
-                value = L64(ptr); ptr += 8;
+                ptr += 8;
                 if ((entry.type_card & (kFkMask | kRepMask)) != (kFkFixed | kRep64Bits)) goto unusual;
                 if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                     SetHasBit(base, entry, &proto3_hasbits_dummy);
@@ -348,7 +349,7 @@ const char* ParseBranchless(MessageLite* msg, const char* ptr, ParseContext* ctx
             }
             asm volatile("");
             if (ABSL_PREDICT_FALSE(wt == 5)) {
-                value = L64(ptr); ptr += 4;
+                ptr += 4;
                 if ((entry.type_card & (kFkMask | kRepMask)) != (kFkFixed | kRep32Bits)) goto unusual;
                 if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                     SetHasBit(base, entry, &proto3_hasbits_dummy); 
@@ -408,7 +409,8 @@ submessage:
                         EXIT;
                 }
                 SetHasBit(base, entry, &proto3_hasbits_dummy);
-                ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
+                ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
+                ptr += 1 + (value & 0xFF);
                 continue;
             } else {
                 return nullptr;

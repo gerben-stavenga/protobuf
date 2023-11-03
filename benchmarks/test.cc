@@ -138,37 +138,6 @@ const char* ParseDirect(const char* ptr, const char* end) {
     return ptr;
 }
 
-enum : uint64_t {
-    kMemberMask = 0xFFFF,
-    kHasBitShift = 16,
-    kAuxShift = 32,
-    kOffsetShift = 48,
-    kSplitMask = (uint64_t)field_layout::kSplitMask,
-    kFkMask = (uint64_t)field_layout::kFkMask,
-    kFkVarint = (uint64_t)field_layout::kFkVarint,
-    kFkFixed = (uint64_t)field_layout::kFkFixed,
-    kFkString = (uint64_t)field_layout::kFkString,
-    kFkMessage = (uint64_t)field_layout::kFkMessage,
-    kFkPackedFixed = (uint64_t)field_layout::kFkPackedFixed,
-    kFkPackedVarint = (uint64_t)field_layout::kFkPackedVarint,
-    kFkMap = (uint64_t)field_layout::kFkMap,
-
-    kRepMask = (uint64_t)field_layout::kRepMask,
-    kRep8Bits = (uint64_t)field_layout::kRep8Bits,
-    kRep32Bits = (uint64_t)field_layout::kRep32Bits,
-    kRep64Bits = (uint64_t)field_layout::kRep64Bits,
-    kRepAString = (uint64_t)field_layout::kRepAString,
-
-    kTvMask = (uint64_t)field_layout::kTvMask,
-    kTvZigZag = (uint64_t)field_layout::kTvZigZag,
-
-    kFcMask = (uint64_t)field_layout::kFcMask,
-    kFcSingular = (uint64_t)field_layout::kFcSingular,
-    kFcOptional = (uint64_t)field_layout::kFcOptional,
-    kFcRepeated = (uint64_t)field_layout::kFcRepeated,    
-};
-
-
 inline const TcParseTableBase::FieldEntry* FindFieldEntry(
     const TcParseTableBase* table, uint32_t field_num) {
   using FieldEntry = TcParseTableBase::FieldEntry;
@@ -228,6 +197,7 @@ inline const TcParseTableBase::FieldEntry* FindFieldEntry(
 }
 
 inline void SetHasBit(void* x, TcParseTableBase::FieldEntry entry, void* dummy) {
+    using namespace field_layout;
     x = (entry.type_card & kFcMask) == kFcSingular ? dummy : x;
     auto idx = entry.has_idx;
 #if defined(__x86_64__) && defined(__GNUC__)
@@ -267,213 +237,207 @@ inline void* MaybeGetSplitBase(MessageLite* msg, const bool is_split,
 }
 
 inline void Store(uint64_t value, TcParseTableBase::FieldEntry entry, void* out, void* dummy) {
+    using namespace field_layout;
     *static_cast<bool*>(out) = value;
     *static_cast<uint32_t*>((entry.type_card & kRepMask) == kRep32Bits ? out : dummy) = value;
     *static_cast<uint64_t*>((entry.type_card & kRepMask) == kRep64Bits ? out : dummy) = value;
 }
 
 template <typename T>
-const char* AddRepeated(void* base, TcParseTableBase::FieldEntry entry, uint64_t value) {
+void AddRepeated(void* base, TcParseTableBase::FieldEntry entry, uint64_t value) {
     auto field = RefAt<RepeatedField<T>>(base, entry.offset);
     field.Add(value);
     // TODO add fast parsing the rest of repeated
 }
 
-const char* TcParser::MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table) {
-    constexpr int kMaxDepth = 100;
-    volatile unsigned depth = kMaxDepth;
+inline uint32_t ParseScalarBranchless(uint32_t wt, uint64_t& data) {
+    static const uint64_t size_mask[] = {
+        0xFF,
+        0xFFFF,
+        0xFFFFFF,
+        0xFFFFFFFF,
+        0xFFFFFFFFFF,
+        0xFFFFFFFFFFFF,
+        0xFFFFFFFFFFFFFF,
+        0xFFFFFFFFFFFFFFFF
+    };
+    uint64_t mask = 0x7f7f7f7f7f7f7f7f;
+    auto x = data | mask;
+    auto y = x ^ (x + 1);
+    auto varintsize = __builtin_popcountll(y) / 8;
+    auto fixedsize = wt & 4 ? 4 : 8;
+    if (wt & 1) mask = -1;
+    auto size = (wt & 1 ? fixedsize : varintsize);
+    data &= size_mask[size - 1];
+#ifdef __X86_64__
+    data = _pext_u64(data, mask);
+#else
+    // TODO find good sequence for arm
+#endif
+    return size;
+}
 
-    struct StackEntry {
-        MessageLite* msg;
-        const TcParseTableBase* table;
-        int delta_or_group;
-    };
+const char* TcParser::MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, 
+        const TcParseTableBase* table, int64_t delta_or_group) {
+    using namespace field_layout;
 
-    StackEntry stack[kMaxDepth];
-    auto push = [&](int size) {
-        if (depth == 0) return false;
-        stack[--depth] = {msg, table, size};
-        return true;
-    };
-    auto pop = [&]() {
-        auto stack_entry = stack[depth++];
-        msg = stack_entry.msg;
-        table = stack_entry.table;        
-        return stack_entry.delta_or_group;
-    };
-    auto empty = [&]() {
-        return depth >= kMaxDepth;
-    };
-
+    // TODO move into ParseContext
     char dummy[8] = {};
     char has_dummy[8] = {};
     Arena* arena = msg->GetArena();
-    while (true) {
-        while (!ctx->Done(&ptr)) {
-            uint32_t tag;
-            uint32_t wt = *ptr & 7;
-            ptr = ReadTagInlined(ptr, &tag);
-            if (ABSL_PREDICT_FALSE(wt == 4)) {
-                if (empty()) return nullptr;
-                if (pop() != ~(tag >> 3)) return nullptr;
-                continue;
+    while (!ctx->Done(&ptr)) {
+        uint32_t tag;
+        uint32_t wt = *ptr & 7;
+        ptr = ReadTagInlined(ptr, &tag);
+        if (ABSL_PREDICT_FALSE(wt == 4)) {
+            if (delta_or_group != ~static_cast<int64_t>(tag - 1)) {
+unusual_end:
+                if (delta_or_group == -1) {
+                    ctx->SetLastTag(tag);
+                    return ptr;
+                }
+                return nullptr;
             }
-            
-            auto entry = *FindFieldEntry(table, tag >> 3);
-            auto base = MaybeGetSplitBase(msg, entry.type_card & kSplitMask, table);
-            uint64_t value = L64(ptr);
-            asm volatile(""::"r"(value));
-            if (ABSL_PREDICT_FALSE(wt == 0)) {
-                if ((entry.type_card & kFkMask) != kFkVarint) goto unusual;
-                value = ReadVarint64(&ptr);
-                if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
-                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    Store(value, entry, &RefAt<char>(base, entry.offset), dummy); 
-                    SetHasBit(base, entry, has_dummy);
-                } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
-                    if ((entry.type_card & kRepMask) == kRep8Bits) {
-                        AddRepeated<bool>(base, entry, value);
-                    } else if ((entry.type_card & kRepMask) == kRep32Bits) {
-                        AddRepeated<uint32_t>(base, entry, value);
+            return ptr;
+        }
+        
+        auto entry = *FindFieldEntry(table, tag >> 3);
+        auto base = MaybeGetSplitBase(msg, entry.type_card & kSplitMask, table);
+        uint64_t value = L64(ptr);
+        if (wt == 2) {
+            switch (__builtin_expect(entry.type_card & kFkMask, kFkString)) {
+                case kFkString:
+                    break;
+                case kFkMessage: {
+                    auto sz = ReadSize(&ptr);
+                    value = ctx->PushLimit(ptr, sz).token();
+                    goto parse_submessage;
+                }
+                case kFkPackedFixed: {
+                    auto sz = ReadSize(&ptr);
+                    if ((entry.type_card & kRepMask) == kRep32Bits) {
+                        ptr = ctx->ReadPackedFixed<uint32_t>(ptr, sz, &RefAt<RepeatedField<uint32_t>>(base, entry.offset));
                     } else {
-                        AddRepeated<uint64_t>(base, entry, value);
+                        ptr = ctx->ReadPackedFixed<uint64_t>(ptr, sz, &RefAt<RepeatedField<uint64_t>>(base, entry.offset));
                     }
-                } else {
-                    EXIT;
+                    continue;
                 }
-                continue;
-            }
-            asm volatile("");
-            if (ABSL_PREDICT_FALSE(wt == 1)) {
-                ptr += 8;
-                if ((entry.type_card & (kFkMask | kRepMask)) != (kFkFixed | kRep64Bits)) goto unusual;
-                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    SetHasBit(base, entry, has_dummy);
-                    RefAt<uint64>(base, entry.offset) = value; 
-                } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
-                    AddRepeated<uint64_t>(base, entry, value);
-                } else {
-                    EXIT;
+                case kFkPackedVarint: {
+                    void* p = &RefAt<char>(base, entry.offset);
+                    // TODO switch
+                    ptr = ctx->ReadPackedVarint(ptr, [p, entry](uint64_t value) {
+                        if (entry.type_card & kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
+                        if ((entry.type_card & kRepMask) == kRep8Bits) {
+                            static_cast<RepeatedField<bool>*>(p)->Add(value);
+                        } else if ((entry.type_card & kRepMask) == kRep32Bits) {
+                            static_cast<RepeatedField<uint32_t>*>(p)->Add(value);
+                        } else {
+                            static_cast<RepeatedField<uint64_t>*>(p)->Add(value);
+                        }
+                    });
+                    continue;
                 }
-                continue;
-            }
-            asm volatile("");
-            if (ABSL_PREDICT_FALSE(wt == 5)) {
-                ptr += 4;
-                if ((entry.type_card & (kFkMask | kRepMask)) != (kFkFixed | kRep32Bits)) goto unusual;
-                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    SetHasBit(base, entry, has_dummy); 
-                    RefAt<uint32>(base, entry.offset) = value; 
-                } else if ((ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated))) {
-                    AddRepeated<uint32_t>(base, entry, value);
-                } else {
-                    EXIT;
+                case kFkMap: {
+                    TcFieldData data(tag | (static_cast<uint64_t>(entry.offset) << 32));
+                    if (entry.type_card & kSplitMask) {
+                        ptr = TcParser::MpMap<true>(msg, ptr, ctx, data, table, 0);
+                    } else {
+                        ptr = TcParser::MpMap<false>(msg, ptr, ctx, data, table, 0);
+                    }
+                    continue;
                 }
-                continue;
+                default:
+                    goto unusual;
             }
-            asm volatile("");
+            switch (__builtin_expect(entry.type_card & kRepMask, kRepAString)) {
+                case kRepAString:
+                    break;
+                default:
+                    // TODO
+                    EXIT;
+            }
+            if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
+                SetHasBit(base, entry, dummy);
+            } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
+                auto& field = RefAt<RepeatedPtrField<std::string>>(base, entry.offset);
+                auto sz = ReadSize(&ptr);
+                ptr = ctx->ReadString(ptr, sz, field.Add());
+                if (ptr == nullptr) return nullptr;
+                continue;
+            } else {
+                if (ChangeOneof(table, entry, tag >> 3, ctx, msg)) {
+                    RefAt<ArenaStringPtr>(msg, entry.offset).InitDefault();
+                }
+            }
+            ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
+            if (ptr == nullptr) return nullptr;
+            continue;
+        } else {
             if (ABSL_PREDICT_FALSE(wt == 3)) {
                 if ((entry.type_card & kFkMask) != kFkMessage) goto unusual;
-                if (!push(~(tag >> 3))) return nullptr;
-                goto submessage;
+                value = ~static_cast<uint64_t>(tag);
+                goto parse_submessage;
             }
-            asm volatile("");
-            if (ABSL_PREDICT_TRUE(wt == 2)) {
-                switch (__builtin_expect(entry.type_card & kFkMask, kFkString)) {
-                    case kFkString:
-                        break;
-                    case kFkMessage: {
-                        auto sz = ReadSize(&ptr);
-                        if (!push(ctx->PushLimit(ptr, sz).token())) return nullptr;
-                        goto submessage;
-                    }
-                    case kFkPackedFixed: {
-                        auto sz = ReadSize(&ptr);
-                        if ((entry.type_card & kRepMask) == kRep32Bits) {
-                            ptr = ctx->ReadPackedFixed<uint32_t>(ptr, sz, &RefAt<RepeatedField<uint32_t>>(base, entry.offset));
-                        } else {
-                            ptr = ctx->ReadPackedFixed<uint64_t>(ptr, sz, &RefAt<RepeatedField<uint64_t>>(base, entry.offset));
-                        }
-                        continue;
-                    }
-                    case kFkPackedVarint: {
-                        void* p = &RefAt<char>(base, entry.offset);
-                        // TODO switch
-                        ptr = ctx->ReadPackedVarint(ptr, [p, entry](uint64_t value) {
-                            if (entry.type_card & kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
-                            if ((entry.type_card & kRepMask) == kRep8Bits) {
-                                static_cast<RepeatedField<bool>*>(p)->Add(value);
-                            } else if ((entry.type_card & kRepMask) == kRep32Bits) {
-                                static_cast<RepeatedField<uint32_t>*>(p)->Add(value);
-                            } else {
-                                static_cast<RepeatedField<uint64_t>*>(p)->Add(value);
-                            }
-                        });
-                        continue;
-                    }
-                    case kFkMap: {
-                        TcFieldData data(tag | (static_cast<uint64_t>(entry.offset) << 32));
-                        if (entry.type_card & kSplitMask) {
-                            ptr = TcParser::MpMap<true>(msg, ptr, ctx, data, table, 0);
-                        } else {
-                            ptr = TcParser::MpMap<false>(msg, ptr, ctx, data, table, 0);
-                        }
-                        continue;
-                    }
-                    default:
-                        goto unusual;
-                }
-                switch (__builtin_expect(entry.type_card & kRepMask, kRepAString)) {
-                    case kRepAString:
-                        break;
-                    default:
-                        // TODO
-                        EXIT;
-                }
-                if (ABSL_PREDICT_FALSE((entry.type_card & kFcMask) == kFcRepeated)) {
-                    auto& field = RefAt<RepeatedPtrField<std::string>>(base, entry.offset);
-                    auto sz = ReadSize(&ptr);
-                    ptr = ctx->ReadString(ptr, sz, field.Add());
+            if (ABSL_PREDICT_FALSE(wt > 5)) return nullptr;
+            ptr += ParseScalarBranchless(wt, value);
+            if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
+            if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
+                SetHasBit(base, entry, has_dummy);
+            } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
+                if ((entry.type_card & kRepMask) == kRep8Bits) {
+                    AddRepeated<bool>(base, entry, value);
+                } else if ((entry.type_card & kRepMask) == kRep32Bits) {
+                    AddRepeated<uint32_t>(base, entry, value);
                 } else {
-                    // oneof
-                    SetHasBit(base, entry, dummy);
-                    ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
+                    AddRepeated<uint64_t>(base, entry, value);
                 }
                 continue;
             } else {
-                // Illegal wiretype
-                return nullptr;
+                ChangeOneof(table, entry, tag >> 3, ctx, msg);
             }
-submessage:
-            {
-                auto aux_idx = entry.aux_idx; 
-                table = table->field_aux(aux_idx)->table;
-                if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                    SetHasBit(base, entry, has_dummy); 
-                    auto& field = RefAt<MessageLite*>(base, entry.offset);
-                    if (field == nullptr) {
-                        field = table->default_instance->New(arena);
-                    }
-                    msg = field;
-                } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
-                    auto& field = RefAt<RepeatedPtrFieldBase>(base, entry.offset);
-                    msg = field.template Add<GenericTypeHandler<MessageLite>>(table->default_instance);
-                } else {
-                    // oneof
-                    EXIT;
-                }                    
-                continue;
-            }
-unusual:
-            ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
+            Store(value, entry, &RefAt<char>(base, entry.offset), dummy);
+            continue;
         }
-        if (ptr == nullptr) return nullptr;
-        if (empty()) break;
-        int delta_or_group = pop();
-        if (delta_or_group < 0) return nullptr;
-        (void)ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
+parse_submessage:
+        {
+            auto aux_idx = entry.aux_idx; 
+            auto child_table = table->field_aux(aux_idx)->table;
+            MessageLite* child;
+            if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
+                SetHasBit(base, entry, has_dummy);
+                auto& field = RefAt<MessageLite*>(base, entry.offset);
+                if (field == nullptr) {
+                    field = table->default_instance->New(arena);
+                }
+                child = field;
+            } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
+                auto& field = RefAt<RepeatedPtrFieldBase>(base, entry.offset);
+                child = field.template Add<GenericTypeHandler<MessageLite>>(table->default_instance);
+            } else {
+                auto& field = RefAt<MessageLite*>(base, entry.offset);
+                if (ChangeOneof(table, entry, tag >> 3, ctx, msg)) {
+                    field = table->default_instance->New(arena);
+                }
+                child = field;
+            }
+            ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
+            if (ptr == nullptr) return nullptr;
+            continue;
+        }
+unusual:
+        if (tag == 0) goto unusual_end;
+        // TODO packed/unpacked repeated fields mismatch
+        ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
     }
-    return ptr;
+    if (ptr == nullptr) return nullptr;
+    if (delta_or_group >= 0) {
+        (void)ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
+        return ptr;
+    } else if (delta_or_group == -1) {
+        return ptr;
+    } else {
+        return nullptr;
+    } 
 }
 
 
@@ -1073,7 +1037,7 @@ static void BM_MiniParseLoop(benchmark::State& state, int level) {
     for (auto _ : state) {
         const char* ptr;
         ParseContext ctx(20, false, &ptr, x);
-        if (TcParser::MiniParseLoop(&proto, ptr, &ctx, &Get(GetTable())->header) == nullptr) EXIT;
+        if (TcParser::MiniParseLoop(&proto, ptr, &ctx, &Get(GetTable())->header, 0) == nullptr) EXIT;
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));
 }

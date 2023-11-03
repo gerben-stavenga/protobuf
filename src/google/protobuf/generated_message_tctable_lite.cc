@@ -2927,6 +2927,15 @@ unusual_end:
                 case kRepAString:
                     break;
                 default:
+                    TcFieldData data;
+                    uint64_t entry_offset = reinterpret_cast<const char*>(FindFieldEntry(table, tag >> 3)) -
+                                            reinterpret_cast<const char*>(table);
+                    data.data = entry_offset << 32 | tag;
+                    if (entry.type_card & kSplitMask) {
+                        ptr = MpString<true>(msg, ptr, ctx, data, table, 0);
+                    } else {
+                        ptr = MpString<false>(msg, ptr, ctx, data, table, 0);
+                    }
                     // TODO
                     ABSL_LOG(FATAL) << "Other string types not implemented";
             }

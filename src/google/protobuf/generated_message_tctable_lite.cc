@@ -2808,7 +2808,7 @@ PROTOBUF_NOINLINE const char* TcParser::MpMap(PROTOBUF_TC_PARAM_DECL) {
 inline void SetHasBit(void* x, TcParseTableBase::FieldEntry entry, void* dummy) {
     using namespace field_layout;
     x = (entry.type_card & kFcMask) == kFcSingular ? dummy : x;
-    auto idx = entry.has_idx;
+    auto idx = (entry.type_card & kFcMask) == kFcSingular ? 0 : entry.has_idx;
     static_cast<char*>(x)[idx / 8] |= 1 << (idx & 7);
 }
 

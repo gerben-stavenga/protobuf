@@ -2827,7 +2827,7 @@ void AddRepeated(void* base, TcParseTableBase::FieldEntry entry, uint64_t value)
 }
 
 template <typename FieldType>
-PROTOBUF_ALWAYS_INLINE const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 
+const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 
         uint32_t expected_tag, uint64_t value) {
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
@@ -2847,7 +2847,7 @@ PROTOBUF_ALWAYS_INLINE const char* MplRepeatedVarint(const char* ptr, ParseConte
 }
 
 template <typename FieldType>
-PROTOBUF_ALWAYS_INLINE const char* MplRepeatedFixed(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field,
+const char* MplRepeatedFixed(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field,
         uint32_t expected_tag, uint64_t value) {
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;

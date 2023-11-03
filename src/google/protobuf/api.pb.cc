@@ -354,7 +354,7 @@ PROTOBUF_NOINLINE void Api::Clear() {
 
 const char* Api::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -728,7 +728,7 @@ PROTOBUF_NOINLINE void Method::Clear() {
 
 const char* Method::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1066,7 +1066,7 @@ PROTOBUF_NOINLINE void Mixin::Clear() {
 
 const char* Mixin::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 

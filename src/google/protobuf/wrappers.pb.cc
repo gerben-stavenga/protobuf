@@ -413,7 +413,7 @@ PROTOBUF_NOINLINE void DoubleValue::Clear() {
 
 const char* DoubleValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -597,7 +597,7 @@ PROTOBUF_NOINLINE void FloatValue::Clear() {
 
 const char* FloatValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -781,7 +781,7 @@ PROTOBUF_NOINLINE void Int64Value::Clear() {
 
 const char* Int64Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -951,7 +951,7 @@ PROTOBUF_NOINLINE void UInt64Value::Clear() {
 
 const char* UInt64Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1121,7 +1121,7 @@ PROTOBUF_NOINLINE void Int32Value::Clear() {
 
 const char* Int32Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1291,7 +1291,7 @@ PROTOBUF_NOINLINE void UInt32Value::Clear() {
 
 const char* UInt32Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1461,7 +1461,7 @@ PROTOBUF_NOINLINE void BoolValue::Clear() {
 
 const char* BoolValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1644,7 +1644,7 @@ PROTOBUF_NOINLINE void StringValue::Clear() {
 
 const char* StringValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1834,7 +1834,7 @@ PROTOBUF_NOINLINE void BytesValue::Clear() {
 
 const char* BytesValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 

@@ -179,7 +179,7 @@ PROTOBUF_NOINLINE void SourceContext::Clear() {
 
 const char* SourceContext::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 

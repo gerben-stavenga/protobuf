@@ -183,8 +183,8 @@ void ParseFunctionGenerator::GenerateTailcallParseFunction(Formatter& format) {
       "const char* $classname$::_InternalParse(\n"
       "    const char* ptr, ::_pbi::ParseContext* ctx) {\n"
       "$annotate_deserialize$"
-      "  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, "
-      "&_table_.header);\n");
+      "  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, "
+      "&_table_.header, -1);\n");
   format(
       "  return ptr;\n"
       "}\n\n");

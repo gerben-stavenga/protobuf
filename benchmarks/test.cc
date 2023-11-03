@@ -379,6 +379,7 @@ unusual_end:
                 goto parse_submessage;
             }
             if (ABSL_PREDICT_FALSE(wt > 5)) return nullptr;
+            // Todo ensure correctness
             ptr += ParseScalarBranchless(wt, value);
             if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
             if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {

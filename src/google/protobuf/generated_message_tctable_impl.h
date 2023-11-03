@@ -859,7 +859,7 @@ class PROTOBUF_EXPORT TcParser final {
   static absl::string_view FieldName(const TcParseTableBase* table,
                                      const TcParseTableBase::FieldEntry*);
   static bool ChangeOneof(const TcParseTableBase* table,
-                          const TcParseTableBase::FieldEntry& entry,
+                          const TcParseTableBase::FieldEntry entry,
                           uint32_t field_num, ParseContext* ctx,
                           MessageLite* msg);
 

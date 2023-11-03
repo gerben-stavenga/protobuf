@@ -1636,7 +1636,7 @@ inline void SetHas(const FieldEntry& entry, MessageLite* msg) {
 // caller is responsible for initializing the object, or false if the field
 // already has the desired case.
 bool TcParser::ChangeOneof(const TcParseTableBase* table,
-                           const TcParseTableBase::FieldEntry& entry,
+                           const TcParseTableBase::FieldEntry entry,
                            uint32_t field_num, ParseContext* ctx,
                            MessageLite* msg) {
   // The _oneof_case_ value offset is stored in the has-bit index.

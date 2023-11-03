@@ -200,7 +200,7 @@ inline void SetHasBit(void* x, TcParseTableBase::FieldEntry entry, void* dummy) 
     using namespace field_layout;
     x = (entry.type_card & kFcMask) == kFcSingular ? dummy : x;
     auto idx = entry.has_idx;
-#if defined(__x86_64__) && defined(__GNUC__)
+#if defined(__x86_64__) && defined(__GNUC__) && 0
     asm("bts %1, %0\n" : "+m"(*static_cast<char*>(x)) : "r"(idx));
 #else
     static_cast<char*>(x)[idx / 8] |= 1 << (idx & 7);

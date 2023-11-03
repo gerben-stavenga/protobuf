@@ -2838,10 +2838,6 @@ PROTOBUF_ALWAYS_INLINE const char* MplRepeatedVarint(const char* ptr, ParseConte
         if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
         uint64_t tag = UnalignedLoad<uint64_t>(ptr);
         if ((tag & mask) != image) return ptr;
-        uint32_t test;
-        auto ptr2 = ReadTag(ptr, &test);
-        ABSL_CHECK(test == expected_tag);
-        ABSL_CHECK(ptr + sz == ptr2);
         ptr += sz;
         ptr = ParseVarint(ptr, &value);
         if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) return nullptr;

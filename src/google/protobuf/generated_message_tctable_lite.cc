@@ -2939,6 +2939,7 @@ old_miniparse_fallback:
                 case kFkString:
                     break;
                 case kFkMessage: {
+                    if ((entry.type_card & kTvMask) != kTvTable) goto old_miniparse_fallback;
                     auto sz = ReadSize(&ptr);
                     if (ptr == nullptr) return nullptr;
                     value = ctx->PushLimit(ptr, sz).token();
@@ -3007,7 +3008,7 @@ old_miniparse_fallback:
 parse_submessage:
         {
             auto aux_idx = entry.aux_idx; 
-            ABSL_CHECK((entry.type_card & kTvMask) == kTvTable) << table->field_aux(aux_idx)->message_default()->GetTypeName();
+            ABSL_DCHECK((entry.type_card & kTvMask) == kTvTable) << table->field_aux(aux_idx)->message_default()->GetTypeName();
             auto child_table = table->field_aux(aux_idx)->table;
             MessageLite* child;
             if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {

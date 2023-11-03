@@ -3007,9 +3007,9 @@ old_miniparse_fallback:
 parse_submessage:
         {
             auto aux_idx = entry.aux_idx; 
+            ABSL_CHECK((entry.type_card & kTvMask) == kTvTable) << table->field_aux(aux_idx)->message_default()->GetTypeName();
             auto child_table = table->field_aux(aux_idx)->table;
             MessageLite* child;
-            ABSL_CHECK((entry.type_card & kTvMask) == kTvTable);
             if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                 SetHasBit(base, entry, has_dummy);
                 auto& field = RefAt<MessageLite*>(base, entry.offset);

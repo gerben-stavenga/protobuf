@@ -2826,6 +2826,45 @@ void AddRepeated(void* base, TcParseTableBase::FieldEntry entry, uint64_t value)
     // TODO add fast parsing the rest of repeated
 }
 
+template <typename FieldType>
+PROTOBUF_ALWAYS_INLINE const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 
+        uint32_t expected_tag, uint64_t value) {
+    uint8_t buffer[8] = {};
+    unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
+    auto image = UnalignedLoad<uint64_t>((void*)buffer);
+    auto mask = (1ull << (sz * 8)) - 1; 
+    while (true) {
+        field.Add(value);
+        if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
+        uint64_t tag = UnalignedLoad<uint64_t>(ptr);
+        if ((tag & mask) != image) return ptr;
+        ptr += sz;
+        ptr = ParseVarint(ptr, &value);
+        if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) return nullptr;
+        if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
+    }
+    return ptr;
+}
+
+template <typename FieldType>
+PROTOBUF_ALWAYS_INLINE const char* MplRepeatedFixed(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field,
+        uint32_t expected_tag, uint64_t value) {
+    uint8_t buffer[8] = {};
+    unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
+    auto image = UnalignedLoad<uint64_t>((void*)buffer);
+    auto mask = (1ull << (sz * 8)) - 1; 
+    while (true) {
+        field.Add(value);
+        if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
+        uint64_t tag = UnalignedLoad<uint64_t>(ptr);
+        if ((tag & mask) != image) return ptr;
+        ptr += sz;
+        value = UnalignedLoad<uint64_t>(ptr);
+        ptr += sizeof(FieldType);
+    }
+    return ptr;
+}
+
 inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t& data) {
     static const uint64_t size_mask[] = {
         0xFF,
@@ -2854,7 +2893,7 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
     return ptr + size;
 }
 
-const char* TcParser::bla(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag) {
+const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag) {
   TcFieldData data;
   // The handler may need the tag and the entry to resolve fallback logic. Both
   // of these are 32 bits, so pack them into (the 64-bit) `data`. Since we can't
@@ -2926,7 +2965,7 @@ unusual:
             if (ptr == nullptr) return nullptr;
             continue;
 old_miniparse_fallback:
-            ptr = bla(msg, ptr, ctx, table, entryp, tag);
+            ptr = MiniParseFallback(msg, ptr, ctx, table, entryp, tag);
             if (ptr == nullptr) return nullptr;
             continue;
         }
@@ -2992,12 +3031,27 @@ old_miniparse_fallback:
                 SetHasBit(base, entry, has_dummy);
             } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
                 if ((entry.type_card & kRepMask) == kRep8Bits) {
-                    AddRepeated<bool>(base, entry, value);
+                    auto& field = RefAt<RepeatedField<bool>>(base, entry.offset);
+                    bool zigzag = (entry.type_card & kTvMask) == kTvZigZag;
+                    ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
                 } else if ((entry.type_card & kRepMask) == kRep32Bits) {
-                    AddRepeated<uint32_t>(base, entry, value);
+                    auto& field = RefAt<RepeatedField<uint32_t>>(base, entry.offset);
+                    if ((entry.type_card & kFkVarint) == kFkVarint) {
+                      bool zigzag = (entry.type_card & kTvMask) == kTvZigZag;
+                      ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
+                    } else {
+                      ptr = MplRepeatedFixed(ptr, ctx, field, tag, value);
+                    }
                 } else {
-                    AddRepeated<uint64_t>(base, entry, value);
+                    auto& field = RefAt<RepeatedField<uint64_t>>(base, entry.offset);
+                    if ((entry.type_card & kFkVarint) == kFkVarint) {
+                      bool zigzag = (entry.type_card & kTvMask) == kTvZigZag;
+                      ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
+                    } else {
+                      ptr = MplRepeatedFixed(ptr, ctx, field, tag, value);
+                    }
                 }
+                if (ptr == nullptr) return nullptr;
                 continue;
             } else {
                 ChangeOneof(table, entry, tag >> 3, ctx, msg);

@@ -364,7 +364,7 @@ enum class TcParseFunction : uint8_t { kNone, PROTOBUF_TC_PARSE_FUNCTION_LIST };
 class PROTOBUF_EXPORT TcParser final {
  public:
   static const char* MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group);
-  static const char* bla(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag);
+  static const char* MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag);
 
   template <typename T>
   static constexpr auto GetTable() -> decltype(&T::_table_.header) {

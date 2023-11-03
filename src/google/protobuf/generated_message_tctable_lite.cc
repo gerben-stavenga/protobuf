@@ -2821,7 +2821,7 @@ inline void Store(uint64_t value, TcParseTableBase::FieldEntry entry, void* out,
 
 template <typename T>
 void AddRepeated(void* base, TcParseTableBase::FieldEntry entry, uint64_t value) {
-    auto field = TcParser::RefAt<RepeatedField<T>>(base, entry.offset);
+    auto& field = TcParser::RefAt<RepeatedField<T>>(base, entry.offset);
     field.Add(value);
     // TODO add fast parsing the rest of repeated
 }

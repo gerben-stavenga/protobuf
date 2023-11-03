@@ -138,7 +138,7 @@ const char* ParseDirect(const char* ptr, const char* end) {
     return ptr;
 }
 
-inline const TcParseTableBase::FieldEntry* FindFieldEntry(
+inline const TcParseTableBase::FieldEntry* FindFieldEntryInline(
     const TcParseTableBase* table, uint32_t field_num) {
   using FieldEntry = TcParseTableBase::FieldEntry;
     struct SkipEntry16 {
@@ -215,7 +215,7 @@ inline uint32_t GetSizeofSplit(const TcParseTableBase* table) {
   return table->field_aux(kSplitSizeAuxIdx)->offset;
 }
 
-inline void* MaybeGetSplitBase(MessageLite* msg, const bool is_split,
+inline void* MaybeGetSplitBaseInline(MessageLite* msg, const bool is_split,
                                   const TcParseTableBase* table) {
   void* out = msg;
   if (ABSL_PREDICT_FALSE(is_split)) {
@@ -301,8 +301,8 @@ unusual_end:
             return ptr;
         }
         
-        auto entry = *FindFieldEntry(table, tag >> 3);
-        auto base = MaybeGetSplitBase(msg, entry.type_card & kSplitMask, table);
+        auto entry = *FindFieldEntryInline(table, tag >> 3);
+        auto base = MaybeGetSplitBaseInline(msg, entry.type_card & kSplitMask, table);
         uint64_t value = L64(ptr);
         if (wt == 2) {
             switch (__builtin_expect(entry.type_card & kFkMask, kFkString)) {

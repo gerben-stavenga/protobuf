@@ -2842,7 +2842,7 @@ const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<
         uint64_t v2 = UnalignedLoad<uint64_t>(ptr + 8);
         uint64_t v3 = UnalignedLoad<uint64_t>(ptr + 16);
         unsigned bits = 0;
-        do {
+        for (int i = 0; i < 3; i++) {
           if ((v1 & mask) != image) {
             return ptr + (bits / 8);
           }
@@ -2864,7 +2864,7 @@ const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<
           bits += nbits;
           if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
           field.Add(value);
-        } while (bits <= 128);
+        }
         ptr += bits / 8;
 next:;
     }

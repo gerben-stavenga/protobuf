@@ -2936,8 +2936,7 @@ unusual_end:
                     } else {
                         ptr = MpString<false>(msg, ptr, ctx, data, table, 0);
                     }
-                    // TODO
-                    ABSL_LOG(FATAL) << "Other string types not implemented";
+                    continue;
             }
             if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                 SetHasBit(base, entry, dummy);

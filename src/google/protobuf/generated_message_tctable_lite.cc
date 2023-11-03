@@ -2943,7 +2943,13 @@ unusual_end:
                     RefAt<ArenaStringPtr>(msg, entry.offset).InitDefault();
                 }
             }
-            ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
+            if (arena) {
+              ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
+            } else {
+              auto sz = ReadSize(&ptr);
+              if (ptr == nullptr) return nullptr;
+              ptr = ctx->ReadString(ptr, sz, RefAt<ArenaStringPtr>(msg, entry.offset).MutableNoCopy(nullptr));
+            }
             if (ptr == nullptr) return nullptr;
             continue;
         } else {

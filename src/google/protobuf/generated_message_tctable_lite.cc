@@ -2835,6 +2835,7 @@ PROTOBUF_ALWAYS_INLINE const char* MplRepeatedVarint(const char* ptr, ParseConte
     auto mask = (1ull << (sz * 8)) - 1; 
     while (true) {
         field.Add(value);
+        break;
         if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
         uint64_t tag = UnalignedLoad<uint64_t>(ptr);
         if ((tag & mask) != image) return ptr;
@@ -2855,7 +2856,6 @@ PROTOBUF_ALWAYS_INLINE const char* MplRepeatedFixed(const char* ptr, ParseContex
     auto mask = (1ull << (sz * 8)) - 1; 
     while (true) {
         field.Add(value);
-        break;
         if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
         uint64_t tag = UnalignedLoad<uint64_t>(ptr);
         if ((tag & mask) != image) return ptr;

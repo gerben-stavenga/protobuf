@@ -2854,8 +2854,46 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
     return ptr + size;
 }
 
-const char* TcParser::MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, 
-        const TcParseTableBase* table, int64_t delta_or_group) {
+const char* TcParser::bla(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag) {
+  TcFieldData data;
+  // The handler may need the tag and the entry to resolve fallback logic. Both
+  // of these are 32 bits, so pack them into (the 64-bit) `data`. Since we can't
+  // pack the entry pointer itself, just pack its offset from `table`.
+  uint64_t entry_offset = reinterpret_cast<const char*>(entry) -
+                          reinterpret_cast<const char*>(table);
+  data.data = entry_offset << 32 | tag;
+
+  using field_layout::FieldKind;
+  auto field_type =
+      static_cast<const FieldEntry*>(entry)->type_card & (+field_layout::kSplitMask | FieldKind::kFkMask);
+
+  static constexpr TailCallParseFunc kMiniParseTable[] = {
+      &MpFallback,             // FieldKind::kFkNone
+      &MpVarint<false>,        // FieldKind::kFkVarint
+      &MpPackedVarint<false>,  // FieldKind::kFkPackedVarint
+      &MpFixed<false>,         // FieldKind::kFkFixed
+      &MpPackedFixed<false>,   // FieldKind::kFkPackedFixed
+      &MpString<false>,        // FieldKind::kFkString
+      &MpMessage<false>,       // FieldKind::kFkMessage
+      &MpMap<false>,           // FieldKind::kFkMap
+      &Error,                  // kSplitMask | FieldKind::kFkNone
+      &MpVarint<true>,         // kSplitMask | FieldKind::kFkVarint
+      &MpPackedVarint<true>,   // kSplitMask | FieldKind::kFkPackedVarint
+      &MpFixed<true>,          // kSplitMask | FieldKind::kFkFixed
+      &MpPackedFixed<true>,    // kSplitMask | FieldKind::kFkPackedFixed
+      &MpString<true>,         // kSplitMask | FieldKind::kFkString
+      &MpMessage<true>,        // kSplitMask | FieldKind::kFkMessage
+      &MpMap<true>,            // kSplitMask | FieldKind::kFkMap
+  };
+
+  TailCallParseFunc parse_fn = kMiniParseTable[field_type];
+
+  uint64_t hasbits = 0;
+  PROTOBUF_MUSTTAIL return parse_fn(PROTOBUF_TC_PARAM_PASS);  
+}
+
+const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
+        const TcParseTableBase* const table, int64_t const delta_or_group) {
     using namespace field_layout;
 
     // TODO move into ParseContext
@@ -2866,8 +2904,9 @@ const char* TcParser::MiniParseLoop(MessageLite* msg, const char* ptr, ParseCont
         uint32_t tag;
         uint32_t wt = *ptr & 7;
         ptr = ReadTagInlined(ptr, &tag);
+        if (ptr == nullptr) return nullptr;
         if (ABSL_PREDICT_FALSE(wt == 4)) {
-            if (delta_or_group != ~static_cast<int64_t>(tag - 1)) {
+            if (delta_or_group != ~static_cast<uint64_t>(tag)) {
 unusual_end:
                 if (delta_or_group == -1) {
                     ctx->SetLastTag(tag);
@@ -2878,7 +2917,21 @@ unusual_end:
             return ptr;
         }
         
-        auto entry = *FindFieldEntry(table, tag >> 3);
+        auto entryp = FindFieldEntry(table, tag >> 3);
+        if (ABSL_PREDICT_FALSE(entryp == nullptr)) {
+unusual:
+            if (tag == 0) goto unusual_end;
+            // TODO packed/unpacked repeated fields mismatch
+            ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
+            if (ptr == nullptr) return nullptr;
+            continue;
+old_miniparse_fallback:
+            ptr = bla(msg, ptr, ctx, table, entryp, tag);
+            if (ptr == nullptr) return nullptr;
+            continue;
+        }
+        
+        auto entry = *entryp;
         auto base = MaybeGetSplitBase(msg, entry.type_card & kSplitMask, table);
         uint64_t value = UnalignedLoad<uint64_t>(ptr);
         if (wt == 2) {
@@ -2887,59 +2940,18 @@ unusual_end:
                     break;
                 case kFkMessage: {
                     auto sz = ReadSize(&ptr);
+                    if (ptr == nullptr) return nullptr;
                     value = ctx->PushLimit(ptr, sz).token();
                     goto parse_submessage;
                 }
-                case kFkPackedFixed: {
-                    auto sz = ReadSize(&ptr);
-                    if ((entry.type_card & kRepMask) == kRep32Bits) {
-                        ptr = ctx->ReadPackedFixed<uint32_t>(ptr, sz, &RefAt<RepeatedField<uint32_t>>(base, entry.offset));
-                    } else {
-                        ptr = ctx->ReadPackedFixed<uint64_t>(ptr, sz, &RefAt<RepeatedField<uint64_t>>(base, entry.offset));
-                    }
-                    continue;
-                }
-                case kFkPackedVarint: {
-                    void* p = &RefAt<char>(base, entry.offset);
-                    // TODO switch outside
-                    ptr = ctx->ReadPackedVarint(ptr, [p, entry](uint64_t value) {
-                        if (entry.type_card & kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
-                        if ((entry.type_card & kRepMask) == kRep8Bits) {
-                            static_cast<RepeatedField<bool>*>(p)->Add(value);
-                        } else if ((entry.type_card & kRepMask) == kRep32Bits) {
-                            static_cast<RepeatedField<uint32_t>*>(p)->Add(value);
-                        } else {
-                            static_cast<RepeatedField<uint64_t>*>(p)->Add(value);
-                        }
-                    });
-                    continue;
-                }
-                case kFkMap: {
-                    TcFieldData data(tag | (static_cast<uint64_t>(entry.offset) << 32));
-                    if (entry.type_card & kSplitMask) {
-                        ptr = TcParser::MpMap<true>(msg, ptr, ctx, data, table, 0);
-                    } else {
-                        ptr = TcParser::MpMap<false>(msg, ptr, ctx, data, table, 0);
-                    }
-                    continue;
-                }
                 default:
-                    goto unusual;
+                    goto old_miniparse_fallback;
             }
             switch (__builtin_expect(entry.type_card & kRepMask, kRepAString)) {
                 case kRepAString:
                     break;
                 default:
-                    TcFieldData data;
-                    uint64_t entry_offset = reinterpret_cast<const char*>(FindFieldEntry(table, tag >> 3)) -
-                                            reinterpret_cast<const char*>(table);
-                    data.data = entry_offset << 32 | tag;
-                    if (entry.type_card & kSplitMask) {
-                        ptr = MpString<true>(msg, ptr, ctx, data, table, 0);
-                    } else {
-                        ptr = MpString<false>(msg, ptr, ctx, data, table, 0);
-                    }
-                    continue;
+                    goto old_miniparse_fallback;
             }
             if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                 SetHasBit(base, entry, dummy);
@@ -2966,11 +2978,12 @@ unusual_end:
         } else {
             if (ABSL_PREDICT_FALSE(wt == 3)) {
                 if ((entry.type_card & kFkMask) != kFkMessage) goto unusual;
-                value = ~static_cast<uint64_t>(tag);
+                value = ~static_cast<uint64_t>(tag + 1);
                 goto parse_submessage;
             }
             if (ABSL_PREDICT_FALSE(wt > 5)) return nullptr;
-            // Todo ensure correctness
+            if ((entry.type_card & kTvMask) >= kTvEnum) goto old_miniparse_fallback;
+            // TODO ensure correctness
             ptr = ParseScalarBranchless(ptr, wt, value);
             if (ptr == nullptr) return ptr;
             if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
@@ -2996,20 +3009,21 @@ parse_submessage:
             auto aux_idx = entry.aux_idx; 
             auto child_table = table->field_aux(aux_idx)->table;
             MessageLite* child;
+            ABSL_CHECK((entry.type_card & kTvMask) == kTvTable);
             if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                 SetHasBit(base, entry, has_dummy);
                 auto& field = RefAt<MessageLite*>(base, entry.offset);
                 if (field == nullptr) {
-                    field = table->default_instance->New(arena);
+                    field = child_table->default_instance->New(arena);
                 }
                 child = field;
             } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
                 auto& field = RefAt<RepeatedPtrFieldBase>(base, entry.offset);
-                child = field.template Add<GenericTypeHandler<MessageLite>>(table->default_instance);
+                child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
             } else {
                 auto& field = RefAt<MessageLite*>(base, entry.offset);
                 if (ChangeOneof(table, entry, tag >> 3, ctx, msg)) {
-                    field = table->default_instance->New(arena);
+                    field = child_table->default_instance->New(arena);
                 }
                 child = field;
             }
@@ -3017,12 +3031,7 @@ parse_submessage:
             if (ptr == nullptr) return nullptr;
             continue;
         }
-unusual:
-        if (tag == 0) goto unusual_end;
-        ABSL_LOG(INFO) << "Unusual";
-        // TODO packed/unpacked repeated fields mismatch
-        ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
-    }
+    }  // while
     if (ptr == nullptr) return nullptr;
     if (delta_or_group >= 0) {
         (void)ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));

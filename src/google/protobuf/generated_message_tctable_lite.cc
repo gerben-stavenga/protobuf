@@ -2835,10 +2835,13 @@ PROTOBUF_ALWAYS_INLINE const char* MplRepeatedVarint(const char* ptr, ParseConte
     auto mask = (1ull << (sz * 8)) - 1; 
     while (true) {
         field.Add(value);
-        break;
         if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
         uint64_t tag = UnalignedLoad<uint64_t>(ptr);
         if ((tag & mask) != image) return ptr;
+        uint32_t test;
+        auto ptr2 = ReadTag(ptr, &test);
+        ABSL_CHECK(test == expected_tag);
+        ABSL_CHECK(ptr + sz == ptr2);
         ptr += sz;
         ptr = ParseVarint(ptr, &value);
         if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) return nullptr;
@@ -3036,7 +3039,7 @@ old_miniparse_fallback:
                     ptr = MplRepeatedVarint(ptr, ctx, field, false, tag, value);
                 } else if ((entry.type_card & kRepMask) == kRep32Bits) {
                     auto& field = RefAt<RepeatedField<uint32_t>>(base, entry.offset);
-                    if ((entry.type_card & kFkVarint) == kFkVarint) {
+                    if ((tag & 1) == 0) {
                       bool zigzag = (entry.type_card & kTvMask) == kTvZigZag;
                       ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
                     } else {
@@ -3044,7 +3047,7 @@ old_miniparse_fallback:
                     }
                 } else {
                     auto& field = RefAt<RepeatedField<uint64_t>>(base, entry.offset);
-                    if ((entry.type_card & kFkVarint) == kFkVarint) {
+                    if ((tag & 1) == 0) {
                       bool zigzag = (entry.type_card & kTvMask) == kTvZigZag;
                       ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
                     } else {

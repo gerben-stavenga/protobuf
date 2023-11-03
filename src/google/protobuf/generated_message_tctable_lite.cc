@@ -2901,7 +2901,7 @@ unusual_end:
                 }
                 case kFkPackedVarint: {
                     void* p = &RefAt<char>(base, entry.offset);
-                    // TODO switch
+                    // TODO switch outside
                     ptr = ctx->ReadPackedVarint(ptr, [p, entry](uint64_t value) {
                         if (entry.type_card & kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
                         if ((entry.type_card & kRepMask) == kRep8Bits) {
@@ -3019,6 +3019,7 @@ parse_submessage:
         }
 unusual:
         if (tag == 0) goto unusual_end;
+        ABSL_LOG(INFO) << "Unusual";
         // TODO packed/unpacked repeated fields mismatch
         ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
     }

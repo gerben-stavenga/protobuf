@@ -2864,7 +2864,7 @@ const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<
           bits += nbits;
           if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
           field.Add(value);
-        } while (bits <= 64);
+        } while (bits <= 128);
         ptr += bits / 8;
 next:;
     }

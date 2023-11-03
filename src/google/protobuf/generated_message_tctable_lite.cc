@@ -2832,16 +2832,39 @@ const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
     auto image = UnalignedLoad<uint64_t>((void*)buffer);
-    auto mask = (1ull << (sz * 8)) - 1; 
-    while (true) {
-        field.Add(value);
-        if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
-        uint64_t tag = UnalignedLoad<uint64_t>(ptr);
-        if ((tag & mask) != image) return ptr;
-        ptr += sz;
-        ptr = ParseVarint(ptr, &value);
-        if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) return nullptr;
-        if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
+    unsigned tagbits = sz * 8;
+    auto mask = (1ull << tagbits) - 1; 
+    auto mask2 = mask | 0x7f7f7f7f7f7f7f7f;
+    auto pext_mask = 0x7f7f7f7f7f7f7f7f & ~mask;
+    field.Add(value);
+    while (PROTOBUF_PREDICT_TRUE(ctx->DataAvailable(ptr))) {
+        uint64_t v1 = UnalignedLoad<uint64_t>(ptr);
+        uint64_t v2 = UnalignedLoad<uint64_t>(ptr + 8);
+        unsigned bits = 0;
+        do {
+          if ((v1 & mask) != image) {
+            return ptr + (bits / 8);
+          }
+          auto cbits = v1 | mask2;
+          if (cbits + 1 == 0) { 
+            ptr += bits / 8 + sz;
+            value = ReadVarint64(&ptr);
+            if (ptr == nullptr) return nullptr;
+            if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
+            field.Add(value);
+            goto next;            
+          }
+          auto y = cbits ^ (cbits + 1);
+          value = _pext_u64(v1 & cbits, pext_mask);
+          auto nbits = __builtin_popcountll(y);
+          v1 = (nbits == 64 ? 0 : (v1 >> nbits)) | (v2 << (64 - nbits));
+          v2 >>= nbits;
+          bits += nbits;
+          if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
+          field.Add(value);
+        } while (bits <= 64);
+        ptr += bits / 8;
+next:;
     }
     return ptr;
 }

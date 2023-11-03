@@ -762,7 +762,7 @@ TailCallTableInfo::TailCallTableInfo(
     field_entries.push_back(
         {field, internal::cpp ::HasHasbit(field)
                     ? has_bit_indices[static_cast<size_t>(field->index())]
-                    : -1});
+                    : 0});
     auto& entry = field_entries.back();
     entry.type_card = MakeTypeCardForField(field, message_options, options);
 

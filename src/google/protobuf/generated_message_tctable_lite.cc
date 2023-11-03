@@ -32,6 +32,8 @@
 #include "google/protobuf/wire_format_lite.h"
 #include "utf8_validity.h"
 
+#include "x86intrin.h"
+
 
 // clang-format off
 #include "google/protobuf/port_def.inc"
@@ -2824,7 +2826,7 @@ void AddRepeated(void* base, TcParseTableBase::FieldEntry entry, uint64_t value)
     // TODO add fast parsing the rest of repeated
 }
 
-inline uint32_t ParseScalarBranchless(uint32_t wt, uint64_t& data) {
+inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t& data) {
     static const uint64_t size_mask[] = {
         0xFF,
         0xFFFF,
@@ -2837,18 +2839,19 @@ inline uint32_t ParseScalarBranchless(uint32_t wt, uint64_t& data) {
     };
     uint64_t mask = 0x7f7f7f7f7f7f7f7f;
     auto x = data | mask;
-    auto y = x ^ (x + 1);
+    auto z = x + 1;
+    if (z == 0 && wt == 0) {
+      data = ReadVarint64(&ptr);
+      return ptr;
+    }
+    auto y = x ^ z;
     auto varintsize = __builtin_popcountll(y) / 8;
     auto fixedsize = wt & 4 ? 4 : 8;
     if (wt & 1) mask = -1;
     auto size = (wt & 1 ? fixedsize : varintsize);
     data &= size_mask[size - 1];
-#ifdef __X86_64__
     data = _pext_u64(data, mask);
-#else
-    // TODO find good sequence for arm
-#endif
-    return size;
+    return ptr + size;
 }
 
 const char* TcParser::MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, 
@@ -2968,7 +2971,8 @@ unusual_end:
             }
             if (ABSL_PREDICT_FALSE(wt > 5)) return nullptr;
             // Todo ensure correctness
-            ptr += ParseScalarBranchless(wt, value);
+            ptr = ParseScalarBranchless(ptr, wt, value);
+            if (ptr == nullptr) return ptr;
             if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
             if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
                 SetHasBit(base, entry, has_dummy);

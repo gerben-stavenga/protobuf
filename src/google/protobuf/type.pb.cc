@@ -580,25 +580,25 @@ const ::_pbi::TcParseTable<3, 7, 3, 46, 2> Type::_table_ = {
     65535, 65535
   }}, {{
     // string name = 1;
-    {PROTOBUF_FIELD_OFFSET(Type, _impl_.name_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Type, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated .google.protobuf.Field fields = 2;
-    {PROTOBUF_FIELD_OFFSET(Type, _impl_.fields_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Type, _impl_.fields_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated string oneofs = 3;
-    {PROTOBUF_FIELD_OFFSET(Type, _impl_.oneofs_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Type, _impl_.oneofs_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
     // repeated .google.protobuf.Option options = 4;
-    {PROTOBUF_FIELD_OFFSET(Type, _impl_.options_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(Type, _impl_.options_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // .google.protobuf.SourceContext source_context = 5;
     {PROTOBUF_FIELD_OFFSET(Type, _impl_.source_context_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .google.protobuf.Syntax syntax = 6;
-    {PROTOBUF_FIELD_OFFSET(Type, _impl_.syntax_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Type, _impl_.syntax_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kOpenEnum)},
     // string edition = 7;
-    {PROTOBUF_FIELD_OFFSET(Type, _impl_.edition_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Type, _impl_.edition_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::Field>()},
@@ -1405,22 +1405,22 @@ const ::_pbi::TcParseTable<3, 6, 3, 40, 2> Enum::_table_ = {
     65535, 65535
   }}, {{
     // string name = 1;
-    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.name_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated .google.protobuf.EnumValue enumvalue = 2;
-    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.enumvalue_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.enumvalue_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.Option options = 3;
-    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.options_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.options_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // .google.protobuf.SourceContext source_context = 4;
     {PROTOBUF_FIELD_OFFSET(Enum, _impl_.source_context_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .google.protobuf.Syntax syntax = 5;
-    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.syntax_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.syntax_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kOpenEnum)},
     // string edition = 6;
-    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.edition_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Enum, _impl_.edition_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::EnumValue>()},
@@ -1982,7 +1982,7 @@ const ::_pbi::TcParseTable<1, 2, 1, 35, 2> Option::_table_ = {
     65535, 65535
   }}, {{
     // string name = 1;
-    {PROTOBUF_FIELD_OFFSET(Option, _impl_.name_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Option, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .google.protobuf.Any value = 2;
     {PROTOBUF_FIELD_OFFSET(Option, _impl_.value_), _Internal::kHasBitsOffset + 0, 0,

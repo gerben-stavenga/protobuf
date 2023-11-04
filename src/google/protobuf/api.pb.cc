@@ -400,25 +400,25 @@ const ::_pbi::TcParseTable<3, 7, 4, 39, 2> Api::_table_ = {
     65535, 65535
   }}, {{
     // string name = 1;
-    {PROTOBUF_FIELD_OFFSET(Api, _impl_.name_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Api, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated .google.protobuf.Method methods = 2;
-    {PROTOBUF_FIELD_OFFSET(Api, _impl_.methods_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Api, _impl_.methods_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.Option options = 3;
-    {PROTOBUF_FIELD_OFFSET(Api, _impl_.options_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(Api, _impl_.options_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // string version = 4;
-    {PROTOBUF_FIELD_OFFSET(Api, _impl_.version_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Api, _impl_.version_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .google.protobuf.SourceContext source_context = 5;
     {PROTOBUF_FIELD_OFFSET(Api, _impl_.source_context_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.Mixin mixins = 6;
-    {PROTOBUF_FIELD_OFFSET(Api, _impl_.mixins_), -1, 3,
+    {PROTOBUF_FIELD_OFFSET(Api, _impl_.mixins_), _Internal::kHasBitsOffset + 0, 3,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // .google.protobuf.Syntax syntax = 7;
-    {PROTOBUF_FIELD_OFFSET(Api, _impl_.syntax_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(Api, _impl_.syntax_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kOpenEnum)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::Method>()},

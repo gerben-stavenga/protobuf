@@ -2407,7 +2407,7 @@ PROTOBUF_NOINLINE void FileDescriptorSet::Clear() {
 
 const char* FileDescriptorSet::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -2686,7 +2686,7 @@ PROTOBUF_NOINLINE void FileDescriptorProto::Clear() {
 
 const char* FileDescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -2757,19 +2757,19 @@ constexpr ::_pbi::TcParseTable<4, 13, 7, 79, 2> FileDescriptorProto::_table_ = {
     {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.package_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
     // repeated string dependency = 3;
-    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.dependency_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.dependency_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kRawString | ::_fl::kRepSString)},
     // repeated .google.protobuf.DescriptorProto message_type = 4;
-    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.message_type_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.message_type_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.EnumDescriptorProto enum_type = 5;
-    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.enum_type_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.enum_type_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.ServiceDescriptorProto service = 6;
-    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.service_), -1, 2,
+    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.service_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.FieldDescriptorProto extension = 7;
-    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.extension_), -1, 3,
+    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.extension_), _Internal::kHasBitsOffset + 0, 3,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .google.protobuf.FileOptions options = 8;
     {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.options_), _Internal::kHasBitsOffset + 3, 4,
@@ -2778,10 +2778,10 @@ constexpr ::_pbi::TcParseTable<4, 13, 7, 79, 2> FileDescriptorProto::_table_ = {
     {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.source_code_info_), _Internal::kHasBitsOffset + 4, 5,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated int32 public_dependency = 10;
-    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.public_dependency_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.public_dependency_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kInt32)},
     // repeated int32 weak_dependency = 11;
-    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.weak_dependency_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.weak_dependency_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kInt32)},
     // optional string syntax = 12;
     {PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.syntax_), _Internal::kHasBitsOffset + 2, 0,
@@ -3237,7 +3237,7 @@ PROTOBUF_NOINLINE void DescriptorProto_ExtensionRange::Clear() {
 
 const char* DescriptorProto_ExtensionRange::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -3490,7 +3490,7 @@ PROTOBUF_NOINLINE void DescriptorProto_ReservedRange::Clear() {
 
 const char* DescriptorProto_ReservedRange::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -3763,7 +3763,7 @@ PROTOBUF_NOINLINE void DescriptorProto::Clear() {
 
 const char* DescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -3825,31 +3825,31 @@ constexpr ::_pbi::TcParseTable<4, 10, 8, 65, 2> DescriptorProto::_table_ = {
     {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
     // repeated .google.protobuf.FieldDescriptorProto field = 2;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.field_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.field_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.DescriptorProto nested_type = 3;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.nested_type_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.nested_type_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.EnumDescriptorProto enum_type = 4;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.enum_type_), -1, 2,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.enum_type_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.DescriptorProto.ExtensionRange extension_range = 5;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_range_), -1, 3,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_range_), _Internal::kHasBitsOffset + 0, 3,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.FieldDescriptorProto extension = 6;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_), -1, 4,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_), _Internal::kHasBitsOffset + 0, 4,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .google.protobuf.MessageOptions options = 7;
     {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.options_), _Internal::kHasBitsOffset + 1, 5,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.OneofDescriptorProto oneof_decl = 8;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.oneof_decl_), -1, 6,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.oneof_decl_), _Internal::kHasBitsOffset + 0, 6,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.DescriptorProto.ReservedRange reserved_range = 9;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_range_), -1, 7,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_range_), _Internal::kHasBitsOffset + 0, 7,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated string reserved_name = 10;
-    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_name_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kRawString | ::_fl::kRepSString)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::FieldDescriptorProto>()},
@@ -4246,7 +4246,7 @@ PROTOBUF_NOINLINE void ExtensionRangeOptions_Declaration::Clear() {
 
 const char* ExtensionRangeOptions_Declaration::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -4579,7 +4579,7 @@ PROTOBUF_NOINLINE void ExtensionRangeOptions::Clear() {
 
 const char* ExtensionRangeOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -4619,7 +4619,7 @@ constexpr ::_pbi::TcParseTable<3, 4, 4, 0, 12> ExtensionRangeOptions::_table_ = 
     65535, 65535
   }}, {{
     // repeated .google.protobuf.ExtensionRangeOptions.Declaration declaration = 2 [retention = RETENTION_SOURCE];
-    {PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.declaration_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.declaration_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .google.protobuf.ExtensionRangeOptions.VerificationState verification = 3 [default = UNVERIFIED];
     {PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.verification_), _Internal::kHasBitsOffset + 1, 1,
@@ -4628,7 +4628,7 @@ constexpr ::_pbi::TcParseTable<3, 4, 4, 0, 12> ExtensionRangeOptions::_table_ = 
     {PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.features_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.uninterpreted_option_), -1, 3,
+    {PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 3,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::ExtensionRangeOptions_Declaration>()},
@@ -4974,7 +4974,7 @@ PROTOBUF_NOINLINE void FieldDescriptorProto::Clear() {
 
 const char* FieldDescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -5454,7 +5454,7 @@ PROTOBUF_NOINLINE void OneofDescriptorProto::Clear() {
 
 const char* OneofDescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -5685,7 +5685,7 @@ PROTOBUF_NOINLINE void EnumDescriptorProto_EnumReservedRange::Clear() {
 
 const char* EnumDescriptorProto_EnumReservedRange::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -5943,7 +5943,7 @@ PROTOBUF_NOINLINE void EnumDescriptorProto::Clear() {
 
 const char* EnumDescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -5987,16 +5987,16 @@ constexpr ::_pbi::TcParseTable<3, 5, 3, 61, 2> EnumDescriptorProto::_table_ = {
     {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
     // repeated .google.protobuf.EnumValueDescriptorProto value = 2;
-    {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.value_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.value_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .google.protobuf.EnumOptions options = 3;
     {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.options_), _Internal::kHasBitsOffset + 1, 1,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.EnumDescriptorProto.EnumReservedRange reserved_range = 4;
-    {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_range_), -1, 2,
+    {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_range_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated string reserved_name = 5;
-    {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_name_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kRawString | ::_fl::kRepSString)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::EnumValueDescriptorProto>()},
@@ -6284,7 +6284,7 @@ PROTOBUF_NOINLINE void EnumValueDescriptorProto::Clear() {
 
 const char* EnumValueDescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -6571,7 +6571,7 @@ PROTOBUF_NOINLINE void ServiceDescriptorProto::Clear() {
 
 const char* ServiceDescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -6607,7 +6607,7 @@ constexpr ::_pbi::TcParseTable<2, 3, 2, 51, 2> ServiceDescriptorProto::_table_ =
     {PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
     // repeated .google.protobuf.MethodDescriptorProto method = 2;
-    {PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.method_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.method_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .google.protobuf.ServiceOptions options = 3;
     {PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.options_), _Internal::kHasBitsOffset + 1, 1,
@@ -6892,7 +6892,7 @@ PROTOBUF_NOINLINE void MethodDescriptorProto::Clear() {
 
 const char* MethodDescriptorProto::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -7393,7 +7393,7 @@ PROTOBUF_NOINLINE void FileOptions::Clear() {
 
 const char* FileOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -7550,7 +7550,7 @@ constexpr ::_pbi::TcParseTable<5, 22, 3, 202, 12> FileOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.features_), _Internal::kHasBitsOffset + 10, 1,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.uninterpreted_option_), -1, 2,
+    {PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {1, 3},
@@ -8169,7 +8169,7 @@ PROTOBUF_NOINLINE void MessageOptions::Clear() {
 
 const char* MessageOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -8230,7 +8230,7 @@ constexpr ::_pbi::TcParseTable<3, 7, 2, 0, 7> MessageOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.features_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.uninterpreted_option_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::FeatureSet>()},
@@ -8528,7 +8528,7 @@ PROTOBUF_NOINLINE void FieldOptions_EditionDefault::Clear() {
 
 const char* FieldOptions_EditionDefault::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -8830,7 +8830,7 @@ PROTOBUF_NOINLINE void FieldOptions::Clear() {
 
 const char* FieldOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -8918,16 +8918,16 @@ constexpr ::_pbi::TcParseTable<4, 13, 7, 0, 7> FieldOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.retention_), _Internal::kHasBitsOffset + 9, 2,
     (0 | ::_fl::kFcOptional | ::_fl::kEnumRange)},
     // repeated .google.protobuf.FieldOptions.OptionTargetType targets = 19;
-    {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.targets_), -1, 3,
+    {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.targets_), _Internal::kHasBitsOffset + 0, 3,
     (0 | ::_fl::kFcRepeated | ::_fl::kEnumRange)},
     // repeated .google.protobuf.FieldOptions.EditionDefault edition_defaults = 20;
-    {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.edition_defaults_), -1, 4,
+    {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.edition_defaults_), _Internal::kHasBitsOffset + 0, 4,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .google.protobuf.FeatureSet features = 21;
     {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.features_), _Internal::kHasBitsOffset + 0, 5,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.uninterpreted_option_), -1, 6,
+    {PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 6,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {0, 3},
@@ -9346,7 +9346,7 @@ PROTOBUF_NOINLINE void OneofOptions::Clear() {
 
 const char* OneofOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -9382,7 +9382,7 @@ constexpr ::_pbi::TcParseTable<2, 2, 2, 0, 7> OneofOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_.features_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_.uninterpreted_option_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::FeatureSet>()},
@@ -9627,7 +9627,7 @@ PROTOBUF_NOINLINE void EnumOptions::Clear() {
 
 const char* EnumOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -9680,7 +9680,7 @@ constexpr ::_pbi::TcParseTable<3, 5, 2, 0, 7> EnumOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.features_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.uninterpreted_option_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::FeatureSet>()},
@@ -9978,7 +9978,7 @@ PROTOBUF_NOINLINE void EnumValueOptions::Clear() {
 
 const char* EnumValueOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -10028,7 +10028,7 @@ constexpr ::_pbi::TcParseTable<3, 4, 2, 0, 7> EnumValueOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.debug_redact_), _Internal::kHasBitsOffset + 2, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.uninterpreted_option_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::FeatureSet>()},
@@ -10300,7 +10300,7 @@ PROTOBUF_NOINLINE void ServiceOptions::Clear() {
 
 const char* ServiceOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -10342,7 +10342,7 @@ constexpr ::_pbi::TcParseTable<2, 3, 2, 0, 12> ServiceOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_.features_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_.uninterpreted_option_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::FeatureSet>()},
@@ -10612,7 +10612,7 @@ PROTOBUF_NOINLINE void MethodOptions::Clear() {
 
 const char* MethodOptions::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -10663,7 +10663,7 @@ constexpr ::_pbi::TcParseTable<3, 4, 3, 0, 12> MethodOptions::_table_ = {
     {PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_.features_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_.uninterpreted_option_), -1, 2,
+    {PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_.uninterpreted_option_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {0, 3},
@@ -10921,7 +10921,7 @@ PROTOBUF_NOINLINE void UninterpretedOption_NamePart::Clear() {
 
 const char* UninterpretedOption_NamePart::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -11205,7 +11205,7 @@ PROTOBUF_NOINLINE void UninterpretedOption::Clear() {
 
 const char* UninterpretedOption::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -11250,7 +11250,7 @@ constexpr ::_pbi::TcParseTable<3, 7, 1, 75, 2> UninterpretedOption::_table_ = {
     65535, 65535
   }}, {{
     // repeated .google.protobuf.UninterpretedOption.NamePart name = 2;
-    {PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.name_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.name_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional string identifier_value = 3;
     {PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.identifier_value_), _Internal::kHasBitsOffset + 0, 0,
@@ -11589,7 +11589,7 @@ PROTOBUF_NOINLINE void FeatureSet::Clear() {
 
 const char* FeatureSet::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -11942,7 +11942,7 @@ PROTOBUF_NOINLINE void FeatureSetDefaults_FeatureSetEditionDefault::Clear() {
 
 const char* FeatureSetDefaults_FeatureSetEditionDefault::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -12196,7 +12196,7 @@ PROTOBUF_NOINLINE void FeatureSetDefaults::Clear() {
 
 const char* FeatureSetDefaults::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -12225,7 +12225,7 @@ constexpr ::_pbi::TcParseTable<1, 3, 3, 0, 2> FeatureSetDefaults::_table_ = {
     65535, 65535
   }}, {{
     // repeated .google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault defaults = 1;
-    {PROTOBUF_FIELD_OFFSET(FeatureSetDefaults, _impl_.defaults_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(FeatureSetDefaults, _impl_.defaults_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // optional .google.protobuf.Edition minimum_edition = 4;
     {PROTOBUF_FIELD_OFFSET(FeatureSetDefaults, _impl_.minimum_edition_), _Internal::kHasBitsOffset + 0, 1,
@@ -12474,7 +12474,7 @@ PROTOBUF_NOINLINE void SourceCodeInfo_Location::Clear() {
 
 const char* SourceCodeInfo_Location::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -12515,10 +12515,10 @@ constexpr ::_pbi::TcParseTable<3, 5, 0, 106, 2> SourceCodeInfo_Location::_table_
     65535, 65535
   }}, {{
     // repeated int32 path = 1 [packed = true];
-    {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.path_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.path_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
     // repeated int32 span = 2 [packed = true];
-    {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.span_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.span_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
     // optional string leading_comments = 3;
     {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.leading_comments_), _Internal::kHasBitsOffset + 0, 0,
@@ -12527,7 +12527,7 @@ constexpr ::_pbi::TcParseTable<3, 5, 0, 106, 2> SourceCodeInfo_Location::_table_
     {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.trailing_comments_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kRawString | ::_fl::kRepAString)},
     // repeated string leading_detached_comments = 6;
-    {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.leading_detached_comments_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.leading_detached_comments_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kRawString | ::_fl::kRepSString)},
   }},
   // no aux_entries
@@ -12781,7 +12781,7 @@ PROTOBUF_NOINLINE void SourceCodeInfo::Clear() {
 
 const char* SourceCodeInfo::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -13007,7 +13007,7 @@ PROTOBUF_NOINLINE void GeneratedCodeInfo_Annotation::Clear() {
 
 const char* GeneratedCodeInfo_Annotation::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -13048,7 +13048,7 @@ constexpr ::_pbi::TcParseTable<3, 5, 1, 64, 2> GeneratedCodeInfo_Annotation::_ta
     65535, 65535
   }}, {{
     // repeated int32 path = 1 [packed = true];
-    {PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.path_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.path_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
     // optional string source_file = 2;
     {PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.source_file_), _Internal::kHasBitsOffset + 0, 0,
@@ -13309,7 +13309,7 @@ PROTOBUF_NOINLINE void GeneratedCodeInfo::Clear() {
 
 const char* GeneratedCodeInfo::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 

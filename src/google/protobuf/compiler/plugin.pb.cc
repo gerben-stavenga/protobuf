@@ -401,7 +401,7 @@ PROTOBUF_NOINLINE void Version::Clear() {
 
 const char* Version::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -719,7 +719,7 @@ PROTOBUF_NOINLINE void CodeGeneratorRequest::Clear() {
 
 const char* CodeGeneratorRequest::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -759,7 +759,7 @@ const ::_pbi::TcParseTable<3, 5, 3, 79, 2> CodeGeneratorRequest::_table_ = {
     65535, 65535
   }}, {{
     // repeated string file_to_generate = 1;
-    {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.file_to_generate_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.file_to_generate_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kRawString | ::_fl::kRepSString)},
     // optional string parameter = 2;
     {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.parameter_), _Internal::kHasBitsOffset + 0, 0,
@@ -768,10 +768,10 @@ const ::_pbi::TcParseTable<3, 5, 3, 79, 2> CodeGeneratorRequest::_table_ = {
     {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.compiler_version_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.FileDescriptorProto proto_file = 15;
-    {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.proto_file_), -1, 1,
+    {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.proto_file_), _Internal::kHasBitsOffset + 0, 1,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .google.protobuf.FileDescriptorProto source_file_descriptors = 17;
-    {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.source_file_descriptors_), -1, 2,
+    {PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.source_file_descriptors_), _Internal::kHasBitsOffset + 0, 2,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::compiler::Version>()},
@@ -1071,7 +1071,7 @@ PROTOBUF_NOINLINE void CodeGeneratorResponse_File::Clear() {
 
 const char* CodeGeneratorResponse_File::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1364,7 +1364,7 @@ PROTOBUF_NOINLINE void CodeGeneratorResponse::Clear() {
 
 const char* CodeGeneratorResponse::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
   return ptr;
 }
 
@@ -1404,7 +1404,7 @@ const ::_pbi::TcParseTable<2, 3, 1, 60, 2> CodeGeneratorResponse::_table_ = {
     {PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.supported_features_), _Internal::kHasBitsOffset + 1, 0,
     (0 | ::_fl::kFcOptional | ::_fl::kUInt64)},
     // repeated .google.protobuf.compiler.CodeGeneratorResponse.File file = 15;
-    {PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.file_), -1, 0,
+    {PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.file_), _Internal::kHasBitsOffset + 0, 0,
     (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::compiler::CodeGeneratorResponse_File>()},

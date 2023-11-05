@@ -3220,9 +3220,15 @@ void Reflection::PopulateTcParseFastEntries(
       // No field, but still a special entry.
       *fast_entries++ = fallback->wt | 0x18 | (fallback->entry << 5);
     } else if (auto* as_field = fast_field.AsField()) {
-      *fast_entries++ = {as_field->wt | (as_field->card << 3) | (as_field->rep << 5) | 
-          (as_field->transform << 7) | (as_field->hasbit_idx << 9), 
-           schema_.GetFieldOffset(as_field->field)};
+      auto data = as_field->wt | as_field->card | as_field->rep | as_field->transform;
+      if (schema_.HasHasbits()) {
+        data |= (8 * schema_.HasBitsOffset() + as_field->hasbit_idx) << 9;
+      }
+      if (as_field->offset.has_value()) {
+        *fast_entries++ = {data, as_field->offset.value()};
+      } else {
+        *fast_entries++ = {data, schema_.GetFieldOffset(as_field->field)};
+      }
     } else {
       ABSL_DCHECK(fast_field.is_empty());
       // No fast entry here. Use mini parser.

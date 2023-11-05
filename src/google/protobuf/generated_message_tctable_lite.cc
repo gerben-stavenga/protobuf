@@ -1642,30 +1642,26 @@ PROTOBUF_NOINLINE const char* TcParser::MpMap(PROTOBUF_TC_PARAM_DECL) {
   PROTOBUF_MUSTTAIL return ToTagDispatch(PROTOBUF_TC_PARAM_NO_DATA_PASS);
 }
 
-inline void SetHasBit(void* x, TcParseTableBase::FieldEntry entry, void* dummy) {
-    using namespace field_layout;
-    x = (entry.type_card & kFcMask) == kFcSingular ? dummy : x;
-    auto idx = (entry.type_card & kFcMask) == kFcSingular ? 0 : entry.has_idx;
+inline void SetHasBit(void* x, uint32_t fd, void* dummy) {
+    using FFE = TcParseTableBase::FastFieldEntry;
+    x = (fd & FFE::kCardMask) == FFE::kSingular ? dummy : x;
+    auto idx = (fd >> FFE::kHasBitShift) & FFE::kHasBitMask;
     static_cast<char*>(x)[idx / 8] |= 1 << (idx & 7);
 }
 
-inline void Store(uint64_t value, TcParseTableBase::FieldEntry entry, void* out, void* dummy) {
-    using namespace field_layout;
+inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
+    using FFE = TcParseTableBase::FastFieldEntry;
+    unsigned offset = fd >> FFE::kOffsetShift;
+    out = static_cast<char*>(out) + offset;
     *static_cast<bool*>(out) = value;
-    *static_cast<uint32_t*>((entry.type_card & kRepMask) == kRep32Bits ? out : dummy) = value;
-    *static_cast<uint64_t*>((entry.type_card & kRepMask) == kRep64Bits ? out : dummy) = value;
-}
-
-template <typename T>
-void AddRepeated(void* base, TcParseTableBase::FieldEntry entry, uint64_t value) {
-    auto& field = TcParser::RefAt<RepeatedField<T>>(base, entry.offset);
-    field.Add(value);
-    // TODO add fast parsing the rest of repeated
+    *static_cast<uint32_t*>((fd & FFE::kRepMask) == FFE::kRep32Bit ? out : dummy) = value;
+    *static_cast<uint64_t*>((fd & FFE::kRepMask) == FFE::kRep64Bit ? out : dummy) = value;
 }
 
 template <typename FieldType>
 const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 
         uint32_t expected_tag, uint64_t value) {
+#if 0
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
     auto image = UnalignedLoad<uint64_t>((void*)buffer);
@@ -1706,6 +1702,19 @@ const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<
 next:;
     }
     return ptr;
+#else
+    field.Add(value);
+    while (PROTOBUF_PREDICT_TRUE(ctx->DataAvailable(ptr))) {
+      uint32_t tag;
+      auto new_ptr = ReadTag(ptr, &tag);
+      if (new_ptr == nullptr || tag != expected_tag) break;
+      ptr = new_ptr;
+      value = ReadVarint64(&ptr);
+      if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
+      field.Add(value);
+    }
+    return ptr;
+#endif
 }
 
 template <typename FieldType>
@@ -1793,20 +1802,22 @@ const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, Parse
   PROTOBUF_MUSTTAIL return parse_fn(PROTOBUF_TC_PARAM_PASS);  
 }
 
-const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
+const char* PLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
   while (!ctx->Done(&ptr)) {
-    ptr = MiniParse(msg, ptr, ctx, TcFieldData(0), table, 0);
-    if (ptr == nullptr) break;
+    ptr = TcParser::MiniParse(msg, ptr, ctx, TcFieldData(0), table, 0);
+    if (ptr == nullptr) return nullptr;
     if (ctx->LastTag() != 1) break;  // Ended on terminating tag
   }
   return ptr;
 }
-#if 0
+
 const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
-    using namespace field_layout;
-
+    using FFE = TcParseTableBase::FastFieldEntry;
+#if 0 || defined(OLD_PARSER)
+    return PLoop(msg, ptr, ctx, table, delta_or_group);
+#endif
     // TODO move into ParseContext
     char dummy[8] = {};
     char has_dummy[8] = {};
@@ -1827,131 +1838,123 @@ unusual_end:
             }
             return ptr;
         }
-        
-        auto entryp = FindFieldEntry(table, tag >> 3);
-        if (ABSL_PREDICT_FALSE(entryp == nullptr)) {
+
+        auto idx = (tag >> 3) - 1;
+        const TcParseTableBase::FieldEntry* entry;
+        if (ABSL_PREDICT_FALSE(idx >= table->num_fast_fields)) {
+          tmp:
+          entry = FindFieldEntry(table, tag >> 3);
+          if (ABSL_PREDICT_FALSE(entry == nullptr)) {
 unusual:
-            if (tag == 0) goto unusual_end;
-            // TODO packed/unpacked repeated fields mismatch
-            ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
-            if (ptr == nullptr) return nullptr;
-            continue;
+              if (tag == 0) goto unusual_end;
+              // TODO packed/unpacked repeated fields mismatch
+              ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
+              if (ptr == nullptr) return nullptr;
+              continue;
+          }
 old_miniparse_fallback:
-            ptr = MiniParseFallback(msg, ptr, ctx, table, entryp, tag);
-            if (ptr == nullptr) return nullptr;
-            continue;
+          ptr = MiniParseFallback(msg, ptr, ctx, table, entry, tag);
+          if (ptr == nullptr) return nullptr;
+          continue;
         }
-        
-        auto entry = *entryp;
-        auto base = MaybeGetSplitBase(msg, entry.type_card & kSplitMask, table);
+        auto fd = table->fast_entry(idx)->bits;
+        if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) {
+          if (ABSL_PREDICT_FALSE(fd == 0x1F)) goto unusual;
+          entry = table->field_entries_begin() + (fd >> 5); 
+          goto old_miniparse_fallback;
+        }
+        if (wt != (fd & 7)) goto unusual;
         uint64_t value = UnalignedLoad<uint64_t>(ptr);
         if (wt == 2) {
-            switch (__builtin_expect(entry.type_card & kFkMask, kFkString)) {
-                case kFkString:
+            switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
+                case FFE::kRepBytes:
                     break;
-                case kFkMessage: {
-                    if ((entry.type_card & kTvMask) != kTvTable) goto old_miniparse_fallback;
+                case FFE::kRepMessage: {
                     auto sz = ReadSize(&ptr);
                     if (ptr == nullptr) return nullptr;
                     value = ctx->PushLimit(ptr, sz).token();
                     goto parse_submessage;
                 }
-                default:
-                    goto old_miniparse_fallback;
-            }
-            switch (__builtin_expect(entry.type_card & kRepMask, kRepAString)) {
-                case kRepAString:
-                    break;
-                default:
-                    goto old_miniparse_fallback;
-            }
-            if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                SetHasBit(base, entry, dummy);
-            } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
-                auto& field = RefAt<RepeatedPtrField<std::string>>(base, entry.offset);
-                auto sz = ReadSize(&ptr);
-                ptr = ctx->ReadString(ptr, sz, field.Add());
-                if (ptr == nullptr) return nullptr;
-                continue;
-            } else {
-                if (ChangeOneof(table, entry, tag >> 3, ctx, msg)) {
-                    RefAt<ArenaStringPtr>(msg, entry.offset).InitDefault();
+                case FFE::kRepPackedFixed: {
+                  goto tmp;
+                }
+                case FFE::kRepPackedVarint: {
+                  goto tmp;
                 }
             }
+            if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
+              SetHasBit(msg, fd, has_dummy);
+            } else {
+              auto& field = RefAt<RepeatedPtrField<std::string>>(msg, fd >> FFE::kOffsetShift);
+              auto sz = ReadSize(&ptr);
+              ptr = ctx->ReadString(ptr, sz, field.Add());
+              if (ptr == nullptr) return nullptr;
+              continue;
+            }
             if (arena) {
-              ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, entry.offset), arena);
+              ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift), arena);
             } else {
               auto sz = ReadSize(&ptr);
               if (ptr == nullptr) return nullptr;
-              ptr = ctx->ReadString(ptr, sz, RefAt<ArenaStringPtr>(msg, entry.offset).MutableNoCopy(nullptr));
+              ptr = ctx->ReadString(ptr, sz, RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift).MutableNoCopy(nullptr));
             }
             if (ptr == nullptr) return nullptr;
             continue;
         } else {
             if (ABSL_PREDICT_FALSE(wt == 3)) {
-                if ((entry.type_card & kFkMask) != kFkMessage) goto unusual;
-                value = ~static_cast<uint64_t>(tag + 1);
-                goto parse_submessage;
+              ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
+              value = ~static_cast<uint64_t>(tag + 1);
+              goto parse_submessage;
             }
-            if (ABSL_PREDICT_FALSE(wt > 5)) return nullptr;
-            if ((entry.type_card & kTvMask) >= kTvEnum) goto old_miniparse_fallback;
-            // TODO ensure correctness
             ptr = ParseScalarBranchless(ptr, wt, value);
             if (ptr == nullptr) return ptr;
-            if ((entry.type_card & kTvMask) == kTvZigZag) value = WireFormatLite::ZigZagDecode64(value);
-            if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                SetHasBit(base, entry, has_dummy);
-            } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
-                if ((entry.type_card & kRepMask) == kRep8Bits) {
-                    auto& field = RefAt<RepeatedField<bool>>(base, entry.offset);
-                    ptr = MplRepeatedVarint(ptr, ctx, field, false, tag, value);
-                } else if ((entry.type_card & kRepMask) == kRep32Bits) {
-                    auto& field = RefAt<RepeatedField<uint32_t>>(base, entry.offset);
-                    if ((tag & 1) == 0) {
-                      bool zigzag = (entry.type_card & kTvMask) == kTvZigZag;
-                      ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
-                    } else {
-                      ptr = MplRepeatedFixed(ptr, ctx, field, tag, value);
-                    }
-                } else {
-                    auto& field = RefAt<RepeatedField<uint64_t>>(base, entry.offset);
-                    if ((tag & 1) == 0) {
-                      bool zigzag = (entry.type_card & kTvMask) == kTvZigZag;
-                      ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
-                    } else {
-                      ptr = MplRepeatedFixed(ptr, ctx, field, tag, value);
-                    }
-                }
-                if (ptr == nullptr) return nullptr;
-                continue;
+            if (fd & FFE::kZigZag) value = WireFormatLite::ZigZagDecode64(value);
+            if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
+              SetHasBit(msg, fd, has_dummy);
             } else {
-                ChangeOneof(table, entry, tag >> 3, ctx, msg);
+              if ((fd & FFE::kRepMask) == FFE::kRepBool) {
+                auto& field = RefAt<RepeatedField<bool>>(msg, fd >> FFE::kOffsetShift);
+                ptr = MplRepeatedVarint(ptr, ctx, field, false, tag, value);
+              } else if ((fd & FFE::kRepMask) == FFE::kRep32Bit) {
+                auto& field = RefAt<RepeatedField<uint32_t>>(msg, fd >> FFE::kOffsetShift);
+                if ((tag & 1) == 0) {
+                  bool zigzag = fd & FFE::kZigZag;
+                  ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
+                } else {
+                  ptr = MplRepeatedFixed(ptr, ctx, field, tag, value);
+                }
+              } else {
+                auto& field = RefAt<RepeatedField<uint64_t>>(msg, fd >> FFE::kOffsetShift);
+                if ((tag & 1) == 0) {
+                  bool zigzag = fd & FFE::kZigZag;
+                  ptr = MplRepeatedVarint(ptr, ctx, field, zigzag, tag, value);
+                } else {
+                  ptr = MplRepeatedFixed(ptr, ctx, field, tag, value);
+                }
+              }
+              if (ptr == nullptr) return nullptr;
+              continue;
             }
-            Store(value, entry, &RefAt<char>(base, entry.offset), dummy);
+            Store(value, msg, fd, dummy);
             continue;
         }
 parse_submessage:
         {
-            auto aux_idx = entry.aux_idx; 
-            ABSL_DCHECK((entry.type_card & kTvMask) == kTvTable) << table->field_aux(aux_idx)->message_default()->GetTypeName();
-            auto child_table = table->field_aux(aux_idx)->table;
+            auto entry_idx = fd >> FFE::kOffsetShift;
+            auto entry = table->field_entries_begin() + entry_idx;
+            auto child_table = table->field_aux(entry->aux_idx)->table;
+            auto offset = entry->offset;
             MessageLite* child;
-            if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) <= kFcOptional)) {
-                SetHasBit(base, entry, has_dummy);
-                auto& field = RefAt<MessageLite*>(base, entry.offset);
+            if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
+                SetHasBit(msg, fd, has_dummy);
+                auto& field = RefAt<MessageLite*>(msg, offset);
                 if (field == nullptr) {
                     field = child_table->default_instance->New(arena);
                 }
                 child = field;
-            } else if (ABSL_PREDICT_TRUE((entry.type_card & kFcMask) == kFcRepeated)) {
-                auto& field = RefAt<RepeatedPtrFieldBase>(base, entry.offset);
-                child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
             } else {
-                auto& field = RefAt<MessageLite*>(base, entry.offset);
-                if (ChangeOneof(table, entry, tag >> 3, ctx, msg)) {
-                    field = child_table->default_instance->New(arena);
-                }
-                child = field;
+                auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
+                child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
             }
             ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
             if (ptr == nullptr) return nullptr;
@@ -1968,7 +1971,7 @@ parse_submessage:
         return nullptr;
     } 
 }
-#endif
+
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google

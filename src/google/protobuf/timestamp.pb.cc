@@ -182,7 +182,7 @@ const ::_pbi::TcParseTable<2, 2, 0, 0, 2> Timestamp::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 0,  // max_field_number, fast_idx_mask
+    2, 2,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -193,9 +193,9 @@ const ::_pbi::TcParseTable<2, 2, 0, 0, 2> Timestamp::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // int64 seconds = 1;
-    {96 , (PROTOBUF_FIELD_OFFSET(Timestamp, _impl_.seconds_) << 19)},
+    {64, PROTOBUF_FIELD_OFFSET(Timestamp, _impl_.seconds_)},
     // int32 nanos = 2;
-    {64 , (PROTOBUF_FIELD_OFFSET(Timestamp, _impl_.nanos_) << 19)},
+    {32, PROTOBUF_FIELD_OFFSET(Timestamp, _impl_.nanos_)},
   }}, {{
     65535, 65535
   }}, {{

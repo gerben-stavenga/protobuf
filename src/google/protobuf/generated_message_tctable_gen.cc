@@ -559,44 +559,51 @@ TailCallTableInfo::TailCallTableInfo(
     num_fields++;
   }
   for (int i = 0; i < num_fields; i++) {
+    using FFE = TcParseTableBase::FastFieldEntry;
     auto entry = field_entries[i];
     // Fill gaps with empty slots
     while (fast_path_fields.size() < entry.field->number() - 1) fast_path_fields.push_back({FastFieldInfo::Empty()});
     auto wt = WireFormat::WireTypeForField(entry.field);
     if (IsFieldEligibleForFastParsing(entry, message_options, option_provider)) {
       using namespace field_layout;
-      uint32_t card = (entry.type_card & kFcMask) >> kFcShift;
-      ABSL_DCHECK(card != TcParseTableBase::FastFieldEntry::kFallback);
+      // TODO
+      uint32_t card = ((entry.type_card & kFcMask) >> kFcShift) << 3;
+      ABSL_DCHECK(card != FFE::kFallback);
       uint32_t rep;
       uint32_t transform = 0;
       uint32_t hasbit = entry.hasbit_idx;
+      absl::optional<uint32> offset;
       if (wt == WireFormatLite::WireType::WIRETYPE_LENGTH_DELIMITED) {
         switch (static_cast<FieldKind>((entry.type_card & kFkMask))) {
           case FieldKind::kFkPackedFixed:
-            rep = TcParseTableBase::FastFieldEntry::kRepPackedFixed;
+            rep = FFE::kRepPackedFixed;
             break;
           case FieldKind::kFkPackedVarint:
-            rep = TcParseTableBase::FastFieldEntry::kRepPackedVarint;
-            transform = (entry.type_card & kTvMask) == kTvZigZag ? TcParseTableBase::FastFieldEntry::kZigZag : 0;
+            rep = FFE::kRepPackedVarint;
+            transform = (entry.type_card & kTvMask) == kTvZigZag ? FFE::kZigZag : 0;
             break;
           case FieldKind::kFkString:
-            rep = TcParseTableBase::FastFieldEntry::kRepBytes;
-            transform = (entry.type_card & kTvMask) >> kTvShift;
+            rep = FFE::kRepBytes;
+            // TODO do not rely on numeric equality
+            transform = ((entry.type_card & kTvMask) >> kTvShift) << 7;
             break;
           case FieldKind::kFkMessage:
-            rep = TcParseTableBase::FastFieldEntry::kRepMessage;
+            rep = FFE::kRepMessage;
+            offset = i;
             break;
           default:
             ABSL_CHECK(false) << "Invalid configuration";
         }
       } else if (wt == WireFormatLite::WireType::WIRETYPE_START_GROUP) {
-        rep = TcParseTableBase::FastFieldEntry::kRepMessage;
+        rep = FFE::kRepMessage;
+        offset = i;
       } else {
         ABSL_DCHECK(wt != WireFormatLite::WireType::WIRETYPE_END_GROUP);
-        rep = (entry.type_card & kRepMask) >> kRepShift;
-        transform = (entry.type_card & kTvMask) == kTvZigZag ? TcParseTableBase::FastFieldEntry::kZigZag : 0;
+        // TODO do not rely on numeric equality
+        rep = ((((entry.type_card & kRepMask) >> kRepShift) + 1) / 2) << 5;
+        transform = (entry.type_card & kTvMask) == kTvZigZag ? FFE::kZigZag : 0;
       }
-      fast_path_fields.push_back({FastFieldInfo::Field{entry.field, wt, card, rep, transform, hasbit}});
+      fast_path_fields.push_back({FastFieldInfo::Field{entry.field, wt, card, rep, transform, hasbit, offset}});
     } else {
       fast_path_fields.push_back({FastFieldInfo::Fallback{entry.field, wt, uint32_t(i)}});
     }

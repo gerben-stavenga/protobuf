@@ -270,7 +270,7 @@ struct alignas(uint64_t) TcParseTableBase {
   uint16_t has_bits_offset;
   uint16_t extension_offset;
   uint32_t max_field_number;
-  uint8_t fast_idx_mask;
+  uint8_t num_fast_fields;
   uint16_t lookup_table_offset;
   uint32_t skipmap32;
   uint32_t field_entries_offset;
@@ -291,7 +291,7 @@ struct alignas(uint64_t) TcParseTableBase {
   // compiled.
   constexpr TcParseTableBase(
       uint16_t has_bits_offset, uint16_t extension_offset,
-      uint32_t max_field_number, uint8_t fast_idx_mask,
+      uint32_t max_field_number, uint8_t num_fast_fields,
       uint16_t lookup_table_offset, uint32_t skipmap32,
       uint32_t field_entries_offset, uint16_t num_field_entries,
       uint16_t num_aux_entries, uint32_t aux_offset,
@@ -299,7 +299,7 @@ struct alignas(uint64_t) TcParseTableBase {
       : has_bits_offset(has_bits_offset),
         extension_offset(extension_offset),
         max_field_number(max_field_number),
-        fast_idx_mask(fast_idx_mask),
+        num_fast_fields(num_fast_fields),
         lookup_table_offset(lookup_table_offset),
         skipmap32(skipmap32),
         field_entries_offset(field_entries_offset),
@@ -313,30 +313,40 @@ struct alignas(uint64_t) TcParseTableBase {
   struct FastFieldEntry {
     enum {
       // Cardinality
+      kCardMask = 0x18,
       kSingular = 0,  // no hasbit
-      kOptional = 1,
-      kRepeated = 2,
-      kFallback = 3,  // oneof or non-standard reps
+      kOptional = 0x8,
+      kRepeated = 0x10,
+      kFallback = 0x18,  // oneof or non-standard reps
 
       // Representation
+      kRepMask = 0x60,
       // Varint / fixed wiretype
       kRepBool = 0,
-      kRep32Bit = 1,
-      kRep64Bit = 2,
+      kRep32Bit = 0x20,
+      kRep64Bit = 0x40,
       // length-delimited wiretype
       kRepBytes = 0,
-      kRepMessage  = 1,  // MessageLite*
-      kRepPackedVarint = 2,
-      kRepPackedFixed = 3,
+      kRepMessage  = 0x20,  // MessageLite*
+      kRepPackedVarint = 0x40,
+      kRepPackedFixed = 0x60,
 
       // Transforms
+      kTransformMask = 0x180,
       // Varint
-      kZigZag = 1,
+      kNoZigZag = 0,
+      kZigZag = 0x80,
       // TODO (fast enum validation?)
       // Bytes/Strings
       kBytes = 0,
-      kUtf8Debug = 1,
-      kUtf8 = 2,
+      kUtf8Debug = 0x80,
+      kUtf8 = 0x100,
+
+      // Hasbit
+      kHasBitMask = (1 << 10) - 1,
+      kHasBitShift = 9,
+
+      kOffsetShift = 19,
     };
 
     // Field data used during parse:

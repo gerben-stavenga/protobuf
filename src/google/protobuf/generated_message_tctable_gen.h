@@ -73,6 +73,7 @@ struct PROTOBUF_EXPORT TailCallTableInfo {
       uint32_t rep;
       uint32_t transform;
       uint32_t hasbit_idx;
+      absl::optional<uint32_t> offset;
     };
     struct Fallback {
       const FieldDescriptor* field;

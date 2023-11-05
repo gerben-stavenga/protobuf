@@ -423,7 +423,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> DoubleValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -434,7 +434,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> DoubleValue::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // double value = 1;
-    {97 , (PROTOBUF_FIELD_OFFSET(DoubleValue, _impl_.value_) << 19)},
+    {65, PROTOBUF_FIELD_OFFSET(DoubleValue, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -606,7 +606,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> FloatValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -617,7 +617,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> FloatValue::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // float value = 1;
-    {69 , (PROTOBUF_FIELD_OFFSET(FloatValue, _impl_.value_) << 19)},
+    {37, PROTOBUF_FIELD_OFFSET(FloatValue, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -789,7 +789,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> Int64Value::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -800,7 +800,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> Int64Value::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // int64 value = 1;
-    {96 , (PROTOBUF_FIELD_OFFSET(Int64Value, _impl_.value_) << 19)},
+    {64, PROTOBUF_FIELD_OFFSET(Int64Value, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -958,7 +958,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> UInt64Value::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -969,7 +969,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> UInt64Value::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // uint64 value = 1;
-    {96 , (PROTOBUF_FIELD_OFFSET(UInt64Value, _impl_.value_) << 19)},
+    {64, PROTOBUF_FIELD_OFFSET(UInt64Value, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1127,7 +1127,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> Int32Value::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1138,7 +1138,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> Int32Value::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // int32 value = 1;
-    {64 , (PROTOBUF_FIELD_OFFSET(Int32Value, _impl_.value_) << 19)},
+    {32, PROTOBUF_FIELD_OFFSET(Int32Value, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1296,7 +1296,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> UInt32Value::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1307,7 +1307,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> UInt32Value::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // uint32 value = 1;
-    {64 , (PROTOBUF_FIELD_OFFSET(UInt32Value, _impl_.value_) << 19)},
+    {32, PROTOBUF_FIELD_OFFSET(UInt32Value, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1465,7 +1465,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> BoolValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1476,7 +1476,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> BoolValue::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // bool value = 1;
-    {0 , (PROTOBUF_FIELD_OFFSET(BoolValue, _impl_.value_) << 19)},
+    {0, PROTOBUF_FIELD_OFFSET(BoolValue, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1647,7 +1647,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 41, 2> StringValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1658,7 +1658,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 41, 2> StringValue::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // string value = 1;
-    {258 , (PROTOBUF_FIELD_OFFSET(StringValue, _impl_.value_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(StringValue, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1836,7 +1836,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> BytesValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1847,7 +1847,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> BytesValue::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // bytes value = 1;
-    {2 , (PROTOBUF_FIELD_OFFSET(BytesValue, _impl_.value_) << 19)},
+    {2, PROTOBUF_FIELD_OFFSET(BytesValue, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{

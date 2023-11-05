@@ -307,7 +307,7 @@ const ::_pbi::TcParseTable<1, 1, 2, 37, 2> Struct::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -617,7 +617,7 @@ const ::_pbi::TcParseTable<6, 6, 2, 42, 2> Value::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    6, 0,  // max_field_number, fast_idx_mask
+    6, 6,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -920,7 +920,7 @@ const ::_pbi::TcParseTable<1, 1, 1, 0, 2> ListValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -931,7 +931,7 @@ const ::_pbi::TcParseTable<1, 1, 1, 0, 2> ListValue::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // repeated .google.protobuf.Value values = 1;
-    {50 , (PROTOBUF_FIELD_OFFSET(ListValue, _impl_.values_) << 19)},
+    {50, 0},
   }}, {{
     65535, 65535
   }}, {{

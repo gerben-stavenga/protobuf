@@ -217,7 +217,7 @@ const ::_pbi::TcParseTable<2, 2, 0, 36, 2> Any::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 0,  // max_field_number, fast_idx_mask
+    2, 2,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -228,9 +228,9 @@ const ::_pbi::TcParseTable<2, 2, 0, 36, 2> Any::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // string type_url = 1;
-    {258 , (PROTOBUF_FIELD_OFFSET(Any, _impl_.type_url_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Any, _impl_.type_url_)},
     // bytes value = 2;
-    {2 , (PROTOBUF_FIELD_OFFSET(Any, _impl_.value_) << 19)},
+    {2, PROTOBUF_FIELD_OFFSET(Any, _impl_.value_)},
   }}, {{
     65535, 65535
   }}, {{

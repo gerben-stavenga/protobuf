@@ -179,7 +179,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> CppFeatures::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(CppFeatures, _impl_._has_bits_),
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -190,7 +190,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 0, 2> CppFeatures::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // optional bool legacy_closed_enum = 1 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_FIELD, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {8 , (PROTOBUF_FIELD_OFFSET(CppFeatures, _impl_.legacy_closed_enum_) << 19)},
+    {8 | ((0 + _Internal::kHasBitsOffset) << 9), PROTOBUF_FIELD_OFFSET(CppFeatures, _impl_.legacy_closed_enum_)},
   }}, {{
     65535, 65535
   }}, {{

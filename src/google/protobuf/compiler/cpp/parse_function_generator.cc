@@ -376,7 +376,7 @@ void ParseFunctionGenerator::GenerateTailCallTable(io::Printer* printer) {
       }
       format("$1$, $2$,  // max_field_number, fast_idx_mask\n",
              (ordered_fields_.empty() ? 0 : ordered_fields_.back()->number()),
-             0 /* unused mask */);
+             tc_table_info_->table_size);
       format(
           "offsetof(decltype(_table_), field_lookup_table),\n"
           "$1$,  // skipmap\n",
@@ -571,12 +571,19 @@ void ParseFunctionGenerator::GenerateFastFieldEntries(Formatter& format) {
       PrintFieldComment(format, as_field->field, options_);
       ABSL_CHECK(!ShouldSplit(as_field->field, options_));
 
-      uint32_t data = as_field->wt | (as_field->card << 3) | (as_field->rep << 5) | 
-          (as_field->transform << 7) | (as_field->hasbit_idx << 9);
+      uint32_t data = as_field->wt | as_field->card | as_field->rep | as_field->transform;
 
-      format(
-          "{$1$ , (PROTOBUF_FIELD_OFFSET($classname$, $2$) << 19)},\n",
-          data, FieldMemberName(as_field->field, /*split=*/false));
+      format("{$1$", data);
+      if (as_field->card == 8) {
+        format(" | (($1$ + _Internal::kHasBitsOffset) << 9), ", as_field->hasbit_idx);
+      } else {
+        format(", ");
+      }
+      if (as_field->offset.has_value()) {
+        format("$1$},\n", as_field->offset.value());
+      } else {
+        format("PROTOBUF_FIELD_OFFSET($classname$, $1$)},\n", FieldMemberName(as_field->field, /*split=*/false));
+      }
     } else {
       ABSL_DCHECK(info.is_empty());
       format("{0x1F},\n");  // wt = 7 + fallback 

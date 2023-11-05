@@ -186,7 +186,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 39, 2> FieldMask::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -197,7 +197,7 @@ const ::_pbi::TcParseTable<1, 1, 0, 39, 2> FieldMask::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // repeated string paths = 1;
-    {274 , (PROTOBUF_FIELD_OFFSET(FieldMask, _impl_.paths_) << 19)},
+    {274, PROTOBUF_FIELD_OFFSET(FieldMask, _impl_.paths_)},
   }}, {{
     65535, 65535
   }}, {{

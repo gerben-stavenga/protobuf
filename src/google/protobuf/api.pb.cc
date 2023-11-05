@@ -364,7 +364,7 @@ const ::_pbi::TcParseTable<7, 7, 4, 39, 2> Api::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Api, _impl_._has_bits_),
     0, // no _extensions_
-    7, 0,  // max_field_number, fast_idx_mask
+    7, 7,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967168,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -375,19 +375,19 @@ const ::_pbi::TcParseTable<7, 7, 4, 39, 2> Api::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // string name = 1;
-    {258 , (PROTOBUF_FIELD_OFFSET(Api, _impl_.name_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Api, _impl_.name_)},
     // repeated .google.protobuf.Method methods = 2;
-    {50 , (PROTOBUF_FIELD_OFFSET(Api, _impl_.methods_) << 19)},
+    {50, 1},
     // repeated .google.protobuf.Option options = 3;
-    {50 , (PROTOBUF_FIELD_OFFSET(Api, _impl_.options_) << 19)},
+    {50, 2},
     // string version = 4;
-    {258 , (PROTOBUF_FIELD_OFFSET(Api, _impl_.version_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Api, _impl_.version_)},
     // .google.protobuf.SourceContext source_context = 5;
-    {42 , (PROTOBUF_FIELD_OFFSET(Api, _impl_.source_context_) << 19)},
+    {42 | ((0 + _Internal::kHasBitsOffset) << 9), 4},
     // repeated .google.protobuf.Mixin mixins = 6;
-    {50 , (PROTOBUF_FIELD_OFFSET(Api, _impl_.mixins_) << 19)},
+    {50, 5},
     // .google.protobuf.Syntax syntax = 7;
-    {64 , (PROTOBUF_FIELD_OFFSET(Api, _impl_.syntax_) << 19)},
+    {32, PROTOBUF_FIELD_OFFSET(Api, _impl_.syntax_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -730,7 +730,7 @@ const ::_pbi::TcParseTable<7, 7, 1, 68, 2> Method::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    7, 0,  // max_field_number, fast_idx_mask
+    7, 7,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967168,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -741,19 +741,19 @@ const ::_pbi::TcParseTable<7, 7, 1, 68, 2> Method::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // string name = 1;
-    {258 , (PROTOBUF_FIELD_OFFSET(Method, _impl_.name_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Method, _impl_.name_)},
     // string request_type_url = 2;
-    {258 , (PROTOBUF_FIELD_OFFSET(Method, _impl_.request_type_url_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Method, _impl_.request_type_url_)},
     // bool request_streaming = 3;
-    {0 , (PROTOBUF_FIELD_OFFSET(Method, _impl_.request_streaming_) << 19)},
+    {0, PROTOBUF_FIELD_OFFSET(Method, _impl_.request_streaming_)},
     // string response_type_url = 4;
-    {258 , (PROTOBUF_FIELD_OFFSET(Method, _impl_.response_type_url_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Method, _impl_.response_type_url_)},
     // bool response_streaming = 5;
-    {0 , (PROTOBUF_FIELD_OFFSET(Method, _impl_.response_streaming_) << 19)},
+    {0, PROTOBUF_FIELD_OFFSET(Method, _impl_.response_streaming_)},
     // repeated .google.protobuf.Option options = 6;
-    {50 , (PROTOBUF_FIELD_OFFSET(Method, _impl_.options_) << 19)},
+    {50, 5},
     // .google.protobuf.Syntax syntax = 7;
-    {64 , (PROTOBUF_FIELD_OFFSET(Method, _impl_.syntax_) << 19)},
+    {32, PROTOBUF_FIELD_OFFSET(Method, _impl_.syntax_)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1060,7 +1060,7 @@ const ::_pbi::TcParseTable<2, 2, 0, 38, 2> Mixin::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 0,  // max_field_number, fast_idx_mask
+    2, 2,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1071,9 +1071,9 @@ const ::_pbi::TcParseTable<2, 2, 0, 38, 2> Mixin::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // string name = 1;
-    {258 , (PROTOBUF_FIELD_OFFSET(Mixin, _impl_.name_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Mixin, _impl_.name_)},
     // string root = 2;
-    {258 , (PROTOBUF_FIELD_OFFSET(Mixin, _impl_.root_) << 19)},
+    {258, PROTOBUF_FIELD_OFFSET(Mixin, _impl_.root_)},
   }}, {{
     65535, 65535
   }}, {{

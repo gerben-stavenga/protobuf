@@ -1815,7 +1815,7 @@ const char* PLoop(MessageLite* const msg, const char* ptr, ParseContext* const c
 const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
     using FFE = TcParseTableBase::FastFieldEntry;
-#if 0 || defined(OLD_PARSER)
+#if 1 || defined(OLD_PARSER)
     return PLoop(msg, ptr, ctx, table, delta_or_group);
 #endif
     // TODO move into ParseContext

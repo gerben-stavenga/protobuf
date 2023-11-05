@@ -83,14 +83,6 @@ const char* TcParser::ReflectionFallback(PROTOBUF_TC_PARAM_DECL) {
                                                  reflection, field);
 }
 
-const char* TcParser::ReflectionParseLoop(PROTOBUF_TC_PARAM_DECL) {
-  (void)data;
-  (void)table;
-  (void)hasbits;
-  // Call into the wire format reflective parse loop.
-  return WireFormat::_InternalParse(DownCast<Message*>(msg), ptr, ctx);
-}
-
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google

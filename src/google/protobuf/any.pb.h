@@ -279,7 +279,7 @@ class PROTOBUF_EXPORT Any final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      1, 2, 0,
+      2, 2, 0,
       36, 2>
       _table_;
   friend class ::google::protobuf::MessageLite;

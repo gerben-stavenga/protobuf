@@ -3190,25 +3190,9 @@ static uint32_t AlignTo(uint32_t v) {
   return (v + alignof(T) - 1) & ~(alignof(T) - 1);
 }
 
-static internal::TailCallParseFunc GetFastParseFunction(
-    internal::TcParseFunction func) {
-#define PROTOBUF_TC_PARSE_FUNCTION_X(value) internal::TcParser::value,
-  static constexpr internal::TailCallParseFunc kFuncs[] = {
-      {}, PROTOBUF_TC_PARSE_FUNCTION_LIST};
-#undef PROTOBUF_TC_PARSE_FUNCTION_X
-  const int index = static_cast<int>(func);
-  if (index < 0 || index >= std::end(kFuncs) - std::begin(kFuncs) ||
-      kFuncs[index] == nullptr) {
-    ABSL_DLOG(FATAL) << "Failed to find function: " << static_cast<int>(func);
-    // Let's not crash in opt, just in case.
-    // MiniParse is always a valid parser.
-    return &internal::TcParser::MiniParse;
-  }
-  return kFuncs[index];
-}
-
 const internal::TcParseTableBase* Reflection::CreateTcParseTableReflectionOnly()
     const {
+#if 0
   // ParseLoop can't parse message set wire format.
   // Create a dummy table that only exists to make TcParser::ParseLoop jump
   // into the reflective parse loop.
@@ -3223,25 +3207,26 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTableReflectionOnly()
   ABSL_DCHECK_EQ(static_cast<void*>(&full_table->header),
                  static_cast<void*>(full_table));
   return &full_table->header;
+#else
+  return nullptr;
+#endif
 }
 
 void Reflection::PopulateTcParseFastEntries(
     const internal::TailCallTableInfo& table_info,
     TcParseTableBase::FastFieldEntry* fast_entries) const {
   for (const auto& fast_field : table_info.fast_path_fields) {
-    if (auto* nonfield = fast_field.AsNonField()) {
+    if (auto* fallback = fast_field.AsFallback()) {
       // No field, but still a special entry.
-      *fast_entries++ = {GetFastParseFunction(nonfield->func),
-                         {nonfield->coded_tag, nonfield->nonfield_info}};
+      *fast_entries++ = fallback->wt | 0x18 | (fallback->entry << 5);
     } else if (auto* as_field = fast_field.AsField()) {
-      *fast_entries++ = {
-          GetFastParseFunction(as_field->func),
-          {as_field->coded_tag, as_field->hasbit_idx, as_field->aux_idx,
-           static_cast<uint16_t>(schema_.GetFieldOffset(as_field->field))}};
+      *fast_entries++ = {as_field->wt | (as_field->card << 3) | (as_field->rep << 5) | 
+          (as_field->transform << 7) | (as_field->hasbit_idx << 9), 
+           schema_.GetFieldOffset(as_field->field)};
     } else {
       ABSL_DCHECK(fast_field.is_empty());
       // No fast entry here. Use mini parser.
-      *fast_entries++ = {internal::TcParser::MiniParse, {}};
+      *fast_entries++ = {0x1F};
     }
   }
 }
@@ -3416,8 +3401,7 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTable() const {
       ReflectionOptionProvider(*this), has_bit_indices, inlined_string_indices);
 
   const size_t fast_entries_count = table_info.fast_path_fields.size();
-  ABSL_CHECK_EQ(static_cast<int>(fast_entries_count),
-                1 << table_info.table_size_log2);
+  ABSL_CHECK_EQ(static_cast<int>(fast_entries_count), table_info.table_size);
   const uint16_t lookup_table_offset = AlignTo<uint16_t>(
       sizeof(TcParseTableBase) +
       fast_entries_count * sizeof(TcParseTableBase::FastFieldEntry));

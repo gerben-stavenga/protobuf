@@ -2412,7 +2412,7 @@ const char* FileDescriptorSet::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<0, 1, 1, 0, 2> FileDescriptorSet::_table_ = {
+constexpr ::_pbi::TcParseTable<1, 1, 1, 0, 2> FileDescriptorSet::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -2427,8 +2427,7 @@ constexpr ::_pbi::TcParseTable<0, 1, 1, 0, 2> FileDescriptorSet::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // repeated .google.protobuf.FileDescriptorProto file = 1;
-    {::_pbi::TcParser::FastMtR1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorSet, _impl_.file_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(FileDescriptorSet, _impl_.file_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -2691,11 +2690,11 @@ const char* FileDescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<4, 13, 7, 79, 2> FileDescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<14, 13, 7, 79, 2> FileDescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    14, 120,  // max_field_number, fast_idx_mask
+    14, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294955008,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -2705,48 +2704,32 @@ constexpr ::_pbi::TcParseTable<4, 13, 7, 79, 2> FileDescriptorProto::_table_ = {
     &_FileDescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.name_) << 19)},
     // optional string package = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 1, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.package_)}},
+    {650 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.package_) << 19)},
     // repeated string dependency = 3;
-    {::_pbi::TcParser::FastSR1,
-     {26, 63, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.dependency_)}},
+    {146 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.dependency_) << 19)},
     // repeated .google.protobuf.DescriptorProto message_type = 4;
-    {::_pbi::TcParser::FastMtR1,
-     {34, 63, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.message_type_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.message_type_) << 19)},
     // repeated .google.protobuf.EnumDescriptorProto enum_type = 5;
-    {::_pbi::TcParser::FastMtR1,
-     {42, 63, 1, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.enum_type_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.enum_type_) << 19)},
     // repeated .google.protobuf.ServiceDescriptorProto service = 6;
-    {::_pbi::TcParser::FastMtR1,
-     {50, 63, 2, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.service_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.service_) << 19)},
     // repeated .google.protobuf.FieldDescriptorProto extension = 7;
-    {::_pbi::TcParser::FastMtR1,
-     {58, 63, 3, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.extension_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.extension_) << 19)},
     // optional .google.protobuf.FileOptions options = 8;
-    {::_pbi::TcParser::FastMtS1,
-     {66, 3, 4, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.options_)}},
+    {1578 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.options_) << 19)},
     // optional .google.protobuf.SourceCodeInfo source_code_info = 9;
-    {::_pbi::TcParser::FastMtS1,
-     {74, 4, 5, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.source_code_info_)}},
+    {2090 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.source_code_info_) << 19)},
     // repeated int32 public_dependency = 10;
-    {::_pbi::TcParser::FastV32R1,
-     {80, 63, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.public_dependency_)}},
+    {80 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.public_dependency_) << 19)},
     // repeated int32 weak_dependency = 11;
-    {::_pbi::TcParser::FastV32R1,
-     {88, 63, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.weak_dependency_)}},
+    {80 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.weak_dependency_) << 19)},
     // optional string syntax = 12;
-    {::_pbi::TcParser::FastSS1,
-     {98, 2, 0, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.syntax_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional .google.protobuf.Edition edition = 14;
-    {::_pbi::TcParser::FastEvS1,
-     {112, 5, 6, PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.edition_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {1162 , (PROTOBUF_FIELD_OFFSET(FileDescriptorProto, _impl_.syntax_) << 19)},
+    {0x1F},
+    {408},
   }}, {{
     65535, 65535
   }}, {{
@@ -3242,11 +3225,11 @@ const char* DescriptorProto_ExtensionRange::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<2, 3, 1, 0, 2> DescriptorProto_ExtensionRange::_table_ = {
+constexpr ::_pbi::TcParseTable<3, 3, 1, 0, 2> DescriptorProto_ExtensionRange::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(DescriptorProto_ExtensionRange, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    3, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -3256,16 +3239,12 @@ constexpr ::_pbi::TcParseTable<2, 3, 1, 0, 2> DescriptorProto_ExtensionRange::_t
     &_DescriptorProto_ExtensionRange_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional int32 start = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(DescriptorProto_ExtensionRange, _impl_.start_), 1>(),
-     {8, 1, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto_ExtensionRange, _impl_.start_)}},
+    {584 , (PROTOBUF_FIELD_OFFSET(DescriptorProto_ExtensionRange, _impl_.start_) << 19)},
     // optional int32 end = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(DescriptorProto_ExtensionRange, _impl_.end_), 2>(),
-     {16, 2, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto_ExtensionRange, _impl_.end_)}},
+    {1096 , (PROTOBUF_FIELD_OFFSET(DescriptorProto_ExtensionRange, _impl_.end_) << 19)},
     // optional .google.protobuf.ExtensionRangeOptions options = 3;
-    {::_pbi::TcParser::FastMtS1,
-     {26, 0, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto_ExtensionRange, _impl_.options_)}},
+    {42 , (PROTOBUF_FIELD_OFFSET(DescriptorProto_ExtensionRange, _impl_.options_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -3495,11 +3474,11 @@ const char* DescriptorProto_ReservedRange::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<1, 2, 0, 0, 2> DescriptorProto_ReservedRange::_table_ = {
+constexpr ::_pbi::TcParseTable<2, 2, 0, 0, 2> DescriptorProto_ReservedRange::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(DescriptorProto_ReservedRange, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -3509,12 +3488,10 @@ constexpr ::_pbi::TcParseTable<1, 2, 0, 0, 2> DescriptorProto_ReservedRange::_ta
     &_DescriptorProto_ReservedRange_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional int32 end = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(DescriptorProto_ReservedRange, _impl_.end_), 1>(),
-     {16, 1, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto_ReservedRange, _impl_.end_)}},
     // optional int32 start = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(DescriptorProto_ReservedRange, _impl_.start_), 0>(),
-     {8, 0, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto_ReservedRange, _impl_.start_)}},
+    {72 , (PROTOBUF_FIELD_OFFSET(DescriptorProto_ReservedRange, _impl_.start_) << 19)},
+    // optional int32 end = 2;
+    {584 , (PROTOBUF_FIELD_OFFSET(DescriptorProto_ReservedRange, _impl_.end_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -3768,11 +3745,11 @@ const char* DescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<4, 10, 8, 65, 2> DescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<10, 10, 8, 65, 2> DescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    10, 120,  // max_field_number, fast_idx_mask
+    10, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294966272,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -3782,42 +3759,26 @@ constexpr ::_pbi::TcParseTable<4, 10, 8, 65, 2> DescriptorProto::_table_ = {
     &_DescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.name_) << 19)},
     // repeated .google.protobuf.FieldDescriptorProto field = 2;
-    {::_pbi::TcParser::FastMtR1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.field_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.field_) << 19)},
     // repeated .google.protobuf.DescriptorProto nested_type = 3;
-    {::_pbi::TcParser::FastMtR1,
-     {26, 63, 1, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.nested_type_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.nested_type_) << 19)},
     // repeated .google.protobuf.EnumDescriptorProto enum_type = 4;
-    {::_pbi::TcParser::FastMtR1,
-     {34, 63, 2, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.enum_type_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.enum_type_) << 19)},
     // repeated .google.protobuf.DescriptorProto.ExtensionRange extension_range = 5;
-    {::_pbi::TcParser::FastMtR1,
-     {42, 63, 3, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_range_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_range_) << 19)},
     // repeated .google.protobuf.FieldDescriptorProto extension = 6;
-    {::_pbi::TcParser::FastMtR1,
-     {50, 63, 4, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.extension_) << 19)},
     // optional .google.protobuf.MessageOptions options = 7;
-    {::_pbi::TcParser::FastMtS1,
-     {58, 1, 5, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.options_)}},
+    {554 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.options_) << 19)},
     // repeated .google.protobuf.OneofDescriptorProto oneof_decl = 8;
-    {::_pbi::TcParser::FastMtR1,
-     {66, 63, 6, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.oneof_decl_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.oneof_decl_) << 19)},
     // repeated .google.protobuf.DescriptorProto.ReservedRange reserved_range = 9;
-    {::_pbi::TcParser::FastMtR1,
-     {74, 63, 7, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_range_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_range_) << 19)},
     // repeated string reserved_name = 10;
-    {::_pbi::TcParser::FastSR1,
-     {82, 63, 0, PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_name_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {146 , (PROTOBUF_FIELD_OFFSET(DescriptorProto, _impl_.reserved_name_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -4251,11 +4212,11 @@ const char* ExtensionRangeOptions_Declaration::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 5, 0, 71, 2> ExtensionRangeOptions_Declaration::_table_ = {
+constexpr ::_pbi::TcParseTable<6, 5, 0, 71, 2> ExtensionRangeOptions_Declaration::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_._has_bits_),
     0, // no _extensions_
-    6, 56,  // max_field_number, fast_idx_mask
+    6, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967240,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -4265,24 +4226,17 @@ constexpr ::_pbi::TcParseTable<3, 5, 0, 71, 2> ExtensionRangeOptions_Declaration
     &_ExtensionRangeOptions_Declaration_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional int32 number = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ExtensionRangeOptions_Declaration, _impl_.number_), 2>(),
-     {8, 2, 0, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.number_)}},
+    {1096 , (PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.number_) << 19)},
     // optional string full_name = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.full_name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.full_name_) << 19)},
     // optional string type = 3;
-    {::_pbi::TcParser::FastSS1,
-     {26, 1, 0, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.type_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {650 , (PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.type_) << 19)},
+    {0x1F},
     // optional bool reserved = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ExtensionRangeOptions_Declaration, _impl_.reserved_), 3>(),
-     {40, 3, 0, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.reserved_)}},
+    {1544 , (PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.reserved_) << 19)},
     // optional bool repeated = 6;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ExtensionRangeOptions_Declaration, _impl_.repeated_), 4>(),
-     {48, 4, 0, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.repeated_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {2056 , (PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions_Declaration, _impl_.repeated_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -4588,7 +4542,7 @@ constexpr ::_pbi::TcParseTable<3, 4, 4, 0, 12> ExtensionRangeOptions::_table_ = 
   {
     PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_._extensions_),
-    999, 56,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967289,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -4598,20 +4552,10 @@ constexpr ::_pbi::TcParseTable<3, 4, 4, 0, 12> ExtensionRangeOptions::_table_ = 
     &_ExtensionRangeOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {0x1F},
     // repeated .google.protobuf.ExtensionRangeOptions.Declaration declaration = 2 [retention = RETENTION_SOURCE];
-    {::_pbi::TcParser::FastMtR1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.declaration_)}},
-    // optional .google.protobuf.ExtensionRangeOptions.VerificationState verification = 3 [default = UNVERIFIED];
-    {::_pbi::TcParser::FastEr0S1,
-     {24, 1, 1, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.verification_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {::_pbi::TcParser::FastMtR2,
-     {16058, 63, 3, PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.uninterpreted_option_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(ExtensionRangeOptions, _impl_.declaration_) << 19)},
+    {56},
   }}, {{
     50, 0, 1,
     65534, 2,999, 0, 1,
@@ -4979,11 +4923,11 @@ const char* FieldDescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<4, 11, 3, 96, 2> FieldDescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<17, 11, 3, 96, 2> FieldDescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    17, 120,  // max_field_number, fast_idx_mask
+    17, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294900736,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -4993,42 +4937,32 @@ constexpr ::_pbi::TcParseTable<4, 11, 3, 96, 2> FieldDescriptorProto::_table_ = 
     &_FieldDescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.name_) << 19)},
     // optional string extendee = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 1, 0, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.extendee_)}},
+    {650 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.extendee_) << 19)},
     // optional int32 number = 3;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(FieldDescriptorProto, _impl_.number_), 6>(),
-     {24, 6, 0, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.number_)}},
-    // optional .google.protobuf.FieldDescriptorProto.Label label = 4;
-    {::_pbi::TcParser::FastEr1S1,
-     {32, 9, 3, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.label_)}},
-    // optional .google.protobuf.FieldDescriptorProto.Type type = 5;
-    {::_pbi::TcParser::FastEr1S1,
-     {40, 10, 18, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.type_)}},
+    {3144 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.number_) << 19)},
+    {120},
+    {152},
     // optional string type_name = 6;
-    {::_pbi::TcParser::FastSS1,
-     {50, 2, 0, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.type_name_)}},
+    {1162 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.type_name_) << 19)},
     // optional string default_value = 7;
-    {::_pbi::TcParser::FastSS1,
-     {58, 3, 0, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.default_value_)}},
+    {1674 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.default_value_) << 19)},
     // optional .google.protobuf.FieldOptions options = 8;
-    {::_pbi::TcParser::FastMtS1,
-     {66, 5, 2, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.options_)}},
+    {2602 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.options_) << 19)},
     // optional int32 oneof_index = 9;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(FieldDescriptorProto, _impl_.oneof_index_), 7>(),
-     {72, 7, 0, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.oneof_index_)}},
+    {3656 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.oneof_index_) << 19)},
     // optional string json_name = 10;
-    {::_pbi::TcParser::FastSS1,
-     {82, 4, 0, PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.json_name_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {2186 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.json_name_) << 19)},
+    {0x1F},
+    {0x1F},
+    {0x1F},
+    {0x1F},
+    {0x1F},
+    {0x1F},
+    // optional bool proto3_optional = 17;
+    {4104 , (PROTOBUF_FIELD_OFFSET(FieldDescriptorProto, _impl_.proto3_optional_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -5459,11 +5393,11 @@ const char* OneofDescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<1, 2, 1, 49, 2> OneofDescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<2, 2, 1, 49, 2> OneofDescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(OneofDescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -5473,12 +5407,10 @@ constexpr ::_pbi::TcParseTable<1, 2, 1, 49, 2> OneofDescriptorProto::_table_ = {
     &_OneofDescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional .google.protobuf.OneofOptions options = 2;
-    {::_pbi::TcParser::FastMtS1,
-     {18, 1, 0, PROTOBUF_FIELD_OFFSET(OneofDescriptorProto, _impl_.options_)}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(OneofDescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(OneofDescriptorProto, _impl_.name_) << 19)},
+    // optional .google.protobuf.OneofOptions options = 2;
+    {554 , (PROTOBUF_FIELD_OFFSET(OneofDescriptorProto, _impl_.options_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -5690,11 +5622,11 @@ const char* EnumDescriptorProto_EnumReservedRange::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<1, 2, 0, 0, 2> EnumDescriptorProto_EnumReservedRange::_table_ = {
+constexpr ::_pbi::TcParseTable<2, 2, 0, 0, 2> EnumDescriptorProto_EnumReservedRange::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(EnumDescriptorProto_EnumReservedRange, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -5704,12 +5636,10 @@ constexpr ::_pbi::TcParseTable<1, 2, 0, 0, 2> EnumDescriptorProto_EnumReservedRa
     &_EnumDescriptorProto_EnumReservedRange_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional int32 end = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EnumDescriptorProto_EnumReservedRange, _impl_.end_), 1>(),
-     {16, 1, 0, PROTOBUF_FIELD_OFFSET(EnumDescriptorProto_EnumReservedRange, _impl_.end_)}},
     // optional int32 start = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EnumDescriptorProto_EnumReservedRange, _impl_.start_), 0>(),
-     {8, 0, 0, PROTOBUF_FIELD_OFFSET(EnumDescriptorProto_EnumReservedRange, _impl_.start_)}},
+    {72 , (PROTOBUF_FIELD_OFFSET(EnumDescriptorProto_EnumReservedRange, _impl_.start_) << 19)},
+    // optional int32 end = 2;
+    {584 , (PROTOBUF_FIELD_OFFSET(EnumDescriptorProto_EnumReservedRange, _impl_.end_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -5948,11 +5878,11 @@ const char* EnumDescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 5, 3, 61, 2> EnumDescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<5, 5, 3, 61, 2> EnumDescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    5, 56,  // max_field_number, fast_idx_mask
+    5, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967264,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -5962,24 +5892,16 @@ constexpr ::_pbi::TcParseTable<3, 5, 3, 61, 2> EnumDescriptorProto::_table_ = {
     &_EnumDescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.name_) << 19)},
     // repeated .google.protobuf.EnumValueDescriptorProto value = 2;
-    {::_pbi::TcParser::FastMtR1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.value_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.value_) << 19)},
     // optional .google.protobuf.EnumOptions options = 3;
-    {::_pbi::TcParser::FastMtS1,
-     {26, 1, 1, PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.options_)}},
+    {554 , (PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.options_) << 19)},
     // repeated .google.protobuf.EnumDescriptorProto.EnumReservedRange reserved_range = 4;
-    {::_pbi::TcParser::FastMtR1,
-     {34, 63, 2, PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_range_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_range_) << 19)},
     // repeated string reserved_name = 5;
-    {::_pbi::TcParser::FastSR1,
-     {42, 63, 0, PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_name_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {146 , (PROTOBUF_FIELD_OFFSET(EnumDescriptorProto, _impl_.reserved_name_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -6289,11 +6211,11 @@ const char* EnumValueDescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<2, 3, 1, 53, 2> EnumValueDescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<3, 3, 1, 53, 2> EnumValueDescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(EnumValueDescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    3, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -6303,16 +6225,12 @@ constexpr ::_pbi::TcParseTable<2, 3, 1, 53, 2> EnumValueDescriptorProto::_table_
     &_EnumValueDescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(EnumValueDescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(EnumValueDescriptorProto, _impl_.name_) << 19)},
     // optional int32 number = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EnumValueDescriptorProto, _impl_.number_), 2>(),
-     {16, 2, 0, PROTOBUF_FIELD_OFFSET(EnumValueDescriptorProto, _impl_.number_)}},
+    {1096 , (PROTOBUF_FIELD_OFFSET(EnumValueDescriptorProto, _impl_.number_) << 19)},
     // optional .google.protobuf.EnumValueOptions options = 3;
-    {::_pbi::TcParser::FastMtS1,
-     {26, 1, 0, PROTOBUF_FIELD_OFFSET(EnumValueDescriptorProto, _impl_.options_)}},
+    {554 , (PROTOBUF_FIELD_OFFSET(EnumValueDescriptorProto, _impl_.options_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -6576,11 +6494,11 @@ const char* ServiceDescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<2, 3, 2, 51, 2> ServiceDescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<3, 3, 2, 51, 2> ServiceDescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    3, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -6590,16 +6508,12 @@ constexpr ::_pbi::TcParseTable<2, 3, 2, 51, 2> ServiceDescriptorProto::_table_ =
     &_ServiceDescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.name_) << 19)},
     // repeated .google.protobuf.MethodDescriptorProto method = 2;
-    {::_pbi::TcParser::FastMtR1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.method_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.method_) << 19)},
     // optional .google.protobuf.ServiceOptions options = 3;
-    {::_pbi::TcParser::FastMtS1,
-     {26, 1, 1, PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.options_)}},
+    {554 , (PROTOBUF_FIELD_OFFSET(ServiceDescriptorProto, _impl_.options_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -6897,11 +6811,11 @@ const char* MethodDescriptorProto::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 6, 1, 71, 2> MethodDescriptorProto::_table_ = {
+constexpr ::_pbi::TcParseTable<6, 6, 1, 71, 2> MethodDescriptorProto::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_._has_bits_),
     0, // no _extensions_
-    6, 56,  // max_field_number, fast_idx_mask
+    6, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -6911,26 +6825,18 @@ constexpr ::_pbi::TcParseTable<3, 6, 1, 71, 2> MethodDescriptorProto::_table_ = 
     &_MethodDescriptorProto_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.name_) << 19)},
     // optional string input_type = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 1, 0, PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.input_type_)}},
+    {650 , (PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.input_type_) << 19)},
     // optional string output_type = 3;
-    {::_pbi::TcParser::FastSS1,
-     {26, 2, 0, PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.output_type_)}},
+    {1162 , (PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.output_type_) << 19)},
     // optional .google.protobuf.MethodOptions options = 4;
-    {::_pbi::TcParser::FastMtS1,
-     {34, 3, 0, PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.options_)}},
+    {1578 , (PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.options_) << 19)},
     // optional bool client_streaming = 5 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MethodDescriptorProto, _impl_.client_streaming_), 4>(),
-     {40, 4, 0, PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.client_streaming_)}},
+    {2056 , (PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.client_streaming_) << 19)},
     // optional bool server_streaming = 6 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MethodDescriptorProto, _impl_.server_streaming_), 5>(),
-     {48, 5, 0, PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.server_streaming_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {2568 , (PROTOBUF_FIELD_OFFSET(MethodDescriptorProto, _impl_.server_streaming_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -7398,11 +7304,11 @@ const char* FileOptions::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<5, 22, 3, 202, 12> FileOptions::_table_ = {
+constexpr ::_pbi::TcParseTable<1, 22, 3, 202, 12> FileOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FileOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(FileOptions, _impl_._extensions_),
-    999, 248,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     3149166718,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -7412,74 +7318,8 @@ constexpr ::_pbi::TcParseTable<5, 22, 3, 202, 12> FileOptions::_table_ = {
     &_FileOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string java_package = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.java_package_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional string java_outer_classname = 8;
-    {::_pbi::TcParser::FastSS1,
-     {66, 1, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.java_outer_classname_)}},
-    // optional .google.protobuf.FileOptions.OptimizeMode optimize_for = 9 [default = SPEED];
-    {::_pbi::TcParser::FastEr1S1,
-     {72, 19, 3, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.optimize_for_)}},
-    // optional bool java_multiple_files = 10 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FileOptions, _impl_.java_multiple_files_), 11>(),
-     {80, 11, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.java_multiple_files_)}},
-    // optional string go_package = 11;
-    {::_pbi::TcParser::FastSS1,
-     {90, 2, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.go_package_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional bool cc_generic_services = 16 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {384, 14, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.cc_generic_services_)}},
-    // optional bool java_generic_services = 17 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {392, 15, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.java_generic_services_)}},
-    // optional bool py_generic_services = 18 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {400, 16, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.py_generic_services_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional bool java_generate_equals_and_hash = 20 [deprecated = true];
-    {::_pbi::TcParser::FastV8S2,
-     {416, 12, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.java_generate_equals_and_hash_)}},
-    // optional string csharp_namespace = 37;
-    {::_pbi::TcParser::FastSS2,
-     {682, 4, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.csharp_namespace_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional bool deprecated = 23 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {440, 18, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.deprecated_)}},
-    // optional string php_class_prefix = 40;
-    {::_pbi::TcParser::FastSS2,
-     {706, 6, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.php_class_prefix_)}},
-    // optional string php_namespace = 41;
-    {::_pbi::TcParser::FastSS2,
-     {714, 7, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.php_namespace_)}},
-    // optional bool php_generic_services = 42 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {720, 17, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.php_generic_services_)}},
-    // optional bool java_string_check_utf8 = 27 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {472, 13, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.java_string_check_utf8_)}},
-    // optional string php_metadata_namespace = 44;
-    {::_pbi::TcParser::FastSS2,
-     {738, 8, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.php_metadata_namespace_)}},
-    // optional string ruby_package = 45;
-    {::_pbi::TcParser::FastSS2,
-     {746, 9, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.ruby_package_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional bool cc_enable_arenas = 31 [default = true];
-    {::_pbi::TcParser::FastV8S2,
-     {504, 20, 0, PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.cc_enable_arenas_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(FileOptions, _impl_.java_package_) << 19)},
   }}, {{
     36, 0, 1,
     48260, 12,999, 0, 1,
@@ -8174,11 +8014,11 @@ const char* MessageOptions::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 7, 2, 0, 7> MessageOptions::_table_ = {
+constexpr ::_pbi::TcParseTable<7, 7, 2, 0, 7> MessageOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_._extensions_),
-    999, 56,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294964152,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -8188,24 +8028,17 @@ constexpr ::_pbi::TcParseTable<3, 7, 2, 0, 7> MessageOptions::_table_ = {
     &_MessageOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional bool message_set_wire_format = 1 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MessageOptions, _impl_.message_set_wire_format_), 1>(),
-     {8, 1, 0, PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.message_set_wire_format_)}},
+    {520 , (PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.message_set_wire_format_) << 19)},
     // optional bool no_standard_descriptor_accessor = 2 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MessageOptions, _impl_.no_standard_descriptor_accessor_), 2>(),
-     {16, 2, 0, PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.no_standard_descriptor_accessor_)}},
+    {1032 , (PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.no_standard_descriptor_accessor_) << 19)},
     // optional bool deprecated = 3 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MessageOptions, _impl_.deprecated_), 3>(),
-     {24, 3, 0, PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.deprecated_)}},
-    // optional .google.protobuf.FeatureSet features = 12;
-    {::_pbi::TcParser::FastMtS1,
-     {98, 0, 0, PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.features_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {1544 , (PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.deprecated_) << 19)},
+    {0x1F},
+    {0x1F},
+    {0x1F},
     // optional bool map_entry = 7;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(MessageOptions, _impl_.map_entry_), 4>(),
-     {56, 4, 0, PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.map_entry_)}},
+    {2056 , (PROTOBUF_FIELD_OFFSET(MessageOptions, _impl_.map_entry_) << 19)},
   }}, {{
     999, 0, 1,
     65534, 6,
@@ -8533,11 +8366,11 @@ const char* FieldOptions_EditionDefault::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<1, 2, 1, 57, 2> FieldOptions_EditionDefault::_table_ = {
+constexpr ::_pbi::TcParseTable<3, 2, 1, 57, 2> FieldOptions_EditionDefault::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FieldOptions_EditionDefault, _impl_._has_bits_),
     0, // no _extensions_
-    3, 8,  // max_field_number, fast_idx_mask
+    3, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967289,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -8547,12 +8380,10 @@ constexpr ::_pbi::TcParseTable<1, 2, 1, 57, 2> FieldOptions_EditionDefault::_tab
     &_FieldOptions_EditionDefault_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
+    {0x1F},
     // optional string value = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(FieldOptions_EditionDefault, _impl_.value_)}},
-    // optional .google.protobuf.Edition edition = 3;
-    {::_pbi::TcParser::FastEvS1,
-     {24, 1, 0, PROTOBUF_FIELD_OFFSET(FieldOptions_EditionDefault, _impl_.edition_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(FieldOptions_EditionDefault, _impl_.value_) << 19)},
+    {56},
   }}, {{
     65535, 65535
   }}, {{
@@ -8835,11 +8666,11 @@ const char* FieldOptions::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<4, 13, 7, 0, 7> FieldOptions::_table_ = {
+constexpr ::_pbi::TcParseTable<10, 13, 7, 0, 7> FieldOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_._extensions_),
-    999, 120,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4293017032,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -8849,42 +8680,20 @@ constexpr ::_pbi::TcParseTable<4, 13, 7, 0, 7> FieldOptions::_table_ = {
     &_FieldOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional bool debug_redact = 16 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {384, 8, 0, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.debug_redact_)}},
-    // optional .google.protobuf.FieldOptions.CType ctype = 1 [default = STRING];
-    {::_pbi::TcParser::FastEr0S1,
-     {8, 1, 2, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.ctype_)}},
+    {24},
     // optional bool packed = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FieldOptions, _impl_.packed_), 3>(),
-     {16, 3, 0, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.packed_)}},
+    {1544 , (PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.packed_) << 19)},
     // optional bool deprecated = 3 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FieldOptions, _impl_.deprecated_), 6>(),
-     {24, 6, 0, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.deprecated_)}},
-    // repeated .google.protobuf.FieldOptions.EditionDefault edition_defaults = 20;
-    {::_pbi::TcParser::FastMtR2,
-     {418, 63, 4, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.edition_defaults_)}},
+    {3080 , (PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.deprecated_) << 19)},
+    {0x1F},
     // optional bool lazy = 5 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FieldOptions, _impl_.lazy_), 4>(),
-     {40, 4, 0, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.lazy_)}},
-    // optional .google.protobuf.FieldOptions.JSType jstype = 6 [default = JS_NORMAL];
-    {::_pbi::TcParser::FastEr0S1,
-     {48, 2, 2, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.jstype_)}},
-    // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {::_pbi::TcParser::FastMtR2,
-     {16058, 63, 6, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.uninterpreted_option_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {2056 , (PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.lazy_) << 19)},
+    {152},
+    {0x1F},
+    {0x1F},
+    {0x1F},
     // optional bool weak = 10 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FieldOptions, _impl_.weak_), 7>(),
-     {80, 7, 0, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.weak_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional bool unverified_lazy = 15 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FieldOptions, _impl_.unverified_lazy_), 5>(),
-     {120, 5, 0, PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.unverified_lazy_)}},
+    {3592 , (PROTOBUF_FIELD_OFFSET(FieldOptions, _impl_.weak_) << 19)},
   }}, {{
     999, 0, 1,
     65534, 12,
@@ -9351,11 +9160,11 @@ const char* OneofOptions::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<2, 2, 2, 0, 7> OneofOptions::_table_ = {
+constexpr ::_pbi::TcParseTable<1, 2, 2, 0, 7> OneofOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_._extensions_),
-    999, 24,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -9365,14 +9174,8 @@ constexpr ::_pbi::TcParseTable<2, 2, 2, 0, 7> OneofOptions::_table_ = {
     &_OneofOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional .google.protobuf.FeatureSet features = 1;
-    {::_pbi::TcParser::FastMtS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_.features_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {::_pbi::TcParser::FastMtR2,
-     {16058, 63, 1, PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_.uninterpreted_option_)}},
+    {42 , (PROTOBUF_FIELD_OFFSET(OneofOptions, _impl_.features_) << 19)},
   }}, {{
     999, 0, 1,
     65534, 1,
@@ -9632,11 +9435,11 @@ const char* EnumOptions::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 5, 2, 0, 7> EnumOptions::_table_ = {
+constexpr ::_pbi::TcParseTable<7, 5, 2, 0, 7> EnumOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_._extensions_),
-    999, 56,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967193,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -9646,22 +9449,17 @@ constexpr ::_pbi::TcParseTable<3, 5, 2, 0, 7> EnumOptions::_table_ = {
     &_EnumOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {0x1F},
     // optional bool allow_alias = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(EnumOptions, _impl_.allow_alias_), 1>(),
-     {16, 1, 0, PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.allow_alias_)}},
+    {520 , (PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.allow_alias_) << 19)},
     // optional bool deprecated = 3 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(EnumOptions, _impl_.deprecated_), 2>(),
-     {24, 2, 0, PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.deprecated_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {1032 , (PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.deprecated_) << 19)},
+    {0x1F},
+    {0x1F},
     // optional bool deprecated_legacy_json_field_conflicts = 6 [deprecated = true];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(EnumOptions, _impl_.deprecated_legacy_json_field_conflicts_), 3>(),
-     {48, 3, 0, PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.deprecated_legacy_json_field_conflicts_)}},
+    {1544 , (PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.deprecated_legacy_json_field_conflicts_) << 19)},
     // optional .google.protobuf.FeatureSet features = 7;
-    {::_pbi::TcParser::FastMtS1,
-     {58, 0, 0, PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.features_)}},
+    {42 , (PROTOBUF_FIELD_OFFSET(EnumOptions, _impl_.features_) << 19)},
   }}, {{
     999, 0, 1,
     65534, 4,
@@ -9987,7 +9785,7 @@ constexpr ::_pbi::TcParseTable<3, 4, 2, 0, 7> EnumValueOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_._extensions_),
-    999, 56,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -9997,22 +9795,12 @@ constexpr ::_pbi::TcParseTable<3, 4, 2, 0, 7> EnumValueOptions::_table_ = {
     &_EnumValueOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional bool deprecated = 1 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(EnumValueOptions, _impl_.deprecated_), 1>(),
-     {8, 1, 0, PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.deprecated_)}},
+    {520 , (PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.deprecated_) << 19)},
     // optional .google.protobuf.FeatureSet features = 2;
-    {::_pbi::TcParser::FastMtS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.features_)}},
+    {42 , (PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.features_) << 19)},
     // optional bool debug_redact = 3 [default = false];
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(EnumValueOptions, _impl_.debug_redact_), 2>(),
-     {24, 2, 0, PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.debug_redact_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {::_pbi::TcParser::FastMtR2,
-     {16058, 63, 1, PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.uninterpreted_option_)}},
+    {1032 , (PROTOBUF_FIELD_OFFSET(EnumValueOptions, _impl_.debug_redact_) << 19)},
   }}, {{
     999, 0, 1,
     65534, 3,
@@ -10305,11 +10093,11 @@ const char* ServiceOptions::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<2, 3, 2, 0, 12> ServiceOptions::_table_ = {
+constexpr ::_pbi::TcParseTable<0, 3, 2, 0, 12> ServiceOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_._extensions_),
-    999, 24,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967295,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -10319,16 +10107,6 @@ constexpr ::_pbi::TcParseTable<2, 3, 2, 0, 12> ServiceOptions::_table_ = {
     &_ServiceOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional bool deprecated = 33 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {648, 1, 0, PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_.deprecated_)}},
-    // optional .google.protobuf.FeatureSet features = 34;
-    {::_pbi::TcParser::FastMtS2,
-     {658, 0, 0, PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_.features_)}},
-    // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {::_pbi::TcParser::FastMtR2,
-     {16058, 63, 1, PROTOBUF_FIELD_OFFSET(ServiceOptions, _impl_.uninterpreted_option_)}},
   }}, {{
     33, 0, 1,
     65532, 0,999, 0, 1,
@@ -10617,11 +10395,11 @@ const char* MethodOptions::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 4, 3, 0, 12> MethodOptions::_table_ = {
+constexpr ::_pbi::TcParseTable<0, 4, 3, 0, 12> MethodOptions::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_._extensions_),
-    999, 56,  // max_field_number, fast_idx_mask
+    999, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967295,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -10631,22 +10409,6 @@ constexpr ::_pbi::TcParseTable<3, 4, 3, 0, 12> MethodOptions::_table_ = {
     &_MethodOptions_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional bool deprecated = 33 [default = false];
-    {::_pbi::TcParser::FastV8S2,
-     {648, 1, 0, PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_.deprecated_)}},
-    // optional .google.protobuf.MethodOptions.IdempotencyLevel idempotency_level = 34 [default = IDEMPOTENCY_UNKNOWN];
-    {::_pbi::TcParser::FastEr0S2,
-     {656, 2, 2, PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_.idempotency_level_)}},
-    // optional .google.protobuf.FeatureSet features = 35;
-    {::_pbi::TcParser::FastMtS2,
-     {666, 0, 1, PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_.features_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // repeated .google.protobuf.UninterpretedOption uninterpreted_option = 999;
-    {::_pbi::TcParser::FastMtR2,
-     {16058, 63, 2, PROTOBUF_FIELD_OFFSET(MethodOptions, _impl_.uninterpreted_option_)}},
   }}, {{
     33, 0, 1,
     65528, 0,999, 0, 1,
@@ -10926,11 +10688,11 @@ const char* UninterpretedOption_NamePart::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<1, 2, 0, 62, 2> UninterpretedOption_NamePart::_table_ = {
+constexpr ::_pbi::TcParseTable<2, 2, 0, 62, 2> UninterpretedOption_NamePart::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(UninterpretedOption_NamePart, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -10940,12 +10702,10 @@ constexpr ::_pbi::TcParseTable<1, 2, 0, 62, 2> UninterpretedOption_NamePart::_ta
     &_UninterpretedOption_NamePart_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // required bool is_extension = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(UninterpretedOption_NamePart, _impl_.is_extension_), 1>(),
-     {16, 1, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption_NamePart, _impl_.is_extension_)}},
     // required string name_part = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption_NamePart, _impl_.name_part_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption_NamePart, _impl_.name_part_) << 19)},
+    // required bool is_extension = 2;
+    {520 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption_NamePart, _impl_.is_extension_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -11210,11 +10970,11 @@ const char* UninterpretedOption::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 7, 1, 75, 2> UninterpretedOption::_table_ = {
+constexpr ::_pbi::TcParseTable<8, 7, 1, 75, 2> UninterpretedOption::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_._has_bits_),
     0, // no _extensions_
-    8, 56,  // max_field_number, fast_idx_mask
+    8, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967041,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -11224,28 +10984,21 @@ constexpr ::_pbi::TcParseTable<3, 7, 1, 75, 2> UninterpretedOption::_table_ = {
     &_UninterpretedOption_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional string aggregate_value = 8;
-    {::_pbi::TcParser::FastSS1,
-     {66, 2, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.aggregate_value_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {0x1F},
     // repeated .google.protobuf.UninterpretedOption.NamePart name = 2;
-    {::_pbi::TcParser::FastMtR1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.name_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.name_) << 19)},
     // optional string identifier_value = 3;
-    {::_pbi::TcParser::FastSS1,
-     {26, 0, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.identifier_value_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.identifier_value_) << 19)},
     // optional uint64 positive_int_value = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(UninterpretedOption, _impl_.positive_int_value_), 3>(),
-     {32, 3, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.positive_int_value_)}},
+    {1640 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.positive_int_value_) << 19)},
     // optional int64 negative_int_value = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(UninterpretedOption, _impl_.negative_int_value_), 4>(),
-     {40, 4, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.negative_int_value_)}},
+    {2152 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.negative_int_value_) << 19)},
     // optional double double_value = 6;
-    {::_pbi::TcParser::FastF64S1,
-     {49, 5, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.double_value_)}},
+    {2665 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.double_value_) << 19)},
     // optional bytes string_value = 7;
-    {::_pbi::TcParser::FastBS1,
-     {58, 1, 0, PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.string_value_)}},
+    {522 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.string_value_) << 19)},
+    // optional string aggregate_value = 8;
+    {1162 , (PROTOBUF_FIELD_OFFSET(UninterpretedOption, _impl_.aggregate_value_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -11594,11 +11347,11 @@ const char* FeatureSet::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 6, 6, 0, 2> FeatureSet::_table_ = {
+constexpr ::_pbi::TcParseTable<6, 6, 6, 0, 2> FeatureSet::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_._has_bits_),
     PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_._extensions_),
-    6, 56,  // max_field_number, fast_idx_mask
+    6, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -11608,26 +11361,12 @@ constexpr ::_pbi::TcParseTable<3, 6, 6, 0, 2> FeatureSet::_table_ = {
     &_FeatureSet_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
-    // optional .google.protobuf.FeatureSet.FieldPresence field_presence = 1 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_FIELD, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {::_pbi::TcParser::FastEr0S1,
-     {8, 0, 3, PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_.field_presence_)}},
-    // optional .google.protobuf.FeatureSet.EnumType enum_type = 2 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_ENUM, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {::_pbi::TcParser::FastEr0S1,
-     {16, 1, 2, PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_.enum_type_)}},
-    // optional .google.protobuf.FeatureSet.RepeatedFieldEncoding repeated_field_encoding = 3 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_FIELD, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {::_pbi::TcParser::FastEr0S1,
-     {24, 2, 2, PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_.repeated_field_encoding_)}},
-    // optional .google.protobuf.FeatureSet.Utf8Validation utf8_validation = 4 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_FIELD, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {::_pbi::TcParser::FastEr0S1,
-     {32, 3, 2, PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_.utf8_validation_)}},
-    // optional .google.protobuf.FeatureSet.MessageEncoding message_encoding = 5 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_FIELD, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {::_pbi::TcParser::FastEr0S1,
-     {40, 4, 2, PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_.message_encoding_)}},
-    // optional .google.protobuf.FeatureSet.JsonFormat json_format = 6 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_MESSAGE, targets = TARGET_TYPE_ENUM, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {::_pbi::TcParser::FastEr0S1,
-     {48, 5, 2, PROTOBUF_FIELD_OFFSET(FeatureSet, _impl_.json_format_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {24},
+    {56},
+    {88},
+    {120},
+    {152},
+    {184},
   }}, {{
     65535, 65535
   }}, {{
@@ -11947,11 +11686,11 @@ const char* FeatureSetDefaults_FeatureSetEditionDefault::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<1, 2, 2, 0, 2> FeatureSetDefaults_FeatureSetEditionDefault::_table_ = {
+constexpr ::_pbi::TcParseTable<3, 2, 2, 0, 2> FeatureSetDefaults_FeatureSetEditionDefault::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FeatureSetDefaults_FeatureSetEditionDefault, _impl_._has_bits_),
     0, // no _extensions_
-    3, 8,  // max_field_number, fast_idx_mask
+    3, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967289,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -11961,12 +11700,10 @@ constexpr ::_pbi::TcParseTable<1, 2, 2, 0, 2> FeatureSetDefaults_FeatureSetEditi
     &_FeatureSetDefaults_FeatureSetEditionDefault_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
+    {0x1F},
     // optional .google.protobuf.FeatureSet features = 2;
-    {::_pbi::TcParser::FastMtS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(FeatureSetDefaults_FeatureSetEditionDefault, _impl_.features_)}},
-    // optional .google.protobuf.Edition edition = 3;
-    {::_pbi::TcParser::FastEvS1,
-     {24, 1, 1, PROTOBUF_FIELD_OFFSET(FeatureSetDefaults_FeatureSetEditionDefault, _impl_.edition_)}},
+    {42 , (PROTOBUF_FIELD_OFFSET(FeatureSetDefaults_FeatureSetEditionDefault, _impl_.features_) << 19)},
+    {56},
   }}, {{
     65535, 65535
   }}, {{
@@ -12201,11 +11938,11 @@ const char* FeatureSetDefaults::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<1, 3, 3, 0, 2> FeatureSetDefaults::_table_ = {
+constexpr ::_pbi::TcParseTable<5, 3, 3, 0, 2> FeatureSetDefaults::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FeatureSetDefaults, _impl_._has_bits_),
     0, // no _extensions_
-    5, 8,  // max_field_number, fast_idx_mask
+    5, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967270,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -12215,12 +11952,12 @@ constexpr ::_pbi::TcParseTable<1, 3, 3, 0, 2> FeatureSetDefaults::_table_ = {
     &_FeatureSetDefaults_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional .google.protobuf.Edition minimum_edition = 4;
-    {::_pbi::TcParser::FastEvS1,
-     {32, 0, 1, PROTOBUF_FIELD_OFFSET(FeatureSetDefaults, _impl_.minimum_edition_)}},
     // repeated .google.protobuf.FeatureSetDefaults.FeatureSetEditionDefault defaults = 1;
-    {::_pbi::TcParser::FastMtR1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(FeatureSetDefaults, _impl_.defaults_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(FeatureSetDefaults, _impl_.defaults_) << 19)},
+    {0x1F},
+    {0x1F},
+    {56},
+    {88},
   }}, {{
     65535, 65535
   }}, {{
@@ -12479,11 +12216,11 @@ const char* SourceCodeInfo_Location::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 5, 0, 106, 2> SourceCodeInfo_Location::_table_ = {
+constexpr ::_pbi::TcParseTable<6, 5, 0, 106, 2> SourceCodeInfo_Location::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_._has_bits_),
     0, // no _extensions_
-    6, 56,  // max_field_number, fast_idx_mask
+    6, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967248,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -12493,24 +12230,17 @@ constexpr ::_pbi::TcParseTable<3, 5, 0, 106, 2> SourceCodeInfo_Location::_table_
     &_SourceCodeInfo_Location_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // repeated int32 path = 1 [packed = true];
-    {::_pbi::TcParser::FastV32P1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.path_)}},
+    {82 , (PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.path_) << 19)},
     // repeated int32 span = 2 [packed = true];
-    {::_pbi::TcParser::FastV32P1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.span_)}},
+    {82 , (PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.span_) << 19)},
     // optional string leading_comments = 3;
-    {::_pbi::TcParser::FastSS1,
-     {26, 0, 0, PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.leading_comments_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.leading_comments_) << 19)},
     // optional string trailing_comments = 4;
-    {::_pbi::TcParser::FastSS1,
-     {34, 1, 0, PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.trailing_comments_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {650 , (PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.trailing_comments_) << 19)},
+    {0x1F},
     // repeated string leading_detached_comments = 6;
-    {::_pbi::TcParser::FastSR1,
-     {50, 63, 0, PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.leading_detached_comments_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {146 , (PROTOBUF_FIELD_OFFSET(SourceCodeInfo_Location, _impl_.leading_detached_comments_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -12786,7 +12516,7 @@ const char* SourceCodeInfo::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<0, 1, 1, 0, 2> SourceCodeInfo::_table_ = {
+constexpr ::_pbi::TcParseTable<1, 1, 1, 0, 2> SourceCodeInfo::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -12801,8 +12531,7 @@ constexpr ::_pbi::TcParseTable<0, 1, 1, 0, 2> SourceCodeInfo::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // repeated .google.protobuf.SourceCodeInfo.Location location = 1;
-    {::_pbi::TcParser::FastMtR1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(SourceCodeInfo, _impl_.location_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(SourceCodeInfo, _impl_.location_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -13012,11 +12741,11 @@ const char* GeneratedCodeInfo_Annotation::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<3, 5, 1, 64, 2> GeneratedCodeInfo_Annotation::_table_ = {
+constexpr ::_pbi::TcParseTable<5, 5, 1, 64, 2> GeneratedCodeInfo_Annotation::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_._has_bits_),
     0, // no _extensions_
-    5, 56,  // max_field_number, fast_idx_mask
+    5, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967264,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -13026,24 +12755,15 @@ constexpr ::_pbi::TcParseTable<3, 5, 1, 64, 2> GeneratedCodeInfo_Annotation::_ta
     &_GeneratedCodeInfo_Annotation_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // repeated int32 path = 1 [packed = true];
-    {::_pbi::TcParser::FastV32P1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.path_)}},
+    {82 , (PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.path_) << 19)},
     // optional string source_file = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.source_file_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.source_file_) << 19)},
     // optional int32 begin = 3;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(GeneratedCodeInfo_Annotation, _impl_.begin_), 1>(),
-     {24, 1, 0, PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.begin_)}},
+    {584 , (PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.begin_) << 19)},
     // optional int32 end = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(GeneratedCodeInfo_Annotation, _impl_.end_), 2>(),
-     {32, 2, 0, PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.end_)}},
-    // optional .google.protobuf.GeneratedCodeInfo.Annotation.Semantic semantic = 5;
-    {::_pbi::TcParser::FastEr0S1,
-     {40, 3, 2, PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.semantic_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {1096 , (PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo_Annotation, _impl_.end_) << 19)},
+    {152},
   }}, {{
     65535, 65535
   }}, {{
@@ -13314,7 +13034,7 @@ const char* GeneratedCodeInfo::_InternalParse(
 }
 
 
-constexpr ::_pbi::TcParseTable<0, 1, 1, 0, 2> GeneratedCodeInfo::_table_ = {
+constexpr ::_pbi::TcParseTable<1, 1, 1, 0, 2> GeneratedCodeInfo::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -13329,8 +13049,7 @@ constexpr ::_pbi::TcParseTable<0, 1, 1, 0, 2> GeneratedCodeInfo::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // repeated .google.protobuf.GeneratedCodeInfo.Annotation annotation = 1;
-    {::_pbi::TcParser::FastMtR1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo, _impl_.annotation_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(GeneratedCodeInfo, _impl_.annotation_) << 19)},
   }}, {{
     65535, 65535
   }}, {{

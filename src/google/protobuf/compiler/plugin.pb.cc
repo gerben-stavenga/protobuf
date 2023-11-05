@@ -407,11 +407,11 @@ const char* Version::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 0, 47, 2> Version::_table_ = {
+const ::_pbi::TcParseTable<4, 4, 0, 47, 2> Version::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Version, _impl_._has_bits_),
     0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
+    4, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967280,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -421,18 +421,14 @@ const ::_pbi::TcParseTable<2, 4, 0, 47, 2> Version::_table_ = {
     &_Version_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional string suffix = 4;
-    {::_pbi::TcParser::FastSS1,
-     {34, 0, 0, PROTOBUF_FIELD_OFFSET(Version, _impl_.suffix_)}},
     // optional int32 major = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Version, _impl_.major_), 1>(),
-     {8, 1, 0, PROTOBUF_FIELD_OFFSET(Version, _impl_.major_)}},
+    {584 , (PROTOBUF_FIELD_OFFSET(Version, _impl_.major_) << 19)},
     // optional int32 minor = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Version, _impl_.minor_), 2>(),
-     {16, 2, 0, PROTOBUF_FIELD_OFFSET(Version, _impl_.minor_)}},
+    {1096 , (PROTOBUF_FIELD_OFFSET(Version, _impl_.minor_) << 19)},
     // optional int32 patch = 3;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Version, _impl_.patch_), 3>(),
-     {24, 3, 0, PROTOBUF_FIELD_OFFSET(Version, _impl_.patch_)}},
+    {1608 , (PROTOBUF_FIELD_OFFSET(Version, _impl_.patch_) << 19)},
+    // optional string suffix = 4;
+    {138 , (PROTOBUF_FIELD_OFFSET(Version, _impl_.suffix_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -729,7 +725,7 @@ const ::_pbi::TcParseTable<3, 5, 3, 79, 2> CodeGeneratorRequest::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_._has_bits_),
     0, // no _extensions_
-    17, 56,  // max_field_number, fast_idx_mask
+    17, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294885368,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -739,22 +735,12 @@ const ::_pbi::TcParseTable<3, 5, 3, 79, 2> CodeGeneratorRequest::_table_ = {
     &_CodeGeneratorRequest_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // repeated string file_to_generate = 1;
-    {::_pbi::TcParser::FastSR1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.file_to_generate_)}},
+    {146 , (PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.file_to_generate_) << 19)},
     // optional string parameter = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.parameter_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.parameter_) << 19)},
     // optional .google.protobuf.compiler.Version compiler_version = 3;
-    {::_pbi::TcParser::FastMtS1,
-     {26, 1, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.compiler_version_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    // repeated .google.protobuf.FileDescriptorProto proto_file = 15;
-    {::_pbi::TcParser::FastMtR1,
-     {122, 63, 1, PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.proto_file_)}},
+    {554 , (PROTOBUF_FIELD_OFFSET(CodeGeneratorRequest, _impl_.compiler_version_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1081,7 +1067,7 @@ const ::_pbi::TcParseTable<2, 4, 1, 86, 2> CodeGeneratorResponse_File::_table_ =
   {
     PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse_File, _impl_._has_bits_),
     0, // no _extensions_
-    16, 24,  // max_field_number, fast_idx_mask
+    16, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294918140,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1091,18 +1077,10 @@ const ::_pbi::TcParseTable<2, 4, 1, 86, 2> CodeGeneratorResponse_File::_table_ =
     &_CodeGeneratorResponse_File_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // optional .google.protobuf.GeneratedCodeInfo generated_code_info = 16;
-    {::_pbi::TcParser::FastMtS2,
-     {386, 3, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse_File, _impl_.generated_code_info_)}},
     // optional string name = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse_File, _impl_.name_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse_File, _impl_.name_) << 19)},
     // optional string insertion_point = 2;
-    {::_pbi::TcParser::FastSS1,
-     {18, 1, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse_File, _impl_.insertion_point_)}},
-    // optional string content = 15;
-    {::_pbi::TcParser::FastSS1,
-     {122, 2, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse_File, _impl_.content_)}},
+    {650 , (PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse_File, _impl_.insertion_point_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1374,7 +1352,7 @@ const ::_pbi::TcParseTable<2, 3, 1, 60, 2> CodeGeneratorResponse::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_._has_bits_),
     0, // no _extensions_
-    15, 24,  // max_field_number, fast_idx_mask
+    15, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294950908,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1384,16 +1362,10 @@ const ::_pbi::TcParseTable<2, 3, 1, 60, 2> CodeGeneratorResponse::_table_ = {
     &_CodeGeneratorResponse_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // optional string error = 1;
-    {::_pbi::TcParser::FastSS1,
-     {10, 0, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.error_)}},
+    {138 , (PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.error_) << 19)},
     // optional uint64 supported_features = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(CodeGeneratorResponse, _impl_.supported_features_), 1>(),
-     {16, 1, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.supported_features_)}},
-    // repeated .google.protobuf.compiler.CodeGeneratorResponse.File file = 15;
-    {::_pbi::TcParser::FastMtR1,
-     {122, 63, 0, PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.file_)}},
+    {616 , (PROTOBUF_FIELD_OFFSET(CodeGeneratorResponse, _impl_.supported_features_) << 19)},
   }}, {{
     65535, 65535
   }}, {{

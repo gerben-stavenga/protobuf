@@ -182,7 +182,7 @@ const char* FieldMask::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 0, 39, 2> FieldMask::_table_ = {
+const ::_pbi::TcParseTable<1, 1, 0, 39, 2> FieldMask::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -197,8 +197,7 @@ const ::_pbi::TcParseTable<0, 1, 0, 39, 2> FieldMask::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // repeated string paths = 1;
-    {::_pbi::TcParser::FastUR1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(FieldMask, _impl_.paths_)}},
+    {274 , (PROTOBUF_FIELD_OFFSET(FieldMask, _impl_.paths_) << 19)},
   }}, {{
     65535, 65535
   }}, {{

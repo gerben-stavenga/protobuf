@@ -178,11 +178,11 @@ const char* Duration::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 0, 0, 2> Duration::_table_ = {
+const ::_pbi::TcParseTable<2, 2, 0, 0, 2> Duration::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -192,12 +192,10 @@ const ::_pbi::TcParseTable<1, 2, 0, 0, 2> Duration::_table_ = {
     &_Duration_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // int32 nanos = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Duration, _impl_.nanos_), 63>(),
-     {16, 63, 0, PROTOBUF_FIELD_OFFSET(Duration, _impl_.nanos_)}},
     // int64 seconds = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(Duration, _impl_.seconds_), 63>(),
-     {8, 63, 0, PROTOBUF_FIELD_OFFSET(Duration, _impl_.seconds_)}},
+    {96 , (PROTOBUF_FIELD_OFFSET(Duration, _impl_.seconds_) << 19)},
+    // int32 nanos = 2;
+    {64 , (PROTOBUF_FIELD_OFFSET(Duration, _impl_.nanos_) << 19)},
   }}, {{
     65535, 65535
   }}, {{

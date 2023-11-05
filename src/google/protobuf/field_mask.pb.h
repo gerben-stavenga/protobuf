@@ -239,7 +239,7 @@ class PROTOBUF_EXPORT FieldMask final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      0, 1, 0,
+      1, 1, 0,
       39, 2>
       _table_;
   friend class ::google::protobuf::MessageLite;

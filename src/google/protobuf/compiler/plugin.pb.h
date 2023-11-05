@@ -314,7 +314,7 @@ class PROTOC_EXPORT Version final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      2, 4, 0,
+      4, 4, 0,
       47, 2>
       _table_;
   friend class ::google::protobuf::MessageLite;

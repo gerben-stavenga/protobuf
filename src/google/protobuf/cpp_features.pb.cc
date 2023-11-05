@@ -175,7 +175,7 @@ const char* CppFeatures::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 0, 0, 2> CppFeatures::_table_ = {
+const ::_pbi::TcParseTable<1, 1, 0, 0, 2> CppFeatures::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(CppFeatures, _impl_._has_bits_),
     0, // no _extensions_
@@ -190,8 +190,7 @@ const ::_pbi::TcParseTable<0, 1, 0, 0, 2> CppFeatures::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // optional bool legacy_closed_enum = 1 [retention = RETENTION_RUNTIME, targets = TARGET_TYPE_FIELD, targets = TARGET_TYPE_FILE, edition_defaults = {
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(CppFeatures, _impl_.legacy_closed_enum_), 0>(),
-     {8, 0, 0, PROTOBUF_FIELD_OFFSET(CppFeatures, _impl_.legacy_closed_enum_)}},
+    {8 , (PROTOBUF_FIELD_OFFSET(CppFeatures, _impl_.legacy_closed_enum_) << 19)},
   }}, {{
     65535, 65535
   }}, {{

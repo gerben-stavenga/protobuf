@@ -311,37 +311,61 @@ struct alignas(uint64_t) TcParseTableBase {
 
   // Table entry for fast-path tailcall dispatch handling.
   struct FastFieldEntry {
-    // Target function for dispatch:
-    mutable std::atomic<TailCallParseFunc> target_atomic;
+    enum {
+      // Cardinality
+      kSingular = 0,  // no hasbit
+      kOptional = 1,
+      kRepeated = 2,
+      kFallback = 3,  // oneof or non-standard reps
+
+      // Representation
+      // Varint / fixed wiretype
+      kRepBool = 0,
+      kRep32Bit = 1,
+      kRep64Bit = 2,
+      // length-delimited wiretype
+      kRepBytes = 0,
+      kRepMessage  = 1,  // MessageLite*
+      kRepPackedVarint = 2,
+      kRepPackedFixed = 3,
+
+      // Transforms
+      // Varint
+      kZigZag = 1,
+      // TODO (fast enum validation?)
+      // Bytes/Strings
+      kBytes = 0,
+      kUtf8Debug = 1,
+      kUtf8 = 2,
+    };
 
     // Field data used during parse:
-    TcFieldData bits;
+    /*union {
+      struct {
+        uint32_t wire_type : 3 = 0;
+        uint32_t cardinality : 2 = 0;
+        uint32_t representation : 2 = 0;
+        uint32_t transform : 2 = 0;
+        uint64_t has_bits : 10 = 0;
+        uint64_t off : 13 = 0;
+      };
+    };*/
+    uint32_t bits = 0;
 
     // Default initializes this instance with undefined values.
-    FastFieldEntry() = default;
+    constexpr FastFieldEntry() = default;
 
     // Constant initializes this instance
-    constexpr FastFieldEntry(TailCallParseFunc func, TcFieldData bits)
-        : target_atomic(func), bits(bits) {}
+    constexpr FastFieldEntry(uint32_t bits)
+        : bits(bits) {}
+    constexpr FastFieldEntry(uint32_t bits, unsigned offset)
+        : bits(bits | (offset << 19)) {}
 
-    // FastFieldEntry is copy-able and assignable, which is intended
-    // mainly for testing and debugging purposes.
-    FastFieldEntry(const FastFieldEntry& rhs) noexcept
-        : FastFieldEntry(rhs.target(), rhs.bits) {}
-    FastFieldEntry& operator=(const FastFieldEntry& rhs) noexcept {
-      SetTarget(rhs.target());
-      bits = rhs.bits;
-      return *this;
-    }
-
-    // Protocol buffer code should use these relaxed accessors.
-    TailCallParseFunc target() const {
-      return target_atomic.load(std::memory_order_relaxed);
-    }
-    void SetTarget(TailCallParseFunc func) const {
-      return target_atomic.store(func, std::memory_order_relaxed);
-    }
+    // Constant initializes this instance
+    constexpr FastFieldEntry(TailCallParseFunc, TcFieldData)
+          : bits(0) {}
   };
+
   // There is always at least one table entry.
   const FastFieldEntry* fast_entry(size_t idx) const {
     return reinterpret_cast<const FastFieldEntry*>(this + 1) + idx;
@@ -454,7 +478,7 @@ static_assert(sizeof(TcParseTableBase::FastFieldEntry) <= 16,
 static_assert(sizeof(TcParseTableBase::FieldEntry) <= 16,
               "Field entry is too big.");
 
-template <size_t kFastTableSizeLog2, size_t kNumFieldEntries = 0,
+template <size_t kNumFastTable, size_t kNumFieldEntries = 0,
           size_t kNumFieldAux = 0, size_t kNameTableSize = 0,
           size_t kFieldLookupSize = 2>
 struct TcParseTable {
@@ -466,8 +490,7 @@ struct TcParseTable {
   // number is masked to fit inside the table. Note that the parsing logic
   // generally calls `TailCallParseTableBase::fast_entry()` instead of accessing
   // this field directly.
-  std::array<TcParseTableBase::FastFieldEntry, (1 << kFastTableSizeLog2)>
-      fast_entries;
+  std::array<TcParseTableBase::FastFieldEntry, kNumFastTable> fast_entries;
 
   // Just big enough to find all the field entries.
   std::array<uint16_t, kFieldLookupSize> field_lookup_table;

@@ -303,7 +303,7 @@ const char* Struct::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 2, 37, 2> Struct::_table_ = {
+const ::_pbi::TcParseTable<1, 1, 2, 37, 2> Struct::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -317,7 +317,7 @@ const ::_pbi::TcParseTable<0, 1, 2, 37, 2> Struct::_table_ = {
     &_Struct_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    {26},
   }}, {{
     65535, 65535
   }}, {{
@@ -613,7 +613,7 @@ const char* Value::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 6, 2, 42, 2> Value::_table_ = {
+const ::_pbi::TcParseTable<6, 6, 2, 42, 2> Value::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -627,7 +627,12 @@ const ::_pbi::TcParseTable<0, 6, 2, 42, 2> Value::_table_ = {
     &_Value_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
+    {24},
+    {57},
+    {90},
+    {120},
+    {154},
+    {186},
   }}, {{
     65535, 65535
   }}, {{
@@ -911,7 +916,7 @@ const char* ListValue::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 1, 0, 2> ListValue::_table_ = {
+const ::_pbi::TcParseTable<1, 1, 1, 0, 2> ListValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
@@ -926,8 +931,7 @@ const ::_pbi::TcParseTable<0, 1, 1, 0, 2> ListValue::_table_ = {
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
     // repeated .google.protobuf.Value values = 1;
-    {::_pbi::TcParser::FastMtR1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(ListValue, _impl_.values_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(ListValue, _impl_.values_) << 19)},
   }}, {{
     65535, 65535
   }}, {{

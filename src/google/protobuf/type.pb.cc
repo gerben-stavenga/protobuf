@@ -540,11 +540,11 @@ const char* Type::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 7, 3, 46, 2> Type::_table_ = {
+const ::_pbi::TcParseTable<7, 7, 3, 46, 2> Type::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Type, _impl_._has_bits_),
     0, // no _extensions_
-    7, 56,  // max_field_number, fast_idx_mask
+    7, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967168,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -554,28 +554,20 @@ const ::_pbi::TcParseTable<3, 7, 3, 46, 2> Type::_table_ = {
     &_Type_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // string name = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(Type, _impl_.name_)}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Type, _impl_.name_) << 19)},
     // repeated .google.protobuf.Field fields = 2;
-    {::_pbi::TcParser::FastMtR1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(Type, _impl_.fields_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(Type, _impl_.fields_) << 19)},
     // repeated string oneofs = 3;
-    {::_pbi::TcParser::FastUR1,
-     {26, 63, 0, PROTOBUF_FIELD_OFFSET(Type, _impl_.oneofs_)}},
+    {274 , (PROTOBUF_FIELD_OFFSET(Type, _impl_.oneofs_) << 19)},
     // repeated .google.protobuf.Option options = 4;
-    {::_pbi::TcParser::FastMtR1,
-     {34, 63, 1, PROTOBUF_FIELD_OFFSET(Type, _impl_.options_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(Type, _impl_.options_) << 19)},
     // .google.protobuf.SourceContext source_context = 5;
-    {::_pbi::TcParser::FastMtS1,
-     {42, 0, 2, PROTOBUF_FIELD_OFFSET(Type, _impl_.source_context_)}},
+    {42 , (PROTOBUF_FIELD_OFFSET(Type, _impl_.source_context_) << 19)},
     // .google.protobuf.Syntax syntax = 6;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Type, _impl_.syntax_), 63>(),
-     {48, 63, 0, PROTOBUF_FIELD_OFFSET(Type, _impl_.syntax_)}},
+    {64 , (PROTOBUF_FIELD_OFFSET(Type, _impl_.syntax_) << 19)},
     // string edition = 7;
-    {::_pbi::TcParser::FastUS1,
-     {58, 63, 0, PROTOBUF_FIELD_OFFSET(Type, _impl_.edition_)}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Type, _impl_.edition_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -913,11 +905,11 @@ const char* Field::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<4, 10, 1, 72, 2> Field::_table_ = {
+const ::_pbi::TcParseTable<11, 10, 1, 72, 2> Field::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    11, 120,  // max_field_number, fast_idx_mask
+    11, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294965264,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -927,42 +919,27 @@ const ::_pbi::TcParseTable<4, 10, 1, 72, 2> Field::_table_ = {
     &_Field_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // .google.protobuf.Field.Kind kind = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Field, _impl_.kind_), 63>(),
-     {8, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.kind_)}},
+    {64 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.kind_) << 19)},
     // .google.protobuf.Field.Cardinality cardinality = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Field, _impl_.cardinality_), 63>(),
-     {16, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.cardinality_)}},
+    {64 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.cardinality_) << 19)},
     // int32 number = 3;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Field, _impl_.number_), 63>(),
-     {24, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.number_)}},
+    {64 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.number_) << 19)},
     // string name = 4;
-    {::_pbi::TcParser::FastUS1,
-     {34, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.name_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.name_) << 19)},
+    {0x1F},
     // string type_url = 6;
-    {::_pbi::TcParser::FastUS1,
-     {50, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.type_url_)}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.type_url_) << 19)},
     // int32 oneof_index = 7;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Field, _impl_.oneof_index_), 63>(),
-     {56, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.oneof_index_)}},
+    {64 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.oneof_index_) << 19)},
     // bool packed = 8;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(Field, _impl_.packed_), 63>(),
-     {64, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.packed_)}},
+    {0 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.packed_) << 19)},
     // repeated .google.protobuf.Option options = 9;
-    {::_pbi::TcParser::FastMtR1,
-     {74, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.options_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.options_) << 19)},
     // string json_name = 10;
-    {::_pbi::TcParser::FastUS1,
-     {82, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.json_name_)}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.json_name_) << 19)},
     // string default_value = 11;
-    {::_pbi::TcParser::FastUS1,
-     {90, 63, 0, PROTOBUF_FIELD_OFFSET(Field, _impl_.default_value_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Field, _impl_.default_value_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1367,11 +1344,11 @@ const char* Enum::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 6, 3, 40, 2> Enum::_table_ = {
+const ::_pbi::TcParseTable<6, 6, 3, 40, 2> Enum::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Enum, _impl_._has_bits_),
     0, // no _extensions_
-    6, 56,  // max_field_number, fast_idx_mask
+    6, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1381,26 +1358,18 @@ const ::_pbi::TcParseTable<3, 6, 3, 40, 2> Enum::_table_ = {
     &_Enum_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // string name = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(Enum, _impl_.name_)}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Enum, _impl_.name_) << 19)},
     // repeated .google.protobuf.EnumValue enumvalue = 2;
-    {::_pbi::TcParser::FastMtR1,
-     {18, 63, 0, PROTOBUF_FIELD_OFFSET(Enum, _impl_.enumvalue_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(Enum, _impl_.enumvalue_) << 19)},
     // repeated .google.protobuf.Option options = 3;
-    {::_pbi::TcParser::FastMtR1,
-     {26, 63, 1, PROTOBUF_FIELD_OFFSET(Enum, _impl_.options_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(Enum, _impl_.options_) << 19)},
     // .google.protobuf.SourceContext source_context = 4;
-    {::_pbi::TcParser::FastMtS1,
-     {34, 0, 2, PROTOBUF_FIELD_OFFSET(Enum, _impl_.source_context_)}},
+    {42 , (PROTOBUF_FIELD_OFFSET(Enum, _impl_.source_context_) << 19)},
     // .google.protobuf.Syntax syntax = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Enum, _impl_.syntax_), 63>(),
-     {40, 63, 0, PROTOBUF_FIELD_OFFSET(Enum, _impl_.syntax_)}},
+    {64 , (PROTOBUF_FIELD_OFFSET(Enum, _impl_.syntax_) << 19)},
     // string edition = 6;
-    {::_pbi::TcParser::FastUS1,
-     {50, 63, 0, PROTOBUF_FIELD_OFFSET(Enum, _impl_.edition_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Enum, _impl_.edition_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1693,11 +1662,11 @@ const char* EnumValue::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 3, 1, 38, 2> EnumValue::_table_ = {
+const ::_pbi::TcParseTable<3, 3, 1, 38, 2> EnumValue::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    3, 24,  // max_field_number, fast_idx_mask
+    3, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967288,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1707,16 +1676,12 @@ const ::_pbi::TcParseTable<2, 3, 1, 38, 2> EnumValue::_table_ = {
     &_EnumValue_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    {::_pbi::TcParser::MiniParse, {}},
     // string name = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(EnumValue, _impl_.name_)}},
+    {258 , (PROTOBUF_FIELD_OFFSET(EnumValue, _impl_.name_) << 19)},
     // int32 number = 2;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EnumValue, _impl_.number_), 63>(),
-     {16, 63, 0, PROTOBUF_FIELD_OFFSET(EnumValue, _impl_.number_)}},
+    {64 , (PROTOBUF_FIELD_OFFSET(EnumValue, _impl_.number_) << 19)},
     // repeated .google.protobuf.Option options = 3;
-    {::_pbi::TcParser::FastMtR1,
-     {26, 63, 0, PROTOBUF_FIELD_OFFSET(EnumValue, _impl_.options_)}},
+    {50 , (PROTOBUF_FIELD_OFFSET(EnumValue, _impl_.options_) << 19)},
   }}, {{
     65535, 65535
   }}, {{
@@ -1958,11 +1923,11 @@ const char* Option::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<1, 2, 1, 35, 2> Option::_table_ = {
+const ::_pbi::TcParseTable<2, 2, 1, 35, 2> Option::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Option, _impl_._has_bits_),
     0, // no _extensions_
-    2, 8,  // max_field_number, fast_idx_mask
+    2, 0,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
@@ -1972,12 +1937,10 @@ const ::_pbi::TcParseTable<1, 2, 1, 35, 2> Option::_table_ = {
     &_Option_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // .google.protobuf.Any value = 2;
-    {::_pbi::TcParser::FastMtS1,
-     {18, 0, 0, PROTOBUF_FIELD_OFFSET(Option, _impl_.value_)}},
     // string name = 1;
-    {::_pbi::TcParser::FastUS1,
-     {10, 63, 0, PROTOBUF_FIELD_OFFSET(Option, _impl_.name_)}},
+    {258 , (PROTOBUF_FIELD_OFFSET(Option, _impl_.name_) << 19)},
+    // .google.protobuf.Any value = 2;
+    {42 , (PROTOBUF_FIELD_OFFSET(Option, _impl_.value_) << 19)},
   }}, {{
     65535, 65535
   }}, {{

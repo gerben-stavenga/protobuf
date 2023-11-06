@@ -699,7 +699,9 @@ PROTOBUF_NOINLINE const char* TcParser::MpVarint(PROTOBUF_TC_PARAM_DECL) {
 
   // Check for repeated parsing:
   if (card == field_layout::kFcRepeated) {
+#ifndef OLD_PARSER
     std::cout << msg->GetTypeName() << " " << data.tag() / 8 << "\n";
+#endif
     PROTOBUF_MUSTTAIL return MpRepeatedVarint<is_split>(PROTOBUF_TC_PARAM_PASS);
   }
   // Check for wire type mismatch:

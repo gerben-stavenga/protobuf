@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include <string.h>
-#ifdef __X86_64__
+#ifdef __x86_64__
 #include <x86intrin.h>
 #endif
 
@@ -370,7 +370,7 @@ parse_submsg:
             if (tag & 1) mask = -1;
             auto size = (tag & 1 ? fixedsize : varintsize);
             data &= size_mask[size - 1];
-#ifdef __X86_64__
+#ifdef __x86_64__
             data = _pext_u64(data, mask);
 #else
             // TODO find good sequence for arm

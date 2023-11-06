@@ -717,7 +717,7 @@ struct Robber {
 
 struct GetTable {
     using type = const TcParseTable<
-      3, 6, 2,
+      6, 6, 2,
       0, 2>*;
     friend constexpr type Get(GetTable);
 };

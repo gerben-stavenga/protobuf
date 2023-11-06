@@ -270,7 +270,7 @@ struct alignas(uint64_t) TcParseTableBase {
   uint16_t has_bits_offset;
   uint16_t extension_offset;
   uint32_t max_field_number;
-  uint8_t num_fast_fields;
+  uint16_t num_fast_fields;
   uint16_t lookup_table_offset;
   uint32_t skipmap32;
   uint32_t field_entries_offset;
@@ -291,7 +291,7 @@ struct alignas(uint64_t) TcParseTableBase {
   // compiled.
   constexpr TcParseTableBase(
       uint16_t has_bits_offset, uint16_t extension_offset,
-      uint32_t max_field_number, uint8_t num_fast_fields,
+      uint32_t max_field_number, uint16_t num_fast_fields,
       uint16_t lookup_table_offset, uint32_t skipmap32,
       uint32_t field_entries_offset, uint16_t num_field_entries,
       uint16_t num_aux_entries, uint32_t aux_offset,

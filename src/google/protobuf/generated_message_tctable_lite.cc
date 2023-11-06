@@ -1766,8 +1766,18 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
     return ptr + size;
 }
 
+ABSL_ATTRIBUTE_NOINLINE
 const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag) {
   TcFieldData data;
+
+  if (entry == nullptr) {
+    entry = FindFieldEntry(table, tag >> 3);
+    if (entry == nullptr) {
+      data.data = tag;
+      PROTOBUF_MUSTTAIL return table->fallback(PROTOBUF_TC_PARAM_PASS);
+    }
+  }
+
   // The handler may need the tag and the entry to resolve fallback logic. Both
   // of these are 32 bits, so pack them into (the 64-bit) `data`. Since we can't
   // pack the entry pointer itself, just pack its offset from `table`.
@@ -1844,17 +1854,10 @@ unusual_end:
         auto idx = (tag >> 3) - 1;
         const TcParseTableBase::FieldEntry* entry;
         if (ABSL_PREDICT_FALSE(idx >= table->num_fast_fields)) {
-          tmp:
-          entry = FindFieldEntry(table, tag >> 3);
-          if (ABSL_PREDICT_FALSE(entry == nullptr)) {
 unusual:
-              if (tag == 0) goto unusual_end;
-              // TODO packed/unpacked repeated fields mismatch
-              ptr = table->fallback(msg, ptr, ctx, TcFieldData(tag), table, 0);
-              if (ptr == nullptr) return nullptr;
-              continue;
-          }
-old_miniparse_fallback:
+tmp:
+          entry = nullptr;
+with_entry:
           ptr = MiniParseFallback(msg, ptr, ctx, table, entry, tag);
           if (ptr == nullptr) return nullptr;
           continue;
@@ -1863,7 +1866,7 @@ old_miniparse_fallback:
         if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) {
           if (ABSL_PREDICT_FALSE(fd == 0x1F)) goto unusual;
           entry = table->field_entries_begin() + (fd >> 5); 
-          goto old_miniparse_fallback;
+          goto with_entry;
         }
         if (wt != (fd & 7)) goto tmp;
         uint64_t value = UnalignedLoad<uint64_t>(ptr);

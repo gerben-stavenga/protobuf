@@ -1654,8 +1654,12 @@ inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
     unsigned offset = fd >> FFE::kOffsetShift;
     out = static_cast<char*>(out) + offset;
     *static_cast<bool*>(out) = value;
-    *static_cast<uint32_t*>((fd & FFE::kRepMask) == FFE::kRep32Bit ? out : dummy) = value;
-    *static_cast<uint64_t*>((fd & FFE::kRepMask) == FFE::kRep64Bit ? out : dummy) = value;
+    auto dst = (fd & FFE::kRepMask) == FFE::kRep32Bit ? out : dummy;
+    asm volatile (""::"r"(dst));
+    *static_cast<uint32_t*>(dst) = value;
+    auto dst = (fd & FFE::kRepMask) == FFE::kRep64Bit ? out : dummy;
+    asm volatile (""::"r"(dst));
+    *static_cast<uint64_t*>(dst) = value;
 }
 
 template <typename FieldType>

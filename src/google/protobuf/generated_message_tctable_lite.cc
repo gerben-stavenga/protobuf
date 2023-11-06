@@ -1769,6 +1769,7 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
 ABSL_ATTRIBUTE_NOINLINE
 const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag) {
   TcFieldData data;
+  uint64_t hasbits = 0;
 
   if (entry == nullptr) {
     entry = FindFieldEntry(table, tag >> 3);
@@ -1810,7 +1811,6 @@ const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, Parse
 
   TailCallParseFunc parse_fn = kMiniParseTable[field_type];
 
-  uint64_t hasbits = 0;
   PROTOBUF_MUSTTAIL return parse_fn(PROTOBUF_TC_PARAM_PASS);  
 }
 

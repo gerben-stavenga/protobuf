@@ -555,7 +555,7 @@ TailCallTableInfo::TailCallTableInfo(
   int num_fields = 0;  // fallback value
   constexpr double kDensityCutoff = 0.5;
   for (auto entry : field_entries) {
-    if ((double)(num_fields + 1) / entry.field->number() < kDensityCutoff) break;
+    if (entry.field->number() > 32 && (double)(num_fields + 1) / entry.field->number() < kDensityCutoff) break;
     num_fields++;
   }
   for (int i = 0; i < num_fields; i++) {

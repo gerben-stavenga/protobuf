@@ -3430,7 +3430,7 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTable() const {
           ? static_cast<uint16_t>(schema_.GetExtensionSetOffset())
           : uint16_t{0},
       static_cast<uint32_t>(fields.empty() ? 0 : fields.back()->number()),
-      static_cast<uint8_t>((fast_entries_count - 1) << 3),
+      static_cast<uint8_t>(fast_entries_count),
       lookup_table_offset,
       table_info.num_to_entry_table.skipmap32,
       field_entry_offset,

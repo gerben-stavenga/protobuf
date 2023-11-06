@@ -1708,8 +1708,7 @@ next:;
       uint32_t tag;
       auto new_ptr = ReadTag(ptr, &tag);
       if (new_ptr == nullptr || tag != expected_tag) break;
-      ptr = new_ptr;
-      value = ReadVarint64(&ptr);
+      ptr = VarintParse(new_ptr, &value);
       if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
       field.Add(value);
     }

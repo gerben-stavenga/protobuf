@@ -1661,7 +1661,7 @@ inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
 template <typename FieldType>
 const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 
         uint32_t expected_tag, uint64_t value) {
-#if 0
+#if 1
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
     auto image = UnalignedLoad<uint64_t>((void*)buffer);
@@ -1673,9 +1673,8 @@ const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<
     while (PROTOBUF_PREDICT_TRUE(ctx->DataAvailable(ptr))) {
         uint64_t v1 = UnalignedLoad<uint64_t>(ptr);
         uint64_t v2 = UnalignedLoad<uint64_t>(ptr + 8);
-        uint64_t v3 = UnalignedLoad<uint64_t>(ptr + 16);
         unsigned bits = 0;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
           if ((v1 & mask) != image) {
             return ptr + (bits / 8);
           }
@@ -1689,11 +1688,11 @@ const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<
             goto next;            
           }
           auto y = cbits ^ (cbits + 1);
-          value = _pext_u64(v1 & cbits, pext_mask);
+          value = _pext_u64(v1 & y, pext_mask);
           auto nbits = __builtin_popcountll(y);
           v1 = (nbits == 64 ? 0 : (v1 >> nbits)) | (v2 << (64 - nbits));
-          v2 = (nbits == 64 ? 0 : (v2 >> nbits)) | (v3 << (64 - nbits));
-          v3 >>= nbits;
+          // v2 = (nbits == 64 ? 0 : (v2 >> nbits)) | (v3 << (64 - nbits));
+          v2 >>= nbits;
           bits += nbits;
           if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
           field.Add(value);

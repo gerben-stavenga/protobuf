@@ -514,12 +514,12 @@ struct TcParseTable {
 // In C++, arrays cannot have length 0, but (C++11) std::array<T, 0> is valid.
 // However, different implementations have different sizeof(std::array<T, 0>).
 // Skipping the member makes offset computations portable.
-template <size_t kFastTableSizeLog2, size_t kNumFieldEntries,
+template <size_t kNumFastTable, size_t kNumFieldEntries,
           size_t kNameTableSize, size_t kFieldLookupSize>
-struct TcParseTable<kFastTableSizeLog2, kNumFieldEntries, 0, kNameTableSize,
+struct TcParseTable<kNumFastTable, kNumFieldEntries, 0, kNameTableSize,
                     kFieldLookupSize> {
   TcParseTableBase header;
-  std::array<TcParseTableBase::FastFieldEntry, (1 << kFastTableSizeLog2)>
+  std::array<TcParseTableBase::FastFieldEntry, kNumFastTable>
       fast_entries;
   std::array<uint16_t, kFieldLookupSize> field_lookup_table;
   std::array<TcParseTableBase::FieldEntry, kNumFieldEntries> field_entries;
@@ -531,9 +531,7 @@ struct TcParseTable<kFastTableSizeLog2, kNumFieldEntries, 0, kNameTableSize,
 template <size_t kNameTableSize, size_t kFieldLookupSize>
 struct TcParseTable<0, 0, 0, kNameTableSize, kFieldLookupSize> {
   TcParseTableBase header;
-  // N.B.: the fast entries are sized by log2, so 2**0 fields = 1 entry.
-  // The fast parsing loop will always use this entry, so it must be present.
-  std::array<TcParseTableBase::FastFieldEntry, 1> fast_entries;
+  std::array<TcParseTableBase::FastFieldEntry, 0> fast_entries;
   std::array<uint16_t, kFieldLookupSize> field_lookup_table;
   std::array<char, kNameTableSize == 0 ? 1 : kNameTableSize> field_names;
 };

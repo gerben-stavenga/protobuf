@@ -1815,7 +1815,7 @@ const char* PLoop(MessageLite* const msg, const char* ptr, ParseContext* const c
 const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
     using FFE = TcParseTableBase::FastFieldEntry;
-#if 1 || defined(OLD_PARSER)
+#if defined(OLD_PARSER)
     return PLoop(msg, ptr, ctx, table, delta_or_group);
 #endif
     // TODO move into ParseContext
@@ -1863,7 +1863,7 @@ old_miniparse_fallback:
           entry = table->field_entries_begin() + (fd >> 5); 
           goto old_miniparse_fallback;
         }
-        if (wt != (fd & 7)) goto unusual;
+        if (wt != (fd & 7)) goto tmp;
         uint64_t value = UnalignedLoad<uint64_t>(ptr);
         if (wt == 2) {
             switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {

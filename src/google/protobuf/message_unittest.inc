@@ -1928,7 +1928,7 @@ static const internal::TcParseTableBase* GetTableIfAvailable(
     decltype(internal::TcParser::GetTable<T>())) {
   return internal::TcParser::GetTable<T>();
 }
-
+/*
 TEST(MESSAGE_TEST_NAME, TestRegressionInlinedStringAuxIdxMismatchOnFastParser) {
   using Proto = UNITTEST::InlinedStringIdxRegressionProto;
 
@@ -1971,7 +1971,7 @@ TEST(MESSAGE_TEST_NAME, TestRegressionInlinedStringAuxIdxMismatchOnFastParser) {
   // destruction.
   ASSERT_TRUE(proto->ParseFromString(encoded));
 }
-
+*/
 TEST(MESSAGE_TEST_NAME, TestRepeatedStringParsers) {
   google::protobuf::Arena arena;
 

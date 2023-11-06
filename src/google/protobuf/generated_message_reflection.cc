@@ -3406,9 +3406,8 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTable() const {
       },
       ReflectionOptionProvider(*this), has_bit_indices, inlined_string_indices);
 
-  size_t fast_entries_count = table_info.fast_path_fields.size();
+  const size_t fast_entries_count = table_info.fast_path_fields.size();
   ABSL_CHECK_EQ(static_cast<int>(fast_entries_count), table_info.table_size);
-  fast_entries_count = 0;
   const uint16_t lookup_table_offset = AlignTo<uint16_t>(
       sizeof(TcParseTableBase) +
       fast_entries_count * sizeof(TcParseTableBase::FastFieldEntry));
@@ -3442,7 +3441,7 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTable() const {
       &internal::TcParser::ReflectionFallback};
 
   // Now copy the rest of the payloads
-  // PopulateTcParseFastEntries(table_info, res->fast_entry(0));
+  PopulateTcParseFastEntries(table_info, res->fast_entry(0));
 
   PopulateTcParseLookupTable(table_info, res->field_lookup_begin());
 

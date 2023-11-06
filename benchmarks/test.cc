@@ -705,6 +705,8 @@ static void BM_ParseDirect(benchmark::State& state) {
 BENCHMARK_TEMPLATE(BM_ParseDirect, false)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_TEMPLATE(BM_ParseDirect, true)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 #endif
+
+#if 0
 // This pattern allows one to legally access private members, which we need to
 // implement ArenaString. By using legal c++ we ensure that we do not break
 // strict aliasing preventing potential miscompiles.
@@ -741,7 +743,7 @@ static void BM_MiniParseLoop(benchmark::State& state, int level) {
 BENCHMARK_CAPTURE(BM_MiniParseLoop, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_CAPTURE(BM_MiniParseLoop, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_CAPTURE(BM_MiniParseLoop, submsg, 2)->Range(1024, 256 * 1024)->RangeMultiplier(4);
-
+#endif 
 #if 0
 static void BM_NewParse(benchmark::State& state) {
     std::string x;

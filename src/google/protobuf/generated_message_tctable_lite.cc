@@ -32,8 +32,9 @@
 #include "google/protobuf/wire_format_lite.h"
 #include "utf8_validity.h"
 
+#ifdef __x86_64__
 #include "x86intrin.h"
-
+#endif
 
 // clang-format off
 #include "google/protobuf/port_def.inc"
@@ -1665,7 +1666,7 @@ inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
 template <typename FieldType>
 const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 
         uint32_t expected_tag, uint64_t value) {
-#if 1
+#ifdef __x86_64__
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
     auto image = UnalignedLoad<uint64_t>((void*)buffer);
@@ -1739,6 +1740,7 @@ const char* MplRepeatedFixed(const char* ptr, ParseContext* ctx, RepeatedField<F
 }
 
 inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t& data) {
+#ifdef __x86_64__
     static const uint64_t size_mask[] = {
         0xFF,
         0xFFFF,
@@ -1764,6 +1766,15 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
     data &= size_mask[size - 1];
     data = _pext_u64(data, mask);
     return ptr + size;
+#else
+  if (wt == 0) {
+    ptr = VarintParse(ptr, &data);
+  } else {
+    data = UnalignedLoad<uint64_t>(ptr);
+    ptr += wt & 4 ? 4 : 8;
+  }
+  return ptr;
+#endif
 }
 
 ABSL_ATTRIBUTE_NOINLINE

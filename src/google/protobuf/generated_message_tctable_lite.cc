@@ -1752,7 +1752,7 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
     uint64_t mask = 0x7f7f7f7f7f7f7f7f;
     auto x = data | mask;
     auto z = x + 1;
-    if (z == 0 && wt == 0) {
+    if (ABSL_PREDICT_FALSE(z == 0) && wt == 0) {
       data = ReadVarint64(&ptr);
       return ptr;
     }

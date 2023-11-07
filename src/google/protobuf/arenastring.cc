@@ -11,6 +11,7 @@
 
 #include "absl/log/absl_check.h"
 #include "absl/strings/string_view.h"
+#include "absl/strings/internal/resize_uninitialized.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/message_lite.h"
@@ -395,6 +396,14 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
   ScopedCheckPtrInvariants check(&s->tagged_ptr_);
   ABSL_DCHECK(arena != nullptr);
 
+  if ((uint8_t)*ptr <= StringRep::kMaxInlinedStringSize) {
+    auto size = *ptr;
+    ptr++;
+    auto str = Arena::Create<std::string>(arena, ptr, StringRep::kMaxInlinedStringSize);
+    absl::strings_internal::STLStringResizeUninitialized(str, size);
+    s->tagged_ptr_.SetFixedSizeArena(str);
+    ptr += size;
+  }
   int size = ReadSize(&ptr);
   if (!ptr) return nullptr;
 

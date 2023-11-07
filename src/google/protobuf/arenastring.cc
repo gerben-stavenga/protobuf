@@ -379,7 +379,7 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
   ABSL_DCHECK(arena != nullptr);
 
 #ifdef GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
-/*  if ((uint8_t)*ptr <= StringRep::kMaxInlinedStringSize) {
+  if ((uint8_t)*ptr <= StringRep::kMaxInlinedStringSize) {
     auto size = *ptr;
     ptr++;
     auto str = Arena::Create<std::string>(arena, ptr, StringRep::kMaxInlinedStringSize);
@@ -387,7 +387,7 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
     s->tagged_ptr_.SetFixedSizeArena(str);
     ptr += size;
     return ptr;
-  }*/
+  }
 #endif
   int size = ReadSize(&ptr);
   if (!ptr) return nullptr;

@@ -1873,7 +1873,6 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
         uint32_t tag;
         uint32_t wt = *ptr & 7;
         ptr = ReadTagInlined(ptr, &tag);
-        std::cout << "Tag " << tag << "\n";
         if (ptr == nullptr) return nullptr;
         if (ABSL_PREDICT_FALSE(wt == 4)) {
             if (delta_or_group != ~static_cast<uint64_t>(tag)) {
@@ -1906,7 +1905,6 @@ with_entry:
         }
         if (wt != (fd & 7)) goto tmp;
         uint64_t value = UnalignedLoad<uint64_t>(ptr);
-        std::cout << "Field " << tag / 8 << " " <<  wt << std::hex << fd << std::dec << "\n";
         if (wt == 2) {
             switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
                 case FFE::kRepBytes:

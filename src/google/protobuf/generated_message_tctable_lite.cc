@@ -1864,7 +1864,6 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
 #if defined(OLD_PARSER)
     return PLoop(msg, ptr, ctx, table, delta_or_group);
 #endif
-    std::cout << "Parsing " << typeid(*msg).name() << " " << typeid(*table->default_instance).name() << "\n";
     // TODO move into ParseContext
     char dummy[8] = {};
     char has_dummy[8] = {};

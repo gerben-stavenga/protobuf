@@ -1663,7 +1663,11 @@ inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
     *static_cast<uint64_t*>(dst) = value;
 }
 
+#ifdef NOSPECIAL
 #define OPT 0
+#else
+#define OPT 1
+#endif
 
 template <typename FieldType>
 const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 

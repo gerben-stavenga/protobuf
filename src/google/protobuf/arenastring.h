@@ -402,7 +402,7 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
 
   TaggedStringPtr tagged_ptr_;
 
-  bool IsFixedSizeArena() const { return false; }
+  bool IsFixedSizeArena() const { return tagged_ptr_.IsFixedSizeArena(); }
 
   // Swaps tagged pointer without debug hardening. This is to allow python
   // protobuf to maintain pointer stability even in DEBUG builds.

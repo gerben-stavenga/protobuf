@@ -1663,10 +1663,12 @@ inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
     *static_cast<uint64_t*>(dst) = value;
 }
 
+#define OPT 0
+
 template <typename FieldType>
 const char* MplRepeatedVarint(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field, bool zigzag, 
         uint32_t expected_tag, uint64_t value) {
-#ifdef __x86_64__
+#if defined(__x86_64__) && OPT
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
     auto image = UnalignedLoad<uint64_t>((void*)buffer);
@@ -1707,40 +1709,45 @@ next:;
     }
     return ptr;
 #else
+  uint8_t buffer[8] = {};
+  unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
+  auto image = UnalignedLoad<uint64_t>((void*)buffer);
+  auto mask = (1ull << (sz * 8)) - 1; 
+  field.Add(value);
+  while (PROTOBUF_PREDICT_TRUE(ctx->DataAvailable(ptr))) {
+    uint64_t tag = UnalignedLoad<uint64_t>(ptr);
+    if ((tag & mask) != image) break;
+    ptr += sz;
+    ptr = VarintParse(ptr, &value);
+    if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
     field.Add(value);
-    while (PROTOBUF_PREDICT_TRUE(ctx->DataAvailable(ptr))) {
-      uint32_t tag;
-      auto new_ptr = ReadTag(ptr, &tag);
-      if (new_ptr == nullptr || tag != expected_tag) break;
-      ptr = VarintParse(new_ptr, &value);
-      if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
-      field.Add(value);
-    }
-    return ptr;
+  }
+  return ptr;
 #endif
 }
 
 template <typename FieldType>
 const char* MplRepeatedFixed(const char* ptr, ParseContext* ctx, RepeatedField<FieldType>& field,
         uint32_t expected_tag, uint64_t value) {
-    uint8_t buffer[8] = {};
-    unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
-    auto image = UnalignedLoad<uint64_t>((void*)buffer);
-    auto mask = (1ull << (sz * 8)) - 1; 
-    while (true) {
-        field.Add(value);
-        if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
-        uint64_t tag = UnalignedLoad<uint64_t>(ptr);
-        if ((tag & mask) != image) return ptr;
-        ptr += sz;
-        value = UnalignedLoad<FieldType>(ptr);
-        ptr += sizeof(FieldType);
-    }
-    return ptr;
+  uint8_t buffer[8] = {};
+  unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
+  auto image = UnalignedLoad<uint64_t>((void*)buffer);
+  auto mask = (1ull << (sz * 8)) - 1; 
+  field.Add(value);
+  while (true) {
+    if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
+    uint64_t tag = UnalignedLoad<uint64_t>(ptr);
+    if ((tag & mask) != image) return ptr;
+    ptr += sz;
+    value = UnalignedLoad<FieldType>(ptr);
+    ptr += sizeof(FieldType);
+    field.Add(value);
+  }
+  return ptr;
 }
 
 inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t& data) {
-#ifdef __x86_64__
+#if defined(__x86_64__) && OPT
     static const uint64_t size_mask[] = {
         0xFF,
         0xFFFF,
@@ -1766,14 +1773,25 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
     data &= size_mask[size - 1];
     data = _pext_u64(data, mask);
     return ptr + size;
+
+#else
+
+#if 1
+  if (ABSL_PREDICT_FALSE((data & (0x80 << wt)) & 0x80)) {
+    ptr = VarintParse(ptr, &data);
+  } else {
+    ptr += wt & 1 ? (wt & 4 ? 4 : 8) : 1;
+    data &= wt & 1 ? -1ull : 0xFF;
+  }
 #else
   if (wt == 0) {
     ptr = VarintParse(ptr, &data);
   } else {
-    data = UnalignedLoad<uint64_t>(ptr);
     ptr += wt & 4 ? 4 : 8;
   }
+#endif
   return ptr;
+
 #endif
 }
 

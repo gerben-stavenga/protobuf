@@ -101,6 +101,9 @@ bool IsFieldEligibleForFastParsing(
     case FieldDescriptor::TYPE_ENUM:
       if (!cpp::HasPreservingUnknownEnumSemantics(field)) return false;
       break;
+    case FieldDescriptor::TYPE_MESSAGE:
+    case FieldDescriptor::TYPE_GROUP:
+      if (field->message_type()->options().message_set_wire_format()) return false;
     default:
       break;
   }

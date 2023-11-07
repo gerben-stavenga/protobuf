@@ -1644,10 +1644,11 @@ PROTOBUF_NOINLINE const char* TcParser::MpMap(PROTOBUF_TC_PARAM_DECL) {
 }
 
 inline void SetHasBit(void* x, uint32_t fd, void* dummy) {
-    using FFE = TcParseTableBase::FastFieldEntry;
-    x = (fd & FFE::kCardMask) == FFE::kSingular ? dummy : x;
-    auto idx = (fd >> FFE::kHasBitShift) & FFE::kHasBitMask;
-    static_cast<char*>(x)[idx / 8] |= 1 << (idx & 7);
+  using FFE = TcParseTableBase::FastFieldEntry;
+  auto idx = (fd >> FFE::kHasBitShift) & FFE::kHasBitMask;
+  ABSL_DCHECK(((fd & FFE::kCardMask) != FFE::kSingular) || idx == 0);
+  x = (fd & FFE::kCardMask) == FFE::kSingular ? dummy : x;
+  static_cast<char*>(x)[idx / 8] |= 1 << (idx & 7);
 }
 
 inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
@@ -1723,6 +1724,7 @@ next:;
     if ((tag & mask) != image) break;
     ptr += sz;
     ptr = VarintParse(ptr, &value);
+    if (ptr == nullptr) return nullptr;
     if (zigzag) value = WireFormatLite::ZigZagDecode64(value);
     field.Add(value);
   }
@@ -1862,6 +1864,7 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
 #if defined(OLD_PARSER)
     return PLoop(msg, ptr, ctx, table, delta_or_group);
 #endif
+    std::cout << "Parsing " << typeid(*msg).name() << " " << typeid(*table->default_instance).name() << "\n";
     // TODO move into ParseContext
     char dummy[8] = {};
     char has_dummy[8] = {};
@@ -1870,6 +1873,7 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
         uint32_t tag;
         uint32_t wt = *ptr & 7;
         ptr = ReadTagInlined(ptr, &tag);
+        std::cout << "Tag " << tag << "\n";
         if (ptr == nullptr) return nullptr;
         if (ABSL_PREDICT_FALSE(wt == 4)) {
             if (delta_or_group != ~static_cast<uint64_t>(tag)) {
@@ -1902,13 +1906,14 @@ with_entry:
         }
         if (wt != (fd & 7)) goto tmp;
         uint64_t value = UnalignedLoad<uint64_t>(ptr);
+        std::cout << "Field " << tag / 8 << " " <<  wt << std::hex << fd << std::dec << "\n";
         if (wt == 2) {
             switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
                 case FFE::kRepBytes:
                     break;
                 case FFE::kRepMessage: {
                     auto sz = ReadSize(&ptr);
-                    if (ptr == nullptr) return nullptr;
+                    if (ptr == nullptr || sz < 0) return nullptr;
                     value = ctx->PushLimit(ptr, sz).token();
                     goto parse_submessage;
                 }
@@ -1924,6 +1929,7 @@ with_entry:
             } else {
               auto& field = RefAt<RepeatedPtrField<std::string>>(msg, fd >> FFE::kOffsetShift);
               auto sz = ReadSize(&ptr);
+              if (ptr == nullptr) return nullptr;
               ptr = ctx->ReadString(ptr, sz, field.Add());
               if (ptr == nullptr) return nullptr;
               continue;
@@ -2000,7 +2006,7 @@ parse_submessage:
     }  // while
     if (ptr == nullptr) return nullptr;
     if (delta_or_group >= 0) {
-        (void)ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
+        if (!ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group))) return nullptr;
         return ptr;
     } else if (delta_or_group == -1) {
         return ptr;

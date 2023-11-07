@@ -1734,10 +1734,9 @@ const char* MplRepeatedFixed(const char* ptr, ParseContext* ctx, RepeatedField<F
   auto image = UnalignedLoad<uint64_t>((void*)buffer);
   auto mask = (1ull << (sz * 8)) - 1; 
   field.Add(value);
-  while (true) {
-    if (PROTOBUF_PREDICT_FALSE(!ctx->DataAvailable(ptr))) return ptr;
+  while (PROTOBUF_PREDICT_TRUE(ctx->DataAvailable(ptr))) {
     uint64_t tag = UnalignedLoad<uint64_t>(ptr);
-    if ((tag & mask) != image) return ptr;
+    if ((tag & mask) != image) break;
     ptr += sz;
     value = UnalignedLoad<FieldType>(ptr);
     ptr += sizeof(FieldType);

@@ -1779,7 +1779,7 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
 
 #else
 
-#if 1
+#if OPT
   if (ABSL_PREDICT_FALSE((data & (0x80 << wt)) & 0x80)) {
     ptr = VarintParse(ptr, &data);
   } else {

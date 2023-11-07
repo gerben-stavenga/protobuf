@@ -181,14 +181,14 @@ const std::string& LazyString::Init() const {
 namespace {
 
 
-#if defined(NDEBUG) || !defined(GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL)
+// #if defined(NDEBUG) || !defined(GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL)
 
 class ScopedCheckPtrInvariants {
  public:
   explicit ScopedCheckPtrInvariants(const TaggedStringPtr*) {}
 };
 
-#endif  // NDEBUG || !GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
+// #endif  // NDEBUG || !GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
 
 // Creates a heap allocated std::string value.
 inline TaggedStringPtr CreateString(absl::string_view value) {
@@ -396,6 +396,7 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
   ScopedCheckPtrInvariants check(&s->tagged_ptr_);
   ABSL_DCHECK(arena != nullptr);
 
+#ifdef GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
   if ((uint8_t)*ptr <= StringRep::kMaxInlinedStringSize) {
     auto size = *ptr;
     ptr++;
@@ -403,7 +404,9 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
     absl::strings_internal::STLStringResizeUninitialized(str, size);
     s->tagged_ptr_.SetFixedSizeArena(str);
     ptr += size;
+    return ptr;
   }
+#endif
   int size = ReadSize(&ptr);
   if (!ptr) return nullptr;
 

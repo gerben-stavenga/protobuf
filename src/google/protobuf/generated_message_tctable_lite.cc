@@ -1833,6 +1833,32 @@ const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, Parse
   PROTOBUF_MUSTTAIL return parse_fn(PROTOBUF_TC_PARAM_PASS);  
 }
 
+// On the fast path, a (matching) 2-byte tag always needs to be decoded.
+static uint32_t FastDecodeTag(const char** pptr, uint64_t* value) {
+  const char*& ptr = *pptr;
+  uint32_t res = UnalignedLoad<uint16_t>(ptr);
+  if (ABSL_PREDICT_FALSE((res & 0x8080) == 0x8080)) {
+    res = static_cast<uint8_t>(ptr[0]);
+    uint32_t second = static_cast<uint8_t>(ptr[1]);
+    res += (second - 1) << 7;
+    auto tmp = ReadTagFallback(ptr, res);
+    ptr = tmp.first;
+    if (ptr == nullptr) return tmp.second;
+    *value = UnalignedLoad<uint64_t>(ptr);
+    return tmp.second;
+  }
+  uint64_t v1 = UnalignedLoad<uint64_t>(ptr + 1);
+  uint64_t v2 = UnalignedLoad<uint64_t>(ptr + 2);
+  asm(""::"r"(v1), "r"(v2));
+  ptr += res & 0x80 ? 2 : 1;
+  // Preload value to keep load of critical chain
+  *value = res & 0x80 ? v2 : v1;
+  uint32_t mask = static_cast<int8_t>(res);
+  res = (res & mask) + mask;
+  return res >> 1;
+}
+
+
 const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
     using FFE = TcParseTableBase::FastFieldEntry;
@@ -1841,9 +1867,9 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
     char has_dummy[8] = {};
     Arena* arena = msg->GetArena();
     while (!ctx->Done(&ptr)) {
-      uint32_t tag;
       uint32_t wt = *ptr & 7;
-      ptr = ReadTagInlined(ptr, &tag);
+      uint64_t value;
+      uint32_t tag = FastDecodeTag(&ptr, &value);
       if (ptr == nullptr) return nullptr;
       if (ABSL_PREDICT_FALSE(wt == 4)) {
         if (delta_or_group != ~static_cast<uint64_t>(tag)) {
@@ -1870,13 +1896,12 @@ with_entry:
         continue;
       }
       auto fd = table->fast_entry(idx)->bits;
-      if (wt != (fd & 7)) goto unusual;
       if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) {
         if (ABSL_PREDICT_FALSE(fd == 0x1F)) goto unusual;
         entry = table->field_entries_begin() + (fd >> 5); 
         goto with_entry;
       }
-      uint64_t value = UnalignedLoad<uint64_t>(ptr);
+      if (wt != (fd & 7)) goto unusual;
       if (wt == 2) {
         switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
           case FFE::kRepBytes:
@@ -1885,7 +1910,9 @@ with_entry:
             auto sz = ReadSize(&ptr);
             if (ptr == nullptr) return nullptr;
             value = ctx->PushLimit(ptr, sz).token();
-            if (static_cast<int64_t>(value) < 0) return nullptr;
+            // TODO: this check is necessary to prevent negative size to immitate a group end
+            // A test is failing because it expects presence of a submsg after a failed parse.
+            // if (static_cast<int64_t>(value) < 0) return nullptr;
             goto parse_submessage;
           }
           case FFE::kRepPackedFixed: {

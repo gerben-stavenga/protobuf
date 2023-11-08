@@ -451,6 +451,7 @@ void PrintUTF8ErrorLog(absl::string_view message_name,
                        absl::string_view field_name, const char* operation_str,
                        bool emit_stacktrace);
 
+ABSL_ATTRIBUTE_NOINLINE
 void TcParser::ReportFastUtf8Error(uint32_t decoded_tag,
                                    const TcParseTableBase* table) {
   uint32_t field_num = decoded_tag >> 3;
@@ -1873,6 +1874,7 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
         uint32_t wt = *ptr & 7;
         ptr = ReadTagInlined(ptr, &tag);
         if (ptr == nullptr) return nullptr;
+        std::cout << tag / 8 << " " << wt << "\n";
         if (ABSL_PREDICT_FALSE(wt == 4)) {
             if (delta_or_group != ~static_cast<uint64_t>(tag)) {
 unusual_end:
@@ -1882,12 +1884,14 @@ unusual_end:
                 }
                 return nullptr;
             }
+            ctx->DecGroupDepth();
             return ptr;
         }
 
         auto idx = (tag >> 3) - 1;
         const TcParseTableBase::FieldEntry* entry;
         if (ABSL_PREDICT_FALSE(idx >= table->num_fast_fields)) {
+          if (tag == 0) goto unusual_end;
 unusual:
 tmp:
           entry = nullptr;
@@ -1921,29 +1925,45 @@ with_entry:
                   goto tmp;
                 }
             }
+            absl::string_view sv;
             if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
               SetHasBit(msg, fd, has_dummy);
+              auto& field = RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift);
+              if (arena) {
+                ptr = ctx->ReadArenaString(ptr, &field, arena);
+              } else {
+                auto sz = ReadSize(&ptr);
+                if (ptr == nullptr) return nullptr;
+                ptr = ctx->ReadString(ptr, sz, field.MutableNoCopy(nullptr));
+              }
+              sv = field.Get();
             } else {
               auto& field = RefAt<RepeatedPtrField<std::string>>(msg, fd >> FFE::kOffsetShift);
               auto sz = ReadSize(&ptr);
               if (ptr == nullptr) return nullptr;
-              ptr = ctx->ReadString(ptr, sz, field.Add());
-              if (ptr == nullptr) return nullptr;
-              continue;
-            }
-            if (arena) {
-              ptr = ctx->ReadArenaString(ptr, &RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift), arena);
-            } else {
-              auto sz = ReadSize(&ptr);
-              if (ptr == nullptr) return nullptr;
-              ptr = ctx->ReadString(ptr, sz, RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift).MutableNoCopy(nullptr));
+              auto s = field.Add();
+              ptr = ctx->ReadString(ptr, sz, s);
+              sv = *s;
             }
             if (ptr == nullptr) return nullptr;
+#ifdef NDEBUG
+              constexpr bool kUtf8Debug = false;
+#else
+              constexpr bool kUtf8Debug = true;
+#endif
+              if (((fd & FFE::kTransformMask) != FFE::kBytes && kUtf8Debug) ||
+                  ((fd & FFE::kTransformMask) == FFE::kUtf8 && !kUtf8Debug)) { 
+                if (ABSL_PREDICT_FALSE(!utf8_range::IsStructurallyValid(sv))) {
+                  ReportFastUtf8Error(tag, table);
+                  if ((fd & FFE::kTransformMask) == FFE::kUtf8) return nullptr;
+                }
+              }
             continue;
         } else {
             if (ABSL_PREDICT_FALSE(wt == 3)) {
               ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
               value = ~static_cast<uint64_t>(tag + 1);
+              ctx->IncGroupDepth();
               goto parse_submessage;
             }
             ptr = ParseScalarBranchless(ptr, wt, value);
@@ -1996,7 +2016,9 @@ parse_submessage:
                 auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
                 child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
             }
+            if (!ctx->IncDepth()) return nullptr;
             ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
+            ctx->DecDepth();
             if (ptr == nullptr) return nullptr;
             continue;
         }

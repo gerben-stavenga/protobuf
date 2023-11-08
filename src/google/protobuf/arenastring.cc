@@ -378,7 +378,7 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
   ScopedCheckPtrInvariants check(&s->tagged_ptr_);
   ABSL_DCHECK(arena != nullptr);
 
-#if defined(GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL)
+#if defined(GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL) && 0
   if ((uint8_t)*ptr <= StringRep::kMaxInlinedStringSize) {
     auto size = *ptr;
     ptr++;

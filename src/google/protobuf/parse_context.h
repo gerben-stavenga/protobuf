@@ -492,6 +492,11 @@ class PROTOBUF_EXPORT ParseContext : public EpsCopyInputStream {
   Data& data() { return data_; }
   const Data& data() const { return data_; }
 
+  bool IncDepth() { return --depth_ >= 0; }
+  void DecDepth() { depth_++; }
+  void IncGroupDepth() { group_depth_++; }
+  void DecGroupDepth() { group_depth_--; }
+
   const char* ParseMessage(MessageLite* msg, const char* ptr);
 
   // This overload supports those few cases where ParseMessage is called

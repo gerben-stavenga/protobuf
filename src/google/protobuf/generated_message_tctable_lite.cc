@@ -1971,6 +1971,7 @@ with_entry:
         }
         continue;
       } else {
+        logger.nump++;
         if (ABSL_PREDICT_FALSE(wt == 3)) {
           ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
           value = ~static_cast<uint64_t>(tag + 1);

@@ -1946,17 +1946,17 @@ with_entry:
             }
             if (ptr == nullptr) return nullptr;
 #ifdef NDEBUG
-              constexpr bool kUtf8Debug = false;
+            constexpr bool kUtf8Debug = false;
 #else
-              constexpr bool kUtf8Debug = true;
+            constexpr bool kUtf8Debug = true;
 #endif
-              if (((fd & FFE::kTransformMask) != FFE::kBytes && kUtf8Debug) ||
-                  ((fd & FFE::kTransformMask) == FFE::kUtf8 && !kUtf8Debug)) { 
-                if (ABSL_PREDICT_FALSE(!utf8_range::IsStructurallyValid(sv))) {
-                  ReportFastUtf8Error(tag, table);
-                  if ((fd & FFE::kTransformMask) == FFE::kUtf8) return nullptr;
-                }
+            if (((fd & FFE::kTransformMask) != FFE::kBytes && kUtf8Debug) ||
+                ((fd & FFE::kTransformMask) == FFE::kUtf8 && !kUtf8Debug)) { 
+              if (ABSL_PREDICT_FALSE(!utf8_range::IsStructurallyValid(sv))) {
+                ReportFastUtf8Error(tag, table);
+                if ((fd & FFE::kTransformMask) == FFE::kUtf8) return nullptr;
               }
+            }
             continue;
         } else {
             if (ABSL_PREDICT_FALSE(wt == 3)) {

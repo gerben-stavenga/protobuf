@@ -1785,6 +1785,15 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
 #endif
 }
 
+struct Log {
+  ~Log() {
+    printf("messages: %d strings: %d", numm, nums);
+  }
+
+  int numm = 0;
+  int nums = 0;
+} logger;
+
 ABSL_ATTRIBUTE_NOINLINE
 const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag) {
   TcFieldData data;
@@ -1905,6 +1914,7 @@ with_entry:
       }
       if (wt != (fd & 7)) goto unusual;
       if (ABSL_PREDICT_FALSE((fd & (7 | FFE::kRepMask)) == (2 | FFE::kRepMessage))) {
+        logger.numm++;
         auto sz = ReadSize(&ptr);
         if (ptr == nullptr) return nullptr;
         value = ctx->PushLimit(ptr, sz).token();
@@ -1924,6 +1934,7 @@ with_entry:
           default:
             break;
         }
+        logger.nums++;
         absl::string_view sv;
         if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
           SetHasBit(msg, fd, has_dummy);

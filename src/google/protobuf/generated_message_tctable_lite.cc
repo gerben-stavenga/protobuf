@@ -2016,22 +2016,39 @@ parse_submessage:
         auto entry = table->field_entries_begin() + entry_idx;
         auto child_table = table->field_aux(entry->aux_idx)->table;
         auto offset = entry->offset;
-        MessageLite* child;
+        if (!ctx->IncDepth()) return nullptr;
         if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
           SetHasBit(msg, fd, has_dummy);
           auto& field = RefAt<MessageLite*>(msg, offset);
           if (field == nullptr) {
             field = child_table->default_instance->New(arena);
           }
-          child = field;
+          auto child = field;
+          ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
+          if (ptr == nullptr) return nullptr;
         } else {
           auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
-          child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
+          while (true) {
+            auto child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
+            ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
+            if (ptr == nullptr) return nullptr;
+            //break;
+            if (!ctx->DataAvailable(ptr)) break;
+            uint32_t nexttag;
+            auto newptr = ReadTagInlined(ptr, &nexttag);
+            if (nexttag != tag) break;
+            ptr = newptr;
+            if ((tag & 7) == 3) {
+              ctx->IncGroupDepth();
+            } else {
+              auto sz = ReadSize(&ptr);
+              if (ptr == nullptr) return nullptr;
+              value = ctx->PushLimit(ptr, sz).token();
+              // TODO check value
+            }
+          }
         }
-        if (!ctx->IncDepth()) return nullptr;
-        ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
         ctx->DecDepth();
-        if (ptr == nullptr) return nullptr;
         continue;
       }
     }  // while

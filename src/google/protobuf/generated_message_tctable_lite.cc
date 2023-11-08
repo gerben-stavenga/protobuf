@@ -1787,11 +1787,15 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
 
 struct Log {
   ~Log() {
-    printf("primitives: %d wt=2: %d, messages: %d strings: %d total: %d\n", nump, numm + nums, numm, nums, nump + numm + nums);
+    printf("primitives: %d wt=2: %d, messages: %d repeated messaged: %d strings: %d total: %d\n", 
+      nump, numm + nums + numrm, 
+      numm, numrm, nums, 
+      nump + numm + numrm + nums);
   }
 
   int nump = 0;
   int numm = 0;
+  int numrm = 0;
   int nums = 0;
 } logger;
 
@@ -1915,7 +1919,6 @@ with_entry:
       }
       if (wt != (fd & 7)) goto unusual;
       if (ABSL_PREDICT_FALSE((fd & (7 | FFE::kRepMask)) == (2 | FFE::kRepMessage))) {
-        logger.numm++;
         auto sz = ReadSize(&ptr);
         if (ptr == nullptr) return nullptr;
         value = ctx->PushLimit(ptr, sz).token();
@@ -2024,15 +2027,16 @@ parse_submessage:
             field = child_table->default_instance->New(arena);
           }
           auto child = field;
+          if (wt == 2) logger.numm++;
           ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
           if (ptr == nullptr) return nullptr;
         } else {
           auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
           while (true) {
             auto child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
+            if (wt == 2) logger.numrm++;
             ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
             if (ptr == nullptr) return nullptr;
-            //break;
             if (!ctx->DataAvailable(ptr)) break;
             uint32_t nexttag;
             auto newptr = ReadTagInlined(ptr, &nexttag);

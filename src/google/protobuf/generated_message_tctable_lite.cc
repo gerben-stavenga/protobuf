@@ -1874,7 +1874,6 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
         uint32_t wt = *ptr & 7;
         ptr = ReadTagInlined(ptr, &tag);
         if (ptr == nullptr) return nullptr;
-        std::cout << tag / 8 << " " << wt << "\n";
         if (ABSL_PREDICT_FALSE(wt == 4)) {
             if (delta_or_group != ~static_cast<uint64_t>(tag)) {
 unusual_end:

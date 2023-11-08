@@ -1787,9 +1787,10 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
 
 struct Log {
   ~Log() {
-    printf("messages: %d strings: %d", numm, nums);
+    printf("primitives: %d wt=2: %d, messages: %d strings: %d total: %d\n", nump, numm + nums, numm, nums, nump + numm + nums);
   }
 
+  int nump = 0;
   int numm = 0;
   int nums = 0;
 } logger;

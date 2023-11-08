@@ -71,22 +71,6 @@ const char* TcParser::GenericFallbackLite(PROTOBUF_TC_PARAM_DECL) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Core fast parsing implementation:
-//////////////////////////////////////////////////////////////////////////////
-
-// On the fast path, a (matching) 1-byte tag already has the decoded value.
-static uint32_t FastDecodeTag(uint8_t coded_tag) {
-  return coded_tag;
-}
-
-// On the fast path, a (matching) 2-byte tag always needs to be decoded.
-static uint32_t FastDecodeTag(uint16_t coded_tag) {
-  uint32_t result = coded_tag;
-  result += static_cast<int8_t>(coded_tag);
-  return result >> 1;
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // Core mini parsing implementation:
 //////////////////////////////////////////////////////////////////////////////
 
@@ -1849,22 +1833,9 @@ const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, Parse
   PROTOBUF_MUSTTAIL return parse_fn(PROTOBUF_TC_PARAM_PASS);  
 }
 
-const char* PLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
-        const TcParseTableBase* const table, int64_t const delta_or_group) {
-  while (!ctx->Done(&ptr)) {
-    ptr = TcParser::MiniParse(msg, ptr, ctx, TcFieldData(0), table, 0);
-    if (ptr == nullptr) return nullptr;
-    if (ctx->LastTag() != 1) break;  // Ended on terminating tag
-  }
-  return ptr;
-}
-
 const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
     using FFE = TcParseTableBase::FastFieldEntry;
-#if defined(OLD_PARSER)
-    return PLoop(msg, ptr, ctx, table, delta_or_group);
-#endif
     // TODO move into ParseContext
     char dummy[8] = {};
     char has_dummy[8] = {};

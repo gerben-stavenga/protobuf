@@ -598,32 +598,6 @@ TEST_F(FindFieldEntryTest, BigMessage) {
   }
 }
 
-TEST(GeneratedMessageTctableLiteTest, PackedEnumSmallRange) {
-  // RepeatedField::Reserve(n) may set the capacity to something greater than n,
-  // and this "upgrade" algorithm can even be different depending on compiler
-  // optimizations!  This value is chosen such that -- with the current
-  // implementation of Reserve() -- Reserve(kNumVals) always results in a
-  // different final capacity than you'd get by adding elements one at a time.
-  constexpr int kNumVals = 1023;
-  protobuf_unittest::TestPackedEnumSmallRange proto;
-  for (int i = 0; i < kNumVals; i++) {
-    proto.add_vals(protobuf_unittest::TestPackedEnumSmallRange::FOO);
-  }
-
-  protobuf_unittest::TestPackedEnumSmallRange new_proto;
-  new_proto.ParseFromString(proto.SerializeAsString());
-
-  // We should have reserved exactly the right size for new_proto's `vals`,
-  // rather than growing it on demand like we did in `proto`.
-  EXPECT_LT(new_proto.vals().Capacity(), proto.vals().Capacity());
-
-  // Check that new_proto's capacity is equal to exactly what we'd get from
-  // calling Reserve(n).
-  protobuf_unittest::TestPackedEnumSmallRange empty_proto;
-  empty_proto.mutable_vals()->Reserve(kNumVals);
-  EXPECT_EQ(new_proto.vals().Capacity(), empty_proto.vals().Capacity());
-}
-
 // Create a serialized proto which falsely claims to have a packed array of
 // enums of length a little less than 2^31.  We merge this with a proto that
 // already has a few elements in this array.

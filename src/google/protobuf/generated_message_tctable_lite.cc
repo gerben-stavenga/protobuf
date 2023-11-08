@@ -1847,10 +1847,12 @@ static uint32_t FastDecodeTag(const char** pptr, uint64_t* value) {
     *value = UnalignedLoad<uint64_t>(ptr);
     return tmp.second;
   }
-  uint64_t v1 = UnalignedLoad<uint64_t>(ptr + 1);
-  uint64_t v2 = UnalignedLoad<uint64_t>(ptr + 2);
+  const char* p1 = ptr + 1;
+  const char* p2 = ptr + 2;
+  uint64_t v1 = UnalignedLoad<uint64_t>(p1);
+  uint64_t v2 = UnalignedLoad<uint64_t>(p2);
   asm(""::"r"(v1), "r"(v2));
-  ptr += res & 0x80 ? 2 : 1;
+  ptr = res & 0x80 ? p2 : p1;
   // Preload value to keep load of critical chain
   *value = res & 0x80 ? v2 : v1;
   uint32_t mask = static_cast<int8_t>(res);
@@ -1867,7 +1869,7 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
     char has_dummy[8] = {};
     Arena* arena = msg->GetArena();
     while (!ctx->Done(&ptr)) {
-      uint32_t wt = *ptr & 7;
+      uint32_t wt = UnalignedLoad<uint16_t>(ptr) & 7;
       uint64_t value;
       uint32_t tag = FastDecodeTag(&ptr, &value);
       if (ptr == nullptr) return nullptr;

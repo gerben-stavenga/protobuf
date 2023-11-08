@@ -1904,25 +1904,25 @@ with_entry:
         goto with_entry;
       }
       if (wt != (fd & 7)) goto unusual;
+      if (ABSL_PREDICT_FALSE((fd & (7 | FFE::kRepMask)) == (2 | FFE::kRepMessage))) {
+        auto sz = ReadSize(&ptr);
+        if (ptr == nullptr) return nullptr;
+        value = ctx->PushLimit(ptr, sz).token();
+        // TODO: this check is necessary to prevent negative size to immitate a group end
+        // A test is failing because it expects presence of a submsg after a failed parse.
+        // if (static_cast<int64_t>(value) < 0) return nullptr;
+        goto parse_submessage;
+      }
       if (wt == 2) {
         switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
-          case FFE::kRepBytes:
-            break;
-          case FFE::kRepMessage: {
-            auto sz = ReadSize(&ptr);
-            if (ptr == nullptr) return nullptr;
-            value = ctx->PushLimit(ptr, sz).token();
-            // TODO: this check is necessary to prevent negative size to immitate a group end
-            // A test is failing because it expects presence of a submsg after a failed parse.
-            // if (static_cast<int64_t>(value) < 0) return nullptr;
-            goto parse_submessage;
-          }
           case FFE::kRepPackedFixed: {
             goto unusual;
           }
           case FFE::kRepPackedVarint: {
             goto unusual;
           }
+          default:
+            break;
         }
         absl::string_view sv;
         if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {

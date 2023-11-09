@@ -1889,6 +1889,20 @@ static uint32_t FastDecodeTag(const char** pptr, uint64_t* value) {
   return res >> 1;
 }
 
+static uint32_t FastReadSize(const char** pptr, uint64_t value) {
+  const char*& ptr = *pptr;
+  uint32_t res = value & 0xFFFF;
+  if (ABSL_PREDICT_FALSE((res & 0x8080) == 0x8080)) {
+    return ReadSize(pptr);
+  }
+  const char* p1 = ptr + 1;
+  const char* p2 = ptr + 2;
+  ptr = res & 0x80 ? p2 : p1;
+  uint32_t mask = static_cast<int8_t>(res);
+  res = (res & mask) + mask;
+  return res >> 1;
+}
+
 
 const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
@@ -1935,7 +1949,7 @@ with_entry:
       }
       if (wt != (fd & 7)) goto unusual;
       if (ABSL_PREDICT_FALSE((fd & (7 | FFE::kRepMask)) == (2 | FFE::kRepMessage))) {
-        auto sz = ReadSize(&ptr);
+        auto sz = FastReadSize(&ptr, value);
         if (ptr == nullptr) return nullptr;
         value = ctx->PushLimit(ptr, sz).token();
         // TODO: this check is necessary to prevent negative size to immitate a group end
@@ -2062,7 +2076,7 @@ parse_submessage:
             if ((tag & 7) == 3) {
               ctx->IncGroupDepth();
             } else {
-              auto sz = ReadSize(&ptr);
+              auto sz = FastReadSize(&ptr, UnalignedLoad<uint16_t>(ptr));
               if (ptr == nullptr) return nullptr;
               value = ctx->PushLimit(ptr, sz).token();
               // TODO check value

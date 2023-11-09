@@ -1899,6 +1899,7 @@ const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, Par
     Arena* arena = msg->GetArena();
     while (!ctx->Done(&ptr)) {
       uint32_t wt = UnalignedLoad<uint16_t>(ptr) & 7;
+      asm("":"+r"(wt));
       uint64_t value;
       uint32_t tag = FastDecodeTag(&ptr, &value);
       if (ptr == nullptr) return nullptr;

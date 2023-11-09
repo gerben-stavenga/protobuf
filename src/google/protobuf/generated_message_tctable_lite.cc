@@ -1785,7 +1785,8 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
 #endif
 }
 
-struct Log {
+static struct Log {
+#ifdef PROTO_LOG_FREQS
   ~Log() {
     printf("primitives: %d wt=2: %d, messages: %d repeated messaged: %d it: %d, strings: %d total: %d\n", 
       nump, numm + nums + numrm, 
@@ -1793,11 +1794,24 @@ struct Log {
       nump + numm + numrm + nums);
   }
 
+  void IncPrimitive() { nump++; }
+  void IncMessage() { numm++; }
+  void IncRepMessage() { numrm++; }
+  void IncRepIteration() { numrm_it++; }
+  void IncString() { nums++; }
+
   int nump = 0;
   int numm = 0;
   int numrm = 0;
   int numrm_it = 0;
   int nums = 0;
+#else
+  void IncPrimitive() {}
+  void IncMessage() {}
+  void IncRepMessage() {}
+  void IncRepIteration() {}
+  void IncString() {}
+#endif
 } logger;
 
 ABSL_ATTRIBUTE_NOINLINE

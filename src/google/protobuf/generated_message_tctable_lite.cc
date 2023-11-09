@@ -1953,7 +1953,7 @@ with_entry:
           default:
             break;
         }
-        logger.nums++;
+        logger.IncString();
         absl::string_view sv;
         if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
           SetHasBit(msg, fd, has_dummy);
@@ -1989,7 +1989,7 @@ with_entry:
         }
         continue;
       } else {
-        logger.nump++;
+        logger.IncPrimitive();
         if (ABSL_PREDICT_FALSE(wt == 3)) {
           ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
           value = ~static_cast<uint64_t>(tag + 1);
@@ -2042,15 +2042,15 @@ parse_submessage:
             field = child_table->default_instance->New(arena);
           }
           auto child = field;
-          if (wt == 2) logger.numm++;
+          if (wt == 2) logger.IncMessage();
           ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
           if (ptr == nullptr) return nullptr;
         } else {
           auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
-          if (wt == 2) logger.numrm_it++;
+          if (wt == 2) logger.IncRepMessage();
           while (true) {
+            if (wt == 2) logger.IncRepIteration();
             auto child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
-            if (wt == 2) logger.numrm++;
             ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
             if (ptr == nullptr) return nullptr;
             if (!ctx->DataAvailable(ptr)) break;

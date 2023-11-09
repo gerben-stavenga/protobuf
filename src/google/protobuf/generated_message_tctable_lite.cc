@@ -1889,6 +1889,7 @@ static uint32_t FastDecodeTag(const char** pptr, uint64_t* value) {
   return res >> 1;
 }
 
+ABSL_ATTRIBUTE_ALWAYS_INLINE
 static uint32_t FastReadSize(const char** pptr, uint64_t value) {
   const char*& ptr = *pptr;
   uint32_t res = value & 0xFFFF;

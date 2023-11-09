@@ -155,6 +155,8 @@ struct PROTOBUF_EXPORT TailCallTableInfo {
 
   // Fast table size.
   int table_size;
+
+  bool expect_message = false;
 };
 
 }  // namespace internal

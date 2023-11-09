@@ -5258,7 +5258,7 @@ class PROTOBUF_EXPORT MessageOptions final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      7, 7, 2,
+      12, 7, 2,
       0, 7>
       _table_;
   friend class ::google::protobuf::MessageLite;
@@ -5964,7 +5964,7 @@ class PROTOBUF_EXPORT FileOptions final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      1, 22, 3,
+      31, 22, 3,
       202, 12>
       _table_;
   friend class ::google::protobuf::MessageLite;
@@ -6604,7 +6604,7 @@ class PROTOBUF_EXPORT FieldOptions final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      10, 13, 7,
+      21, 13, 7,
       0, 7>
       _table_;
   friend class ::google::protobuf::MessageLite;

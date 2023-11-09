@@ -183,8 +183,8 @@ void ParseFunctionGenerator::GenerateTailcallParseFunction(Formatter& format) {
       "const char* $classname$::_InternalParse(\n"
       "    const char* ptr, ::_pbi::ParseContext* ctx) {\n"
       "$annotate_deserialize$"
-      "  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, "
-      "&_table_.header, -1);\n");
+      "  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, "
+      "&_table_.header);\n");
   format(
       "  return ptr;\n"
       "}\n\n");
@@ -369,10 +369,11 @@ void ParseFunctionGenerator::GenerateTailCallTable(io::Printer* printer) {
       } else {
         format("0,  // no _has_bits_\n");
       }
+      unsigned expect_message = tc_table_info_->expect_message ? 1 : 0;
       if (descriptor_->extension_range_count() != 0) {
-        format("PROTOBUF_FIELD_OFFSET($classname$, $extensions$),\n");
+        format("PROTOBUF_FIELD_OFFSET($classname$, $extensions$) | $1$,\n", expect_message);
       } else {
-        format("0, // no _extensions_\n");
+        format("0 | $1$, // no _extensions_\n", expect_message);
       }
       format("$1$, $2$,  // max_field_number, fast_idx_mask\n",
              (ordered_fields_.empty() ? 0 : ordered_fields_.back()->number()),

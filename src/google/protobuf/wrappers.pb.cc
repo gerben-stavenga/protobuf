@@ -413,7 +413,7 @@ PROTOBUF_NOINLINE void DoubleValue::Clear() {
 
 const char* DoubleValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -422,7 +422,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> DoubleValue::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -596,7 +596,7 @@ PROTOBUF_NOINLINE void FloatValue::Clear() {
 
 const char* FloatValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -605,7 +605,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> FloatValue::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -779,7 +779,7 @@ PROTOBUF_NOINLINE void Int64Value::Clear() {
 
 const char* Int64Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -788,7 +788,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> Int64Value::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -948,7 +948,7 @@ PROTOBUF_NOINLINE void UInt64Value::Clear() {
 
 const char* UInt64Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -957,7 +957,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> UInt64Value::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -1117,7 +1117,7 @@ PROTOBUF_NOINLINE void Int32Value::Clear() {
 
 const char* Int32Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1126,7 +1126,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> Int32Value::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -1286,7 +1286,7 @@ PROTOBUF_NOINLINE void UInt32Value::Clear() {
 
 const char* UInt32Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1295,7 +1295,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> UInt32Value::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -1455,7 +1455,7 @@ PROTOBUF_NOINLINE void BoolValue::Clear() {
 
 const char* BoolValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1464,7 +1464,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> BoolValue::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -1637,7 +1637,7 @@ PROTOBUF_NOINLINE void StringValue::Clear() {
 
 const char* StringValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1646,7 +1646,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 41, 2> StringValue::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -1826,7 +1826,7 @@ PROTOBUF_NOINLINE void BytesValue::Clear() {
 
 const char* BytesValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1835,7 +1835,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 0, 2> BytesValue::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap

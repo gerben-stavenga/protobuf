@@ -354,7 +354,7 @@ PROTOBUF_NOINLINE void Api::Clear() {
 
 const char* Api::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -363,7 +363,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<7, 7, 4, 39, 2> Api::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Api, _impl_._has_bits_),
-    0, // no _extensions_
+    0 | 0, // no _extensions_
     7, 7,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967168,  // skipmap
@@ -720,7 +720,7 @@ PROTOBUF_NOINLINE void Method::Clear() {
 
 const char* Method::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -729,7 +729,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<7, 7, 1, 68, 2> Method::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     7, 7,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967168,  // skipmap
@@ -1050,7 +1050,7 @@ PROTOBUF_NOINLINE void Mixin::Clear() {
 
 const char* Mixin::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1059,7 +1059,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<2, 2, 0, 38, 2> Mixin::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     2, 2,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap

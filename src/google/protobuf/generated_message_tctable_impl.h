@@ -259,7 +259,17 @@ inline void AlignFail(std::integral_constant<size_t, 1>,
 // TcParser implements most of the parsing logic for tailcall tables.
 class PROTOBUF_EXPORT TcParser final {
  public:
-  static const char* MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group);
+  static const char* MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group) {
+    if (table->extension_offset & TcParseTableBase::kExtensionMask) {
+      return MiniParseLoopExpectMessages(msg, ptr, ctx, table, delta_or_group);
+    } else {
+      return MiniParseLoopExpectStrings(msg, ptr, ctx, table, delta_or_group);
+    }
+  }
+  static const char* MiniParseLoopExpectMessages(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group);
+  static const char* MiniParseLoopExpectStrings(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group);
+  template <bool expect_message>
+  static const char* MiniParseLoopImpl(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group = -1);
   static const char* MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag);
   static const char* ParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table) {
     return MiniParseLoop(msg, ptr, ctx, table, -1);
@@ -496,11 +506,11 @@ class PROTOBUF_EXPORT TcParser final {
       return ptr;
     }
 
-    if (table->extension_offset != 0) {
+    if ((table->extension_offset & ~TcParseTableBase::kExtensionMask) != 0) {
       // We don't need to check the extension ranges. If it is not an extension
       // it will be handled just like if it was an unknown extension: sent to
       // the unknown field set.
-      return RefAt<ExtensionSet>(msg, table->extension_offset)
+      return RefAt<ExtensionSet>(msg, (table->extension_offset & ~TcParseTableBase::kExtensionMask))
           .ParseField(tag, ptr,
                       static_cast<const MessageBaseT*>(table->default_instance),
                       &msg->_internal_metadata_, ctx);

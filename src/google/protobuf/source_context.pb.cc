@@ -179,7 +179,7 @@ PROTOBUF_NOINLINE void SourceContext::Clear() {
 
 const char* SourceContext::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -188,7 +188,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 0, 47, 2> SourceContext::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap

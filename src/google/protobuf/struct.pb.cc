@@ -297,7 +297,7 @@ PROTOBUF_NOINLINE void Struct::Clear() {
 
 const char* Struct::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -306,7 +306,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 2, 37, 2> Struct::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap
@@ -607,7 +607,7 @@ PROTOBUF_NOINLINE void Value::Clear() {
 
 const char* Value::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -616,7 +616,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<6, 6, 2, 42, 2> Value::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     6, 6,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967232,  // skipmap
@@ -910,7 +910,7 @@ PROTOBUF_NOINLINE void ListValue::Clear() {
 
 const char* ListValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -919,7 +919,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<1, 1, 1, 0, 2> ListValue::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 0, // no _extensions_
     1, 1,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967294,  // skipmap

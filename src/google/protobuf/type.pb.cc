@@ -534,7 +534,7 @@ PROTOBUF_NOINLINE void Type::Clear() {
 
 const char* Type::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -543,7 +543,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<7, 7, 3, 46, 2> Type::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Type, _impl_._has_bits_),
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     7, 7,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967168,  // skipmap
@@ -899,7 +899,7 @@ PROTOBUF_NOINLINE void Field::Clear() {
 
 const char* Field::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -908,7 +908,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<11, 10, 1, 72, 2> Field::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     11, 11,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294965264,  // skipmap
@@ -1338,7 +1338,7 @@ PROTOBUF_NOINLINE void Enum::Clear() {
 
 const char* Enum::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1347,7 +1347,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<6, 6, 3, 40, 2> Enum::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Enum, _impl_._has_bits_),
-    0, // no _extensions_
+    0 | 0, // no _extensions_
     6, 6,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967232,  // skipmap
@@ -1656,7 +1656,7 @@ PROTOBUF_NOINLINE void EnumValue::Clear() {
 
 const char* EnumValue::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1665,7 +1665,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<3, 3, 1, 38, 2> EnumValue::_table_ = {
   {
     0,  // no _has_bits_
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     3, 3,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967288,  // skipmap
@@ -1917,7 +1917,7 @@ PROTOBUF_NOINLINE void Option::Clear() {
 
 const char* Option::_InternalParse(
     const char* ptr, ::_pbi::ParseContext* ctx) {
-  ptr = ::_pbi::TcParser::MiniParseLoop(this, ptr, ctx, &_table_.header, -1);
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
   return ptr;
 }
 
@@ -1926,7 +1926,7 @@ PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<2, 2, 1, 35, 2> Option::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Option, _impl_._has_bits_),
-    0, // no _extensions_
+    0 | 1, // no _extensions_
     2, 2,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
     4294967292,  // skipmap

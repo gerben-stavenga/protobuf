@@ -266,6 +266,7 @@ static_assert(sizeof(MapAuxInfo) <= 8, "");
 
 // Base class for message-level table with info for the tail-call parser.
 struct alignas(uint64_t) TcParseTableBase {
+  constexpr static unsigned kExtensionMask = 1;
   // Common attributes for message layout:
   uint16_t has_bits_offset;
   uint16_t extension_offset;

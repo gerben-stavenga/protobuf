@@ -1904,8 +1904,17 @@ static uint32_t FastReadSize(const char** pptr, uint64_t value) {
   return res >> 1;
 }
 
+const char* TcParser::MiniParseLoopExpectMessages(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group) {
+  return MiniParseLoopImpl<true>(msg, ptr, ctx, table, delta_or_group);
+}
 
-const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
+const char* TcParser::MiniParseLoopExpectStrings(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group) {
+  return MiniParseLoopImpl<false>(msg, ptr, ctx, table, delta_or_group);
+}
+
+
+template <bool expect_message>
+const char* TcParser::MiniParseLoopImpl(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
     using FFE = TcParseTableBase::FastFieldEntry;
     // TODO move into ParseContext
@@ -1949,17 +1958,19 @@ with_entry:
         goto with_entry;
       }
       if (wt != (fd & 7)) goto unusual;
-      if (ABSL_PREDICT_FALSE((fd & (7 | FFE::kRepMask)) == (2 | FFE::kRepMessage))) {
-        auto sz = FastReadSize(&ptr, value);
-        if (ptr == nullptr) return nullptr;
-        value = ctx->PushLimit(ptr, sz).token();
-        // TODO: this check is necessary to prevent negative size to immitate a group end
-        // A test is failing because it expects presence of a submsg after a failed parse.
-        // if (static_cast<int64_t>(value) < 0) return nullptr;
-        goto parse_submessage;
-      }
       if (wt == 2) {
-        switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
+        switch (__builtin_expect(fd & FFE::kRepMask, expect_message ? FFE::kRepMessage : FFE::kRepBytes)) {
+          case FFE::kRepBytes:
+            break;
+          case FFE::kRepMessage: {
+            auto sz = FastReadSize(&ptr, value);
+            if (ptr == nullptr) return nullptr;
+            value = ctx->PushLimit(ptr, sz).token();
+            // TODO: this check is necessary to prevent negative size to immitate a group end
+            // A test is failing because it expects presence of a submsg after a failed parse.
+            // if (static_cast<int64_t>(value) < 0) return nullptr;
+            goto parse_submessage;
+          }
           case FFE::kRepPackedFixed: {
             goto unusual;
           }

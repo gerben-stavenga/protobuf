@@ -561,8 +561,9 @@ TailCallTableInfo::TailCallTableInfo(
     if (entry.field->number() > 32 && (double)(num_fields + 1) / entry.field->number() < kDensityCutoff) break;
     num_fields++;
   }
+  
+  using FFE = TcParseTableBase::FastFieldEntry;
   for (int i = 0; i < num_fields; i++) {
-    using FFE = TcParseTableBase::FastFieldEntry;
     auto entry = field_entries[i];
     // Fill gaps with empty slots
     while (fast_path_fields.size() < entry.field->number() - 1) fast_path_fields.push_back({FastFieldInfo::Empty()});
@@ -612,6 +613,17 @@ TailCallTableInfo::TailCallTableInfo(
     }
   }
   table_size = fast_path_fields.size();
+
+  int num_messages = 0;
+  int num_strings = 0;
+  for (auto& entry : fast_path_fields) {
+    if (auto* fast_field = entry.AsField()) {
+        if (fast_field->wt != 2) continue;
+        if (fast_field->rep == FFE::kRepBytes) num_strings++;
+        if (fast_field->rep == FFE::kRepMessage) num_messages++;
+    }
+  }
+  expect_message = num_messages <= num_strings;
 
   num_to_entry_table = MakeNumToEntryTable(ordered_fields);
   ABSL_CHECK_EQ(field_entries.size(), ordered_fields.size());

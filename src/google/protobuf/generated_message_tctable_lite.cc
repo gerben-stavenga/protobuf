@@ -1906,7 +1906,7 @@ with_entry:
 #else
       constexpr bool kEarlyMessage = false;
 #endif
-      if (kEarlyMeassage && (fd & (FFE::kRepMask | 2)) == (FFE::kRepMessage | 2)) {
+      if (kEarlyMessage && (fd & (FFE::kRepMask | 2)) == (FFE::kRepMessage | 2)) {
 len_delim_submsg:
         auto sz = FastReadSize(&ptr, value);
         if (ptr == nullptr) return nullptr;

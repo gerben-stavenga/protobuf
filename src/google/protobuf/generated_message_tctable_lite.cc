@@ -1902,6 +1902,7 @@ fast_fallback:
       goto with_entry;
     }
     if (wt != (fd & 7)) goto unusual;
+    if (ABSL_PREDICT_FALSE((fd & (FFE::kRepMask | 7)) == (FFE::kRepMessage | 2))) goto parse_len_delim_submessage;
     if (ABSL_PREDICT_FALSE(wt == 2)) goto parse_string;
     asm volatile ("");
 parse_scalar:
@@ -2000,6 +2001,7 @@ parse_string:
   // messages
   while (!ctx->Done(&ptr)) {
     wt = UnalignedLoad<uint16_t>(ptr) & 7;
+    asm volatile("":"+r"(wt));
     tag = FastDecodeTag(&ptr, &value);
     if (ptr == nullptr) return nullptr;
     if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;
@@ -2008,10 +2010,8 @@ parse_string:
     if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
     if (wt != (fd & 7)) goto unusual;
     if (ABSL_PREDICT_FALSE(wt != 2)) {
-      std::cout << typeid(*msg).name() << " field " << tag / 8 << "\n";
       goto parse_scalar;
     }
-    asm volatile ("nop\n\t");
 parse_len_delim_submessage:
     switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepMessage)) {
       case FFE::kRepBytes:

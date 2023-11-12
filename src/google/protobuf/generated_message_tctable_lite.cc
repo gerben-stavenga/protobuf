@@ -1855,213 +1855,260 @@ const char* TcParser::MiniParseLoopExpectStrings(MessageLite* msg, const char* p
   return MiniParseLoopImpl<false>(msg, ptr, ctx, table, delta_or_group);
 }
 
+bool FastFieldLookup(const TcParseTableBase* table, uint32_t tag, uint32_t* fd) {
+  auto idx = (tag >> 3) - 1;
+  if (ABSL_PREDICT_FALSE(idx >= table->num_fast_fields)) return false;
+  *fd = table->fast_entry(idx)->bits;
+  return true;
+}
 
 template <bool expect_message>
 const char* TcParser::MiniParseLoopImpl(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
-    using FFE = TcParseTableBase::FastFieldEntry;
-    // TODO move into ParseContext
-    char dummy[8] = {};
-    char has_dummy[8] = {};
-    Arena* arena = msg->GetArena();
-    while (!ctx->Done(&ptr)) {
-      uint32_t wt = UnalignedLoad<uint16_t>(ptr) & 7;
-      asm("":"+r"(wt));
-      uint64_t value;
-      uint32_t tag = FastDecodeTag(&ptr, &value);
-      if (ptr == nullptr) return nullptr;
-      if (ABSL_PREDICT_FALSE(wt == 4)) {
-        if (delta_or_group != ~static_cast<uint64_t>(tag)) {
-unusual_end:
-          if (delta_or_group == -1) {
-            ctx->SetLastTag(tag);
-            return ptr;
-          }
-          return nullptr;
-        }
-        ctx->DecGroupDepth();
-        return ptr;
-      }
+  using FFE = TcParseTableBase::FastFieldEntry;
+  // TODO move into ParseContext
+  char dummy[8] = {};
+  char has_dummy[8] = {};
+  Arena* arena = msg->GetArena();
 
-      auto idx = (tag >> 3) - 1;
-      const TcParseTableBase::FieldEntry* entry;
-      if (ABSL_PREDICT_FALSE(idx >= table->num_fast_fields)) {
-        if (tag == 0) goto unusual_end;
-unusual:
-        entry = nullptr;
-with_entry:
-        ptr = MiniParseFallback(msg, ptr, ctx, table, entry, tag);
-        if (ptr == nullptr) return nullptr;
-        continue;
-      }
-      auto fd = table->fast_entry(idx)->bits;
-      if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) {
-        if (ABSL_PREDICT_FALSE(fd == 0x1F)) goto unusual;
-        entry = table->field_entries_begin() + (fd >> 5); 
-        goto with_entry;
-      }
-      if (wt != (fd & 7)) goto unusual;
-#ifdef EARLY_MESSAGE
-      constexpr bool kEarlyMessage = true;
-#else
-      constexpr bool kEarlyMessage = false;
-#endif
-      if (kEarlyMessage && (fd & (FFE::kRepMask | 2)) == (FFE::kRepMessage | 2)) {
-len_delim_submsg:
-        auto sz = FastReadSize(&ptr, value);
-        if (ptr == nullptr) return nullptr;
-        value = ctx->PushLimit(ptr, sz).token();
-        // TODO: this check is necessary to prevent negative size to immitate a group end
-        // A test is failing because it expects presence of a submsg after a failed parse.
-        // if (static_cast<int64_t>(value) < 0) return nullptr;
-        goto parse_submessage;
-      }
-      if (wt == 2) {
-        switch (__builtin_expect(fd & FFE::kRepMask, (expect_message && !kEarlyMessage) ? FFE::kRepMessage : FFE::kRepBytes)) {
-          case FFE::kRepBytes:
-            break;
-          case FFE::kRepMessage: {
-            goto len_delim_submsg;
-          }
-          case FFE::kRepPackedFixed: {
-            goto unusual;
-          }
-          case FFE::kRepPackedVarint: {
-            goto unusual;
-          }
-          default:
-            break;
-        }
-        logger.IncString();
-        absl::string_view sv;
-        if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
-          SetHasBit(msg, fd, has_dummy);
-          auto& field = RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift);
-          if (arena) {
-            ptr = ctx->ReadArenaString(ptr, &field, arena);
-          } else {
-            auto sz = ReadSize(&ptr);
-            if (ptr == nullptr) return nullptr;
-            ptr = ctx->ReadString(ptr, sz, field.MutableNoCopy(nullptr));
-          }
-          sv = field.Get();
-        } else {
-          auto& field = RefAt<RepeatedPtrField<std::string>>(msg, fd >> FFE::kOffsetShift);
-          auto sz = ReadSize(&ptr);
-          if (ptr == nullptr) return nullptr;
-          auto s = field.Add();
-          ptr = ctx->ReadString(ptr, sz, s);
-          sv = *s;
-        }
-        if (ptr == nullptr) return nullptr;
-#ifdef NDEBUG
-        constexpr bool kUtf8Debug = false;
-#else
-        constexpr bool kUtf8Debug = true;
-#endif
-        if (((fd & FFE::kTransformMask) != FFE::kBytes && kUtf8Debug) ||
-            ((fd & FFE::kTransformMask) == FFE::kUtf8 && !kUtf8Debug)) { 
-          if (ABSL_PREDICT_FALSE(!utf8_range::IsStructurallyValid(sv))) {
-            ReportFastUtf8Error(tag, table);
-            if ((fd & FFE::kTransformMask) == FFE::kUtf8) return nullptr;
-          }
-        }
-        continue;
-      } else {
-        logger.IncPrimitive();
-        if (ABSL_PREDICT_FALSE(wt == 3)) {
-          ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
-          value = ~static_cast<uint64_t>(tag + 1);
-          ctx->IncGroupDepth();
-          goto parse_submessage;
-        }
-        ptr = ParseScalarBranchless(ptr, wt, value);
-        if (ptr == nullptr) return ptr;
-        if (fd & FFE::kZigZag) value = WireFormatLite::ZigZagDecode64(value);
-        if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
-          SetHasBit(msg, fd, has_dummy);
-        } else {
-          const char* end = ctx->limit_end_;
-          if ((fd & FFE::kRepMask) == FFE::kRepBool) {
-            auto& field = RefAt<RepeatedField<bool>>(msg, fd >> FFE::kOffsetShift);
-            ptr = MplRepeatedVarint(ptr, end, field, false, tag, value);
-          } else if ((fd & FFE::kRepMask) == FFE::kRep32Bit) {
-            auto& field = RefAt<RepeatedField<uint32_t>>(msg, fd >> FFE::kOffsetShift);
-            if ((tag & 1) == 0) {
-              bool zigzag = fd & FFE::kZigZag;
-              ptr = MplRepeatedVarint(ptr, end, field, zigzag, tag, value);
-            } else {
-              ptr = MplRepeatedFixed(ptr, end, field, tag, value);
-            }
-          } else {
-            auto& field = RefAt<RepeatedField<uint64_t>>(msg, fd >> FFE::kOffsetShift);
-            if ((tag & 1) == 0) {
-              bool zigzag = fd & FFE::kZigZag;
-              ptr = MplRepeatedVarint(ptr, end, field, zigzag, tag, value);
-            } else {
-              ptr = MplRepeatedFixed(ptr, end, field, tag, value);
-            }
-          }
-          if (ptr == nullptr) return nullptr;
-          continue;
-        }
-        Store(value, msg, fd, dummy);
-        continue;
-      }
-parse_submessage:
-      {
-        auto entry_idx = fd >> FFE::kOffsetShift;
-        auto entry = table->field_entries_begin() + entry_idx;
-        auto child_table = table->field_aux(entry->aux_idx)->table;
-        auto offset = entry->offset;
-        if (!ctx->IncDepth()) return nullptr;
-        if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
-          SetHasBit(msg, fd, has_dummy);
-          auto& field = RefAt<MessageLite*>(msg, offset);
-          if (field == nullptr) {
-            field = child_table->default_instance->New(arena);
-          }
-          auto child = field;
-          if (wt == 2) logger.IncMessage();
-          ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
-          if (ptr == nullptr) return nullptr;
-        } else {
-          auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
-          if (wt == 2) logger.IncRepMessage();
-          while (true) {
-            if (wt == 2) logger.IncRepIteration();
-            auto child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
-            ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
-            if (ptr == nullptr) return nullptr;
-            if (!ctx->DataAvailable(ptr)) break;
-            uint32_t nexttag;
-            auto newptr = ReadTagInlined(ptr, &nexttag);
-            if (nexttag != tag) break;
-            ptr = newptr;
-            if ((tag & 7) == 3) {
-              ctx->IncGroupDepth();
-            } else {
-              auto sz = FastReadSize(&ptr, UnalignedLoad<uint16_t>(ptr));
-              if (ptr == nullptr) return nullptr;
-              value = ctx->PushLimit(ptr, sz).token();
-              // TODO check value
-            }
-          }
-        }
-        ctx->DecDepth();
-        continue;
-      }
-    }  // while
+  uint32_t wt;
+  uint64_t value;
+  uint32_t tag;
+  uint32_t fd;
+
+  // Scalars
+  while (!ctx->Done(&ptr)) {
+    wt = UnalignedLoad<uint16_t>(ptr) & 7;
+    asm("":"+r"(wt));
+    tag = FastDecodeTag(&ptr, &value);
     if (ptr == nullptr) return nullptr;
-    if (delta_or_group >= 0) {
-      (void)ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
-      // if (!ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group))) return nullptr;
-      return ptr;
-    } else if (delta_or_group == -1) {
-      return ptr;
+    if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;
+
+    const TcParseTableBase::FieldEntry* entry;
+    if (!FastFieldLookup(table, tag, &fd)) {
+fallback:
+      if (tag == 0) goto unusual_end;
+unusual:
+      entry = nullptr;
+with_entry:
+      ptr = MiniParseFallback(msg, ptr, ctx, table, entry, tag);
+      if (ptr == nullptr) return nullptr;
+      continue;
+    }
+    if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) {
+fast_fallback:
+      if (ABSL_PREDICT_FALSE(fd == 0x1F)) goto unusual;
+      entry = table->field_entries_begin() + (fd >> 5); 
+      goto with_entry;
+    }
+    if (wt != (fd & 7)) goto unusual;
+    if (ABSL_PREDICT_FALSE(wt == 2)) goto parse_string;
+parse_scalar:
+    logger.IncPrimitive();
+    if (ABSL_PREDICT_FALSE(wt == 3)) {
+      ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
+      value = ~static_cast<uint64_t>(tag + 1);
+      ctx->IncGroupDepth();
+      goto parse_submessage;
+    }
+    ptr = ParseScalarBranchless(ptr, wt, value);
+    if (ptr == nullptr) return ptr;
+    if (fd & FFE::kZigZag) value = WireFormatLite::ZigZagDecode64(value);
+    if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
+      SetHasBit(msg, fd, has_dummy);
+      Store(value, msg, fd, dummy);
     } else {
-      return nullptr;
-    } 
+      const char* end = ctx->limit_end_;
+      if ((fd & FFE::kRepMask) == FFE::kRepBool) {
+        auto& field = RefAt<RepeatedField<bool>>(msg, fd >> FFE::kOffsetShift);
+        ptr = MplRepeatedVarint(ptr, end, field, false, tag, value);
+      } else if ((fd & FFE::kRepMask) == FFE::kRep32Bit) {
+        auto& field = RefAt<RepeatedField<uint32_t>>(msg, fd >> FFE::kOffsetShift);
+        if ((tag & 1) == 0) {
+          bool zigzag = fd & FFE::kZigZag;
+          ptr = MplRepeatedVarint(ptr, end, field, zigzag, tag, value);
+        } else {
+          ptr = MplRepeatedFixed(ptr, end, field, tag, value);
+        }
+      } else {
+        auto& field = RefAt<RepeatedField<uint64_t>>(msg, fd >> FFE::kOffsetShift);
+        if ((tag & 1) == 0) {
+          bool zigzag = fd & FFE::kZigZag;
+          ptr = MplRepeatedVarint(ptr, end, field, zigzag, tag, value);
+        } else {
+          ptr = MplRepeatedFixed(ptr, end, field, tag, value);
+        }
+      }
+      if (ptr == nullptr) return nullptr;
+    }
+  }  // while scalars
+  goto end;
+
+  // strings
+  while (!ctx->Done(&ptr)) {
+    wt = UnalignedLoad<uint16_t>(ptr) & 7;
+    asm("":"+r"(wt));
+    tag = FastDecodeTag(&ptr, &value);
+    if (ptr == nullptr) return nullptr;
+    if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;
+
+    if (!FastFieldLookup(table, tag, &fd)) goto fallback;
+    if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
+    if (wt != (fd & 7)) goto unusual;
+    if (wt != 2) goto parse_scalar;
+parse_string:
+    switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
+      case FFE::kRepBytes:
+        break;
+      case FFE::kRepMessage: {
+        goto parse_len_delim_submessage;
+      }
+      case FFE::kRepPackedFixed: {
+        goto unusual;
+      }
+      case FFE::kRepPackedVarint: {
+        goto unusual;
+      }
+      default:
+        break;
+    }
+    logger.IncString();
+    absl::string_view sv;
+    if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
+      SetHasBit(msg, fd, has_dummy);
+      auto& field = RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift);
+      if (arena) {
+        ptr = ctx->ReadArenaString(ptr, &field, arena);
+      } else {
+        auto sz = ReadSize(&ptr);
+        if (ptr == nullptr) return nullptr;
+        ptr = ctx->ReadString(ptr, sz, field.MutableNoCopy(nullptr));
+      }
+      sv = field.Get();
+    } else {
+      auto& field = RefAt<RepeatedPtrField<std::string>>(msg, fd >> FFE::kOffsetShift);
+      auto sz = ReadSize(&ptr);
+      if (ptr == nullptr) return nullptr;
+      auto s = field.Add();
+      ptr = ctx->ReadString(ptr, sz, s);
+      sv = *s;
+    }
+    if (ptr == nullptr) return nullptr;
+#ifdef NDEBUG
+    constexpr bool kUtf8Debug = false;
+#else
+    constexpr bool kUtf8Debug = true;
+#endif
+    if (((fd & FFE::kTransformMask) != FFE::kBytes && kUtf8Debug) ||
+        ((fd & FFE::kTransformMask) == FFE::kUtf8 && !kUtf8Debug)) { 
+      if (ABSL_PREDICT_FALSE(!utf8_range::IsStructurallyValid(sv))) {
+        ReportFastUtf8Error(tag, table);
+        if ((fd & FFE::kTransformMask) == FFE::kUtf8) return nullptr;
+      }
+    }
+  } // while strings
+  goto end;
+
+  // messages
+  while (!ctx->Done(&ptr)) {
+    wt = UnalignedLoad<uint16_t>(ptr) & 7;
+    asm("":"+r"(wt));
+    tag = FastDecodeTag(&ptr, &value);
+    if (ptr == nullptr) return nullptr;
+    if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;
+
+    if (!FastFieldLookup(table, tag, &fd)) goto fallback;
+    if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
+    if (wt != (fd & 7)) goto unusual;
+    if (wt != 2) goto parse_scalar;
+    switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepMessage)) {
+      case FFE::kRepBytes:
+        goto parse_string;
+      case FFE::kRepMessage: {
+        break;
+      }
+      case FFE::kRepPackedFixed: {
+        goto unusual;
+      }
+      case FFE::kRepPackedVarint: {
+        goto unusual;
+      }
+      default:
+        break;
+    }
+parse_len_delim_submessage:
+    {
+      auto sz = FastReadSize(&ptr, value);
+      if (ptr == nullptr) return nullptr;
+      value = ctx->PushLimit(ptr, sz).token();
+    }
+    // TODO: this check is necessary to prevent negative size to immitate a group end
+    // A test is failing because it expects presence of a submsg after a failed parse.
+    // if (static_cast<int64_t>(value) < 0) return nullptr;
+parse_submessage:
+    auto entry_idx = fd >> FFE::kOffsetShift;
+    auto entry = table->field_entries_begin() + entry_idx;
+    auto child_table = table->field_aux(entry->aux_idx)->table;
+    auto offset = entry->offset;
+    if (!ctx->IncDepth()) return nullptr;
+    if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
+      SetHasBit(msg, fd, has_dummy);
+      auto& field = RefAt<MessageLite*>(msg, offset);
+      if (field == nullptr) {
+        field = child_table->default_instance->New(arena);
+      }
+      auto child = field;
+      if (wt == 2) logger.IncMessage();
+      ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
+      if (ptr == nullptr) return nullptr;
+    } else {
+      auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
+      if (wt == 2) logger.IncRepMessage();
+      while (true) {
+        if (wt == 2) logger.IncRepIteration();
+        auto child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
+        ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
+        if (ptr == nullptr) return nullptr;
+        if (!ctx->DataAvailable(ptr)) break;
+        uint32_t nexttag;
+        auto newptr = ReadTagInlined(ptr, &nexttag);
+        if (nexttag != tag) break;
+        ptr = newptr;
+        if ((tag & 7) == 3) {
+          ctx->IncGroupDepth();
+        } else {
+          auto sz = FastReadSize(&ptr, UnalignedLoad<uint16_t>(ptr));
+          if (ptr == nullptr) return nullptr;
+          value = ctx->PushLimit(ptr, sz).token();
+          // TODO check value
+        }
+      }
+    }
+    ctx->DecDepth();
+  }  // while
+end:
+  if (ptr == nullptr) return nullptr;
+  if (delta_or_group >= 0) {
+    (void)ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group));
+    // if (!ctx->PopLimit(EpsCopyInputStream::LimitToken(delta_or_group))) return nullptr;
+    return ptr;
+  } else if (delta_or_group == -1) {
+    return ptr;
+  } else {
+    return nullptr;
+  } 
+
+endgroup:
+  if (delta_or_group != ~static_cast<uint64_t>(tag)) {
+unusual_end:
+    if (delta_or_group == -1) {
+      ctx->SetLastTag(tag);
+      return ptr;
+    }
+    return nullptr;
+  }
+  ctx->DecGroupDepth();
+  return ptr;
 }
 
 struct StackEntry {

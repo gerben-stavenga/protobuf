@@ -1903,6 +1903,7 @@ fast_fallback:
     }
     if (wt != (fd & 7)) goto unusual;
     if (ABSL_PREDICT_FALSE(wt == 2)) goto parse_string;
+    asm volatile ("");
 parse_scalar:
     logger.IncPrimitive();
     if (ABSL_PREDICT_FALSE(wt == 3)) {
@@ -1955,7 +1956,8 @@ parse_scalar:
     if (!FastFieldLookup(table, tag, &fd)) goto fallback;
     if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
     if (wt != (fd & 7)) goto unusual;
-    if (wt != 2) goto parse_scalar;
+    if (ABSL_PREDCIT_FALSE(wt != 2)) goto parse_scalar;
+    asm volatile ("");  // prevent 
 parse_string:
     switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
       case FFE::kRepBytes:
@@ -2012,7 +2014,6 @@ parse_string:
   // messages
   while (!ctx->Done(&ptr)) {
     wt = UnalignedLoad<uint16_t>(ptr) & 7;
-    asm volatile("":"+r"(wt));
     tag = FastDecodeTag(&ptr, &value);
     if (ptr == nullptr) return nullptr;
     if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;
@@ -2020,7 +2021,8 @@ parse_string:
     if (!FastFieldLookup(table, tag, &fd)) goto fallback;
     if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
     if (wt != (fd & 7)) goto unusual;
-    if (wt != 2) goto parse_scalar;
+    if (ABSL_PREDICT_FALSE(wt != 2)) goto parse_scalar;
+    asm volatile ("");
     switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepMessage)) {
       case FFE::kRepBytes:
         goto parse_string;

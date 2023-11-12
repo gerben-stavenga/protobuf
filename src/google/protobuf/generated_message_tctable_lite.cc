@@ -2011,7 +2011,7 @@ parse_string:
       std::cout << typeid(*msg).name() << " field " << tag / 8 << "\n";
       goto parse_scalar;
     }
-    asm volatile ("");
+    asm volatile ("nop\n\t");
 parse_len_delim_submessage:
     switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepMessage)) {
       case FFE::kRepBytes:

@@ -2008,7 +2008,7 @@ parse_string:
     if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
     if (wt != (fd & 7)) goto unusual;
     if (ABSL_PREDICT_FALSE(wt != 2)) {
-      std::cout << typeid(*msg) << " field " << tag / 8 << "\n";
+      std::cout << typeid(*msg).name() << " field " << tag / 8 << "\n";
       goto parse_scalar;
     }
     asm volatile ("");

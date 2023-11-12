@@ -2007,7 +2007,10 @@ parse_string:
     if (!FastFieldLookup(table, tag, &fd)) goto fallback;
     if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
     if (wt != (fd & 7)) goto unusual;
-    if (ABSL_PREDICT_FALSE(wt != 2)) goto parse_scalar;
+    if (ABSL_PREDICT_FALSE(wt != 2)) {
+      std::cout << typeid(*msg) << " field " << tag / 8 << "\n";
+      goto parse_scalar;
+    }
     asm volatile ("");
 parse_len_delim_submessage:
     switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepMessage)) {

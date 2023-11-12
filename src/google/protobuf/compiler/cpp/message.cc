@@ -4636,12 +4636,6 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
 
   std::vector<const FieldDescriptor*> ordered_fields =
       SortFieldsByNumber(descriptor_);
-  auto part = std::partition(ordered_fields.begin(), ordered_fields.end(), [](const FieldDescriptor* field) { 
-    return WireFormat::WireTypeForField(field) != WireFormatLite::WIRETYPE_LENGTH_DELIMITED;
-  });
-  std::partition(part, ordered_fields.end(), [](const FieldDescriptor* field) { 
-    return field->type() != FieldDescriptor::TYPE_MESSAGE;
-  });
 
   std::vector<const Descriptor::ExtensionRange*> sorted_extensions;
   sorted_extensions.reserve(descriptor_->extension_range_count());
@@ -4652,6 +4646,13 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
             ExtensionRangeSorter());
 
   if (1) {
+    auto part = std::stable_partition(ordered_fields.begin(), ordered_fields.end(), [](const FieldDescriptor* field) { 
+      return WireFormat::WireTypeForField(field) != WireFormatLite::WIRETYPE_LENGTH_DELIMITED;
+    });
+    std::stable_partition(part, ordered_fields.end(), [](const FieldDescriptor* field) { 
+      return field->type() != FieldDescriptor::TYPE_MESSAGE;
+    });
+
     for (const auto* field : ordered_fields) {
       GenerateSerializeOneField(p, field, -1);
     }

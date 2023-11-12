@@ -260,7 +260,12 @@ inline void AlignFail(std::integral_constant<size_t, 1>,
 class PROTOBUF_EXPORT TcParser final {
  public:
   static const char* MiniParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group) {
-    if (table->extension_offset & TcParseTableBase::kExtensionMask) {
+#ifdef ENABLE_EXPECT_MESSAGES
+    constexpr bool kEnableExpectMessages = true;
+#else
+    constexpr bool kEnableExpectMessages = false;
+#endif
+    if (table->extension_offset & TcParseTableBase::kExtensionMask && kEnableExpectMessages) {
       return MiniParseLoopExpectMessages(msg, ptr, ctx, table, delta_or_group);
     } else {
       return MiniParseLoopExpectStrings(msg, ptr, ctx, table, delta_or_group);
@@ -273,7 +278,7 @@ class PROTOBUF_EXPORT TcParser final {
   static const char* MiniParseLoopImpl(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group = -1);
   static const char* MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag);
   static const char* ParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table) {
-#ifdef OLD_PARSER
+#ifndef ITERATIVE_PARSER
     return MiniParseLoop(msg, ptr, ctx, table, -1);
 #else
     return MiniParseLoopIt(msg, ptr, ctx, table);

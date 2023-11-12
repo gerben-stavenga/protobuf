@@ -4639,7 +4639,7 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
     return WireFormat::WireTypeForField(field) != WireFormatLite::WIRETYPE_LENGTH_DELIMITED;
   });
   std::partition(part, ordered_fields.end(), [](const FieldDescriptor* field) { 
-    return field->type() != WireFormatLite::TYPE_MESSAGE;
+    return field->type() != FieldDescriptor::TYPE_MESSAGE;
   });
 
 

@@ -4718,6 +4718,7 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
       },
       R"cc(
         $field_writer$;
+        #pragma unroll
         for (int i = 0; i <= $last_field$; i++) {
 //        for (int i = $last_field$; i >= 0; i--) {
           switch (i) {

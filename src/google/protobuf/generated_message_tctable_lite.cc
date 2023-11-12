@@ -1956,7 +1956,7 @@ parse_scalar:
     if (!FastFieldLookup(table, tag, &fd)) goto fallback;
     if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
     if (wt != (fd & 7)) goto unusual;
-    if (ABSL_PREDCIT_FALSE(wt != 2)) goto parse_scalar;
+    if (ABSL_PREDICT_FALSE(wt != 2)) goto parse_scalar;
     asm volatile ("");  // prevent 
 parse_string:
     switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {

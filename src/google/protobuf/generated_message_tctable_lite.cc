@@ -1959,21 +1959,7 @@ parse_scalar:
     if (ABSL_PREDICT_FALSE(wt != 2)) goto parse_scalar;
     asm volatile ("");  // prevent 
 parse_string:
-    switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
-      case FFE::kRepBytes:
-        break;
-      case FFE::kRepMessage: {
-        goto parse_len_delim_submessage;
-      }
-      case FFE::kRepPackedFixed: {
-        goto unusual;
-      }
-      case FFE::kRepPackedVarint: {
-        goto unusual;
-      }
-      default:
-        break;
-    }
+    if (ABSL_PREDICT_FALSE((fd & FFE::kRepMask) != FFE::kRepBytes)) goto parse_len_delim_submessage;
     logger.IncString();
     absl::string_view sv;
     if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
@@ -2023,6 +2009,7 @@ parse_string:
     if (wt != (fd & 7)) goto unusual;
     if (ABSL_PREDICT_FALSE(wt != 2)) goto parse_scalar;
     asm volatile ("");
+parse_len_delim_submessage:
     switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepMessage)) {
       case FFE::kRepBytes:
         goto parse_string;
@@ -2038,7 +2025,6 @@ parse_string:
       default:
         break;
     }
-parse_len_delim_submessage:
     {
       auto sz = FastReadSize(&ptr, value);
       if (ptr == nullptr) return nullptr;

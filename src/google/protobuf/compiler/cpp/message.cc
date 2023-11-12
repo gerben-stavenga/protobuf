@@ -4631,6 +4631,33 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBody(io::Printer* p) {
       )cc");
 }
 
+bool IsFieldEligibleForFastParsing(
+    const FieldDescriptor* field) {
+  if (field->containing_oneof()) return false;
+  if (field->is_map()) return false;
+  if (field->is_packed()) return false;
+  if (field->is_extension()) return false;
+
+  switch (field->type()) {
+      // Some bytes fields can be handled on fast path.
+    case FieldDescriptor::TYPE_STRING:
+    case FieldDescriptor::TYPE_BYTES:
+      if (field->options().ctype() != FieldOptions::STRING) {
+        return false;
+      }
+      break;
+    case FieldDescriptor::TYPE_ENUM:
+      if (!internal::cpp::HasPreservingUnknownEnumSemantics(field)) return false;
+      break;
+    case FieldDescriptor::TYPE_MESSAGE:
+    case FieldDescriptor::TYPE_GROUP:
+      if (field->message_type()->options().message_set_wire_format()) return false;
+    default:
+      break;
+  }
+  return true;
+}
+
 void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
     io::Printer* p) {
 
@@ -4646,7 +4673,8 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
             ExtensionRangeSorter());
 
   if (1) {
-    auto part = std::stable_partition(ordered_fields.begin(), ordered_fields.end(), [](const FieldDescriptor* field) { 
+    auto part = std::stable_partition(ordered_fields.begin(), ordered_fields.end(), IsFieldEligibleForFastParsing);
+    part = std::stable_partition(ordered_fields.begin(), part, [](const FieldDescriptor* field) { 
       return WireFormat::WireTypeForField(field) != WireFormatLite::WIRETYPE_LENGTH_DELIMITED;
     });
     std::stable_partition(part, ordered_fields.end(), [](const FieldDescriptor* field) { 

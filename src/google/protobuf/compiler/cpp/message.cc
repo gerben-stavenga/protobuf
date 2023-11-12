@@ -4388,7 +4388,7 @@ void MessageGenerator::GenerateSerializeWithCachedSizesToArray(io::Printer* p) {
       {
           {"debug_cond", ShouldSerializeInOrder(descriptor_, options_)
                              ? "1"
-                             : "defined(NDEBUG)"},
+                             : "0"}, // "defined(NDEBUG)"},
           {"ndebug", [&] { GenerateSerializeWithCachedSizesBody(p); }},
           {"debug", [&] { GenerateSerializeWithCachedSizesBodyShuffled(p); }},
           {"ifdef",
@@ -4635,6 +4635,13 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
 
   std::vector<const FieldDescriptor*> ordered_fields =
       SortFieldsByNumber(descriptor_);
+  auto p = std::partition(ordered_fields.begin(), ordered_fields.end(), [](const FieldDescriptor* field) { 
+    return WireFormat::WireTypeForField(field) != WireFormatLite::WIRETYPE_LENGTH_DELIMITED;
+  });
+  std::partition(p, ordered_fields.end(), [](const FieldDescriptor* field) { 
+    return field->type() != WireFormatLite::TYPE_MESSAGE;
+  });
+
 
   std::vector<const Descriptor::ExtensionRange*> sorted_extensions;
   sorted_extensions.reserve(descriptor_->extension_range_count());
@@ -4710,7 +4717,8 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
       },
       R"cc(
         $field_writer$;
-        for (int i = $last_field$; i >= 0; i--) {
+        for (int i = 0; i < $last_field$; i++) {
+//        for (int i = $last_field$; i >= 0; i--) {
           switch (i) {
             $ordered_cases$;
             $extension_cases$;

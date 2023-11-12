@@ -1901,18 +1901,27 @@ with_entry:
         goto with_entry;
       }
       if (wt != (fd & 7)) goto unusual;
+#ifdef EARLY_MESSAGE
+      constexpr bool kEarlyMessage = true;
+#else
+      constexpr bool kEarlyMessage = false;
+#endif
+      if (kEarlyMeassage && (fd & (FFE::kRepMask | 2)) == (FFE::kRepMessage | 2)) {
+len_delim_submsg:
+        auto sz = FastReadSize(&ptr, value);
+        if (ptr == nullptr) return nullptr;
+        value = ctx->PushLimit(ptr, sz).token();
+        // TODO: this check is necessary to prevent negative size to immitate a group end
+        // A test is failing because it expects presence of a submsg after a failed parse.
+        // if (static_cast<int64_t>(value) < 0) return nullptr;
+        goto parse_submessage;
+      }
       if (wt == 2) {
-        switch (__builtin_expect(fd & FFE::kRepMask, expect_message ? FFE::kRepMessage : FFE::kRepBytes)) {
+        switch (__builtin_expect(fd & FFE::kRepMask, (expect_message && !kEarlyMessage) ? FFE::kRepMessage : FFE::kRepBytes)) {
           case FFE::kRepBytes:
             break;
           case FFE::kRepMessage: {
-            auto sz = FastReadSize(&ptr, value);
-            if (ptr == nullptr) return nullptr;
-            value = ctx->PushLimit(ptr, sz).token();
-            // TODO: this check is necessary to prevent negative size to immitate a group end
-            // A test is failing because it expects presence of a submsg after a failed parse.
-            // if (static_cast<int64_t>(value) < 0) return nullptr;
-            goto parse_submessage;
+            goto len_delim_submsg;
           }
           case FFE::kRepPackedFixed: {
             goto unusual;

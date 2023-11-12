@@ -95,6 +95,8 @@ inline void WriteLengthDelimited(uint32_t num, absl::string_view val,
 // load the current position.
 
 class PROTOBUF_EXPORT EpsCopyInputStream {
+  friend class TcParser;
+  
  public:
   enum { kMaxCordBytesToCopy = 512 };
   explicit EpsCopyInputStream(bool enable_aliasing)

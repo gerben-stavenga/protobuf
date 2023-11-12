@@ -266,13 +266,18 @@ class PROTOBUF_EXPORT TcParser final {
       return MiniParseLoopExpectStrings(msg, ptr, ctx, table, delta_or_group);
     }
   }
+  static const char* MiniParseLoopIt(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table);
   static const char* MiniParseLoopExpectMessages(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group);
   static const char* MiniParseLoopExpectStrings(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group);
   template <bool expect_message>
   static const char* MiniParseLoopImpl(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group = -1);
   static const char* MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag);
   static const char* ParseLoop(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table) {
+#ifdef OLD_PARSER
     return MiniParseLoop(msg, ptr, ctx, table, -1);
+#else
+    return MiniParseLoopIt(msg, ptr, ctx, table);
+#endif
   }
 
   template <typename T>
@@ -297,9 +302,9 @@ class PROTOBUF_EXPORT TcParser final {
   //    the function is used as a way to get a UnknownFieldOps vtable, returned
   //    via the `const char*` return type. See `GetUnknownFieldOps()`
 
-  static const char* GenericFallback(PROTOBUF_TC_PARAM_DECL);
-  static const char* GenericFallbackLite(PROTOBUF_TC_PARAM_DECL);
-  static const char* ReflectionFallback(PROTOBUF_TC_PARAM_DECL);
+  static const char* GenericFallback(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
+  static const char* GenericFallbackLite(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
+  static const char* ReflectionFallback(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
 
   // NOTE: Do not dedup RefAt by having one call the other with a const_cast. It
   // causes ICEs of gcc 7.5.
@@ -380,10 +385,7 @@ class PROTOBUF_EXPORT TcParser final {
   // function, so it should only be called as the fallback from fast table
   // parsing.
   PROTOBUF_NOINLINE
-  static const char* MiniParse(PROTOBUF_TC_PARAM_NO_DATA_DECL);
-
-  PROTOBUF_NOINLINE static const char* FastEndG1(PROTOBUF_TC_PARAM_DECL);
-  PROTOBUF_NOINLINE static const char* FastEndG2(PROTOBUF_TC_PARAM_DECL);
+  static const char* MiniParse(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
 
   // For `map` mini parsing generate a type card for the key/value.
   template <typename MapField>
@@ -414,10 +416,6 @@ class PROTOBUF_EXPORT TcParser final {
   }
 
  private:
-  // Optimized small tag varint parser for int32/int64
-  template <typename FieldType>
-  static const char* FastVarintS1(PROTOBUF_TC_PARAM_DECL);
-
   friend class GeneratedTcTableLiteTest;
   static void* MaybeGetSplitBase(MessageLite* msg, bool is_split,
                                  const TcParseTableBase* table);
@@ -431,38 +429,12 @@ class PROTOBUF_EXPORT TcParser final {
     const char* ptr;
   };
   PROTOBUF_NOINLINE
-  static TestMiniParseResult TestMiniParse(PROTOBUF_TC_PARAM_DECL);
+  static TestMiniParseResult TestMiniParse(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool export_called_function>
-  static const char* MiniParse(PROTOBUF_TC_PARAM_DECL);
-
-  template <typename TagType, bool group_coding, bool aux_is_table>
-  static inline const char* SingularParseMessageAuxImpl(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType, bool group_coding, bool aux_is_table>
-  static inline const char* RepeatedParseMessageAuxImpl(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType>
-  static inline const char* LazyMessage(PROTOBUF_TC_PARAM_DECL);
-
-  template <typename TagType>
-  static const char* FastEndGroupImpl(PROTOBUF_TC_PARAM_DECL);
-
-  static inline PROTOBUF_ALWAYS_INLINE void SyncHasbits(
-      MessageLite* msg, uint64_t hasbits, const TcParseTableBase* table) {
-    const uint32_t has_bits_offset = table->has_bits_offset;
-    if (has_bits_offset) {
-      // Only the first 32 has-bits are updated. Nothing above those is stored,
-      // but e.g. messages without has-bits update the upper bits.
-      RefAt<uint32_t>(msg, has_bits_offset) |= static_cast<uint32_t>(hasbits);
-    }
-  }
-
-  static const char* ToTagDispatch(PROTOBUF_TC_PARAM_NO_DATA_DECL);
-  static const char* ToParseLoop(PROTOBUF_TC_PARAM_NO_DATA_DECL);
-  PROTOBUF_NOINLINE static const char* Error(PROTOBUF_TC_PARAM_NO_DATA_DECL);
+  static const char* MiniParse(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
 
   PROTOBUF_NOINLINE
-  static const char* FastUnknownEnumFallback(PROTOBUF_TC_PARAM_DECL);
-  PROTOBUF_NOINLINE
-  static const char* MpUnknownEnumFallback(PROTOBUF_TC_PARAM_DECL);
+  static const char* MpUnknownEnumFallback(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
 
   class ScopedArenaSwap;
 
@@ -490,7 +462,7 @@ class PROTOBUF_EXPORT TcParser final {
   }
 
   template <class MessageBaseT, class UnknownFieldsT>
-  static const char* GenericFallbackImpl(PROTOBUF_TC_PARAM_DECL) {
+  static const char* GenericFallbackImpl(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data) {
     if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) {
       // This is the ABI used by GetUnknownFieldOps(). Return the vtable.
       static constexpr UnknownFieldOps kOps = {
@@ -499,7 +471,6 @@ class PROTOBUF_EXPORT TcParser final {
       return reinterpret_cast<const char*>(&kOps);
     }
 
-    SyncHasbits(msg, hasbits, table);
     uint32_t tag = data.tag();
     if ((tag & 7) == WireFormatLite::WIRETYPE_END_GROUP || tag == 0) {
       ctx->SetLastTag(tag);
@@ -522,51 +493,6 @@ class PROTOBUF_EXPORT TcParser final {
           ptr, ctx);
     }
   }
-
-  // Note: `inline` is needed on template function declarations below to avoid
-  // -Wattributes diagnostic in GCC.
-
-  // Implementations for fast fixed field parsing functions:
-  template <typename LayoutType, typename TagType>
-  static inline const char* SingularFixed(PROTOBUF_TC_PARAM_DECL);
-  template <typename LayoutType, typename TagType>
-  static inline const char* RepeatedFixed(PROTOBUF_TC_PARAM_DECL);
-  template <typename LayoutType, typename TagType>
-  static inline const char* PackedFixed(PROTOBUF_TC_PARAM_DECL);
-
-  // Implementations for fast varint field parsing functions:
-  template <typename FieldType, typename TagType, bool zigzag = false>
-  static inline const char* SingularVarint(PROTOBUF_TC_PARAM_DECL);
-  template <typename FieldType, typename TagType, bool zigzag = false>
-  static inline const char* RepeatedVarint(PROTOBUF_TC_PARAM_DECL);
-  template <typename FieldType, typename TagType, bool zigzag = false>
-  static inline const char* PackedVarint(PROTOBUF_TC_PARAM_DECL);
-
-  // Helper for ints > 127:
-  template <typename FieldType, typename TagType, bool zigzag = false>
-  PROTOBUF_NOINLINE static const char* SingularVarBigint(
-      PROTOBUF_TC_PARAM_DECL);
-
-  // Implementations for fast enum field parsing functions:
-  template <typename TagType, uint16_t xform_val>
-  static inline const char* SingularEnum(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType, uint8_t min>
-  static inline const char* SingularEnumSmallRange(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType, uint16_t xform_val>
-  static inline const char* RepeatedEnum(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType, uint16_t xform_val>
-  static inline const char* PackedEnum(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType, uint8_t min>
-  static inline const char* RepeatedEnumSmallRange(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType, uint8_t min>
-  static inline const char* PackedEnumSmallRange(PROTOBUF_TC_PARAM_DECL);
-
-  // Implementations for fast string field parsing functions:
-  enum Utf8Type { kNoUtf8 = 0, kUtf8 = 1, kUtf8ValidateOnly = 2 };
-  template <typename TagType, typename FieldType, Utf8Type utf8>
-  static inline const char* SingularString(PROTOBUF_TC_PARAM_DECL);
-  template <typename TagType, typename FieldType, Utf8Type utf8>
-  static inline const char* RepeatedString(PROTOBUF_TC_PARAM_DECL);
 
   static inline const char* ParseRepeatedStringOnce(
       const char* ptr, SerialArena* serial_arena, ParseContext* ctx,
@@ -626,51 +552,34 @@ class PROTOBUF_EXPORT TcParser final {
 
   // Mini parsing:
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpVarint(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpVarint(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpRepeatedVarint(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpRepeatedVarint(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split, typename FieldType, uint16_t xform_val>
-  static const char* MpRepeatedVarintT(PROTOBUF_TC_PARAM_DECL);
+  static const char* MpRepeatedVarintT(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpPackedVarint(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpPackedVarint(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split, typename FieldType, uint16_t xform_val>
-  static const char* MpPackedVarintT(PROTOBUF_TC_PARAM_DECL);
+  static const char* MpPackedVarintT(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpFixed(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpFixed(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpRepeatedFixed(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpRepeatedFixed(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpPackedFixed(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpPackedFixed(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpString(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpString(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpRepeatedString(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpRepeatedString(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpMessage(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpMessage(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split, bool is_group>
-  static const char* MpRepeatedMessageOrGroup(PROTOBUF_TC_PARAM_DECL);
-  static const char* MpLazyMessage(PROTOBUF_TC_PARAM_DECL);
-  PROTOBUF_NOINLINE static const char* MpFallback(PROTOBUF_TC_PARAM_DECL);
+  static const char* MpRepeatedMessageOrGroup(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
+  static const char* MpLazyMessage(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
+  PROTOBUF_NOINLINE static const char* MpFallback(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
   template <bool is_split>
-  PROTOBUF_NOINLINE static const char* MpMap(PROTOBUF_TC_PARAM_DECL);
+  PROTOBUF_NOINLINE static const char* MpMap(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
 };
-
-// We can only safely call from field to next field if the call is optimized
-// to a proper tail call. Otherwise we blow through stack. Clang and gcc
-// reliably do this optimization in opt mode, but do not perform this in debug
-// mode. Luckily the structure of the algorithm is such that it's always
-// possible to just return and use the enclosing parse loop as a trampoline.
-inline PROTOBUF_ALWAYS_INLINE const char* TcParser::ToTagDispatch(
-    PROTOBUF_TC_PARAM_NO_DATA_DECL) {
-  return ToParseLoop(PROTOBUF_TC_PARAM_NO_DATA_PASS);
-}
-
-inline PROTOBUF_ALWAYS_INLINE const char* TcParser::ToParseLoop(
-    PROTOBUF_TC_PARAM_NO_DATA_DECL) {
-  (void)ctx;
-  SyncHasbits(msg, hasbits, table);
-  return ptr;
-}
 
 }  // namespace internal
 }  // namespace protobuf

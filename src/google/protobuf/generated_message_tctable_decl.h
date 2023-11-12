@@ -33,76 +33,6 @@ struct TcFieldData {
   constexpr TcFieldData() : data(0) {}
   explicit constexpr TcFieldData(uint64_t data) : data(data) {}
 
-  // Fast table entry constructor:
-  constexpr TcFieldData(uint16_t coded_tag, uint8_t hasbit_idx, uint8_t aux_idx,
-                        uint16_t offset)
-      : data(uint64_t{offset} << 48 |      //
-             uint64_t{aux_idx} << 24 |     //
-             uint64_t{hasbit_idx} << 16 |  //
-             uint64_t{coded_tag}) {}
-
-  // Constructor to create an explicit 'uninitialized' instance.
-  // This constructor can be used to pass an uninitialized `data` value to a
-  // table driven parser function that does not use `data`. The purpose of this
-  // is that it allows the compiler to reallocate and re-purpose the register
-  // that is currently holding its value for other data. This reduces register
-  // allocations inside the highly optimized varint parsing functions.
-  //
-  // Applications not using `data` use the `PROTOBUF_TC_PARAM_NO_DATA_DECL`
-  // macro to declare the standard input arguments with no name for the `data`
-  // argument. Callers then use the `PROTOBUF_TC_PARAM_NO_DATA_PASS` macro.
-  //
-  // Example:
-  //   if (ptr == nullptr) {
-  //      PROTOBUF_MUSTTAIL return Error(PROTOBUF_TC_PARAM_NO_DATA_PASS);
-  //   }
-  struct DefaultInit {};
-  TcFieldData(DefaultInit) {}  // NOLINT(google-explicit-constructor)
-
-  // Fields used in fast table parsing:
-  //
-  //     Bit:
-  //     +-----------+-------------------+
-  //     |63    ..     32|31     ..     0|
-  //     +---------------+---------------+
-  //     :   .   :   .   :   . 16|=======| [16] coded_tag()
-  //     :   .   :   .   : 24|===|   .   : [ 8] hasbit_idx()
-  //     :   .   :   . 32|===|   :   .   : [ 8] aux_idx()
-  //     :   . 48:---.---:   .   :   .   : [16] (unused)
-  //     |=======|   .   :   .   :   .   : [16] offset()
-  //     +-----------+-------------------+
-  //     |63    ..     32|31     ..     0|
-  //     +---------------+---------------+
-
-  template <typename TagType = uint16_t>
-  TagType coded_tag() const {
-    return static_cast<TagType>(data);
-  }
-  uint8_t hasbit_idx() const { return static_cast<uint8_t>(data >> 16); }
-  uint8_t aux_idx() const { return static_cast<uint8_t>(data >> 24); }
-  uint16_t offset() const { return static_cast<uint16_t>(data >> 48); }
-
-  // Constructor for special entries that do not represent a field.
-  //  - End group: `nonfield_info` is the decoded tag.
-  constexpr TcFieldData(uint16_t coded_tag, uint16_t nonfield_info)
-      : data(uint64_t{nonfield_info} << 16 |  //
-             uint64_t{coded_tag}) {}
-
-  // Fields used in non-field entries
-  //
-  //     Bit:
-  //     +-----------+-------------------+
-  //     |63    ..     32|31     ..     0|
-  //     +---------------+---------------+
-  //     :   .   :   .   :   . 16|=======| [16] coded_tag()
-  //     :   .   :   . 32|=======|   .   : [16] decoded_tag()
-  //     :---.---:---.---:   .   :   .   : [32] (unused)
-  //     +-----------+-------------------+
-  //     |63    ..     32|31     ..     0|
-  //     +---------------+---------------+
-
-  uint16_t decoded_tag() const { return static_cast<uint16_t>(data >> 16); }
-
   // Fields used in mini table parsing:
   //
   //     Bit:
@@ -126,7 +56,7 @@ struct TcFieldData {
 struct TcParseTableBase;
 
 // TailCallParseFunc is the function pointer type used in the tailcall table.
-typedef const char* (*TailCallParseFunc)(PROTOBUF_TC_PARAM_DECL);
+typedef const char* (*TailCallParseFunc)(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
 
 namespace field_layout {
 struct Offset {
@@ -350,17 +280,6 @@ struct alignas(uint64_t) TcParseTableBase {
       kOffsetShift = 19,
     };
 
-    // Field data used during parse:
-    /*union {
-      struct {
-        uint32_t wire_type : 3 = 0;
-        uint32_t cardinality : 2 = 0;
-        uint32_t representation : 2 = 0;
-        uint32_t transform : 2 = 0;
-        uint64_t has_bits : 10 = 0;
-        uint64_t off : 13 = 0;
-      };
-    };*/
     uint32_t bits = 0;
 
     // Default initializes this instance with undefined values.
@@ -371,10 +290,6 @@ struct alignas(uint64_t) TcParseTableBase {
         : bits(bits) {}
     constexpr FastFieldEntry(uint32_t bits, unsigned offset)
         : bits(bits | (offset << 19)) {}
-
-    // Constant initializes this instance
-    constexpr FastFieldEntry(TailCallParseFunc, TcFieldData)
-          : bits(0) {}
   };
 
   // There is always at least one table entry.

@@ -4399,9 +4399,9 @@ void MessageGenerator::GenerateSerializeWithCachedSizesToArray(io::Printer* p) {
              } else {
                p->Emit(R"cc(
                  //~ force indenting level
-#ifdef $debug_cond$
+#if $debug_cond$
                  $ndebug$;
-#else   // NDEBUG
+#else   // 
                  $debug$;
 #endif  // !NDEBUG
                )cc");

@@ -275,7 +275,8 @@ void CollectMapInfo(
 // --a ranage of message names that are allowed to stay in order (true)
 bool ShouldSerializeInOrder(const Descriptor* descriptor,
                             const Options& options) {
-  return true;
+  return false;
+  // return true;
 }
 
 bool IsCrossFileMapField(const FieldDescriptor* field) {
@@ -4398,7 +4399,7 @@ void MessageGenerator::GenerateSerializeWithCachedSizesToArray(io::Printer* p) {
              } else {
                p->Emit(R"cc(
                  //~ force indenting level
-#ifdef NDEBUG
+#ifdef $debug_cond$
                  $ndebug$;
 #else   // NDEBUG
                  $debug$;

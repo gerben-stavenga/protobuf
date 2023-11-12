@@ -4718,7 +4718,7 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
       },
       R"cc(
         $field_writer$;
-        for (int i = 0; i < $last_field$; i++) {
+        for (int i = 0; i <= $last_field$; i++) {
 //        for (int i = $last_field$; i >= 0; i--) {
           switch (i) {
             $ordered_cases$;

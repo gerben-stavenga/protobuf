@@ -4643,7 +4643,6 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
     return field->type() != FieldDescriptor::TYPE_MESSAGE;
   });
 
-
   std::vector<const Descriptor::ExtensionRange*> sorted_extensions;
   sorted_extensions.reserve(descriptor_->extension_range_count());
   for (int i = 0; i < descriptor_->extension_range_count(); ++i) {
@@ -4652,6 +4651,42 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
   std::sort(sorted_extensions.begin(), sorted_extensions.end(),
             ExtensionRangeSorter());
 
+  if (1) {
+    for (const auto* field : ordered_fields) {
+      GenerateSerializeOneField(p, field, -1);
+    }
+
+    if (!sorted_extensions.empty()) {
+      GenerateSerializeOneExtensionRange(
+                                p, sorted_extensions.front()->start_number(), sorted_extensions.back()->end_number());
+    }
+    p->Emit(
+        {
+          {"handle_unknown_fields",
+            [&] {
+             if (UseUnknownFieldSet(descriptor_->file(), options_)) {
+               p->Emit(R"cc(
+                 target =
+                     ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+                         $unknown_fields$, target, stream);
+               )cc");
+             } else {
+               p->Emit(R"cc(
+                 target = stream->WriteRaw(
+                     $unknown_fields$.data(),
+                     static_cast<int>($unknown_fields$.size()), target);
+               )cc");
+             }
+           }},
+        },
+        R"cc(
+        if (PROTOBUF_PREDICT_FALSE($have_unknown_fields$)) {
+          $handle_unknown_fields$;
+        }
+    )cc");
+    return;
+  }
+  
   int num_fields = ordered_fields.size() + sorted_extensions.size();
   constexpr int kLargePrime = 1000003;
   ABSL_CHECK_LT(num_fields, kLargePrime)
@@ -4718,9 +4753,7 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
       },
       R"cc(
         $field_writer$;
-        #pragma unroll
-        for (int i = 0; i <= $last_field$; i++) {
-//        for (int i = $last_field$; i >= 0; i--) {
+        for (int i = $last_field$; i >= 0; i--) {
           switch (i) {
             $ordered_cases$;
             $extension_cases$;

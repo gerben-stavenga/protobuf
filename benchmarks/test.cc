@@ -764,12 +764,13 @@ static void BM_Proto2Parse(benchmark::State& state, int level) {
         proto.ParseFromString(x);
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));
+    state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK_CAPTURE(BM_Proto2Parse, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_CAPTURE(BM_Proto2Parse, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_CAPTURE(BM_Proto2Parse, submsg, 2)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
-#if 0
+#if 1
 
 int64_t buf[8191];
 
@@ -780,18 +781,19 @@ static void BM_UpbParse(benchmark::State& state, int level) {
     for (auto _ : state) {
         upb_Arena* arena = upb_Arena_Init(buf, sizeof(buf), nullptr);
         auto* proto =
-            test_benchmark_TestProto_parse_ex(x.data(), x.size(), nullptr, 0, arena);
+            test_benchmark_TestProto_parse_ex(x.data(), x.size(), nullptr, kUpb_DecodeOption_AliasString, arena);
         if (!proto) {
             printf("Failed to parse.\n");
             exit(1);
         }
         upb_Arena_Free(arena);
     }
+    state.SetItemsProcessed(state.iterations() * state.range(0));
     state.SetBytesProcessed(state.iterations() * x.size());
 }
-BENCHMARK_CAPTURE(BM_UpbParse, nostring, 0);
-BENCHMARK_CAPTURE(BM_UpbParse, string, 1);
-BENCHMARK_CAPTURE(BM_UpbParse, submsg, 2);
+BENCHMARK_CAPTURE(BM_UpbParse, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_UpbParse, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);
+BENCHMARK_CAPTURE(BM_UpbParse, submsg, 2)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 
 #endif
 
@@ -837,6 +839,7 @@ static void BM_TableParse(benchmark::State& state, int level) {
         ParseProto(&proto, ptr, &ctx, &test_proto_parse_table, 0);
     }
     state.SetItemsProcessed(state.iterations() * state.range(0));
+    state.SetBytesProcessed(state.iterations() * x.size());
 }
 BENCHMARK_CAPTURE(BM_TableParse, nostring, 0)->Range(1024, 256 * 1024)->RangeMultiplier(4);
 BENCHMARK_CAPTURE(BM_TableParse, string, 1)->Range(1024, 256 * 1024)->RangeMultiplier(4);

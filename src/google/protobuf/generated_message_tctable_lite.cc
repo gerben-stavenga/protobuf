@@ -956,7 +956,9 @@ PROTOBUF_NOINLINE const char* TcParser::MpString(MessageLite *msg, const char *p
       if (need_init) field.InitDefault();
       Arena* arena = msg->GetArena();
       if (arena) {
-        ptr = ctx->ReadArenaString(ptr, &field, arena);
+        int sz = ReadSize(&ptr);
+        if (ptr == nullptr) return ptr;
+        ptr = ctx->ReadArenaString(ptr, sz, &field, arena);
       } else {
         std::string* str = field.MutableNoCopy(nullptr);
         ptr = InlineGreedyStringParser(str, ptr, ctx);
@@ -1966,11 +1968,18 @@ parse_string:
     if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
       SetHasBit(msg, fd, has_dummy);
       auto& field = RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift);
-      if (arena) {
-        ptr = ctx->ReadArenaString(ptr, &field, arena);
+      int sz;
+      if (ABSL_PREDICT_FALSE(value & 0x80)) {
+        sz = ReadSize(&ptr);
       } else {
-        auto sz = ReadSize(&ptr);
-        if (ptr == nullptr) return nullptr;
+        sz = value & 0xFF;
+        ptr++;
+      }
+
+      if (ptr == nullptr) return nullptr;
+      if (arena) {
+        ptr = ctx->ReadArenaString(ptr, sz, &field, arena);
+      } else {
         ptr = ctx->ReadString(ptr, sz, field.MutableNoCopy(nullptr));
       }
       sv = field.Get();
@@ -2109,6 +2118,7 @@ struct StackEntry {
   uint32_t groupend;
 };
 
+#if 0
 const char* TcParser::MiniParseLoopIt(MessageLite* msg, const char* ptr, ParseContext* const ctx, const TcParseTableBase* table) {
     using FFE = TcParseTableBase::FastFieldEntry;
     // TODO move into ParseContext
@@ -2325,6 +2335,7 @@ parse_submessage:
     if (d != kMax) return nullptr;
     return ptr;    
 }
+#endif
 
 }  // namespace internal
 }  // namespace protobuf

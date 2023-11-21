@@ -201,7 +201,7 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
     return AppendStringFallback(ptr, size, s);
   }
   // Implemented in arenastring.cc
-  PROTOBUF_NODISCARD const char* ReadArenaString(const char* ptr,
+  PROTOBUF_NODISCARD const char* ReadArenaString(const char* ptr, int size,
                                                  ArenaStringPtr* s,
                                                  Arena* arena);
 

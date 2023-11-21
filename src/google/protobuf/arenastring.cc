@@ -372,25 +372,11 @@ void ArenaStringPtr::ClearToDefault(const LazyString& default_value,
   }
 }
 
-const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
+const char* EpsCopyInputStream::ReadArenaString(const char* ptr, int size,
                                                 ArenaStringPtr* s,
                                                 Arena* arena) {
   ScopedCheckPtrInvariants check(&s->tagged_ptr_);
   ABSL_DCHECK(arena != nullptr);
-
-#if defined(GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL) && 0
-  if ((uint8_t)*ptr <= StringRep::kMaxInlinedStringSize) {
-    auto size = *ptr;
-    ptr++;
-    auto str = DonateString(arena, ptr, StringRep::kMaxInlinedStringSize);
-    absl::strings_internal::STLStringResizeUninitialized(str, size);
-    s->tagged_ptr_.SetFixedSizeArena(str);
-    ptr += size;
-    return ptr;
-  }
-#endif
-  int size = ReadSize(&ptr);
-  if (!ptr) return nullptr;
 
   if (size <= buffer_end_ + kSlopBytes - ptr) {
     // This prevents constructing a string preventing an allocation and simultaneous preventing

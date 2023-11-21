@@ -198,6 +198,12 @@ const char* EpsCopyInputStream::ReadStringFallback(const char* ptr, int size,
                     [str](const char* p, int s) { str->append(p, s); });
 }
 
+const char* EpsCopyInputStream::ReadArenaStringFallback(const char* ptr, int size,
+                                                   ArenaStringPtr* s, Arena* arena) {
+  auto* str = s->NewString(arena);
+  return ReadStringFallback(ptr, size, str);
+}
+
 const char* EpsCopyInputStream::AppendStringFallback(const char* ptr, int size,
                                                      std::string* str) {
   if (PROTOBUF_PREDICT_TRUE(size <= buffer_end_ - ptr + limit_)) {

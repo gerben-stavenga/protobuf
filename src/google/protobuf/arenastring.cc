@@ -372,22 +372,6 @@ void ArenaStringPtr::ClearToDefault(const LazyString& default_value,
   }
 }
 
-const char* EpsCopyInputStream::ReadArenaString(const char* ptr, int size,
-                                                ArenaStringPtr* s,
-                                                Arena* arena) {
-  ScopedCheckPtrInvariants check(&s->tagged_ptr_);
-  ABSL_DCHECK(arena != nullptr);
-
-  if (size <= buffer_end_ + kSlopBytes - ptr) {
-    // This prevents constructing a string preventing an allocation and simultaneous preventing
-    // a string appearing on the destructor list.
-    s->Set(ptr, size, arena);
-    return ptr + size;
-  }
-  auto* str = s->NewString(arena);
-  return ReadStringFallback(ptr, size, str);
-}
-
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google

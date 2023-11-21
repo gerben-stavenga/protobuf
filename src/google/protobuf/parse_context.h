@@ -200,10 +200,22 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
     }
     return AppendStringFallback(ptr, size, s);
   }
-  // Implemented in arenastring.cc
+
   PROTOBUF_NODISCARD const char* ReadArenaString(const char* ptr, int size,
                                                  ArenaStringPtr* s,
-                                                 Arena* arena);
+                                                 Arena* arena) {
+    ABSL_DCHECK(arena != nullptr);
+
+    if (size <= buffer_end_ + kSlopBytes - ptr) {
+      // This prevents constructing a string preventing an allocation and simultaneous preventing
+      // a string appearing on the destructor list.
+      s->Set(ptr, size, arena);
+      return ptr + size;
+    }
+    auto* str = s->NewString(arena);
+    return ReadStringFallback(ptr, size, str);
+  }
+
 
   PROTOBUF_NODISCARD const char* ReadCord(const char* ptr, int size,
                                           ::absl::Cord* cord) {

@@ -200,8 +200,19 @@ const char* EpsCopyInputStream::ReadStringFallback(const char* ptr, int size,
 
 const char* EpsCopyInputStream::ReadArenaStringFallback(const char* ptr, int size,
                                                    ArenaStringPtr* s, Arena* arena) {
-  auto* str = s->NewString(arena);
-  return ReadStringFallback(ptr, size, str);
+  auto bytes_left = buffer_end_ + kSlopBytes - ptr;
+  if (size <= bytes_left) {
+    // Allocate enough for string + content + terminal 0
+    void* mem = arena->AllocateAligned(sizeof(std::string) + size + 1, alignof(std::string));
+    char* data = static_cast<char*>(mem) + sizeof(std::string);
+    memcpy(data, ptr, size);
+    data[size] = 0;
+    s->tagged_ptr_.SetFixedSizeArena(ArenaStringPtr::ConstructDonatedString(mem, data, size));
+    return ptr + size;
+  } else {
+    auto* str = s->NewString(arena);
+    return ReadStringFallback(ptr, size, str);
+  }
 }
 
 const char* EpsCopyInputStream::AppendStringFallback(const char* ptr, int size,

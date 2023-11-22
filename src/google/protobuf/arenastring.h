@@ -423,7 +423,7 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
     if (n <= kMaxInlinedStringSize) {
       void* mem = arena->AllocateAligned(sizeof(std::string), alignof(std::string));
       auto str = new (mem) std::string(s, kMaxInlinedStringSize);
-      absl::strings_internal::STLStringResizeUninitialized(str, n);
+      str->resize(n);
       tagged_ptr_.SetFixedSizeArena(str);
 
     } else {

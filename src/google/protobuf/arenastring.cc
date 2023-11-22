@@ -116,6 +116,18 @@ struct StringSetPointer {
     friend void Set(StringSetPointer, std::string*, char*);
 };
 
+struct StringSetLength {
+    using type = void (std::string::*)(std::string::size_type);
+    friend constexpr type Get(StringSetLength);
+};
+
+template
+struct Robber<StringSetLength, &std::string::_M_set_length>;
+
+void EraseToEnd(std::string* s, std::string::size_type n) {
+  (s->*Get(StringSetLength()))(n);
+}
+
 template
 struct RobberWorkaround<StringSetPointer, std::string::_Alloc_hider std::string::*, &std::string::_M_dataplus>;
 

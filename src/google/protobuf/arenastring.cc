@@ -142,6 +142,11 @@ inline std::string* DonateString(Arena* arena, const char* s, size_t n) {
   }
 }
 
+std::string* ArenaStringPtr::ConstructArenaString(void* mem, char* s, size_t n) {
+  return new (mem) internal::StringRep(s, /*length=*/n, /*capacity=*/n);
+}
+
+
 namespace  {
 
 // TaggedStringPtr::Flags uses the lower 2 bits as tags.

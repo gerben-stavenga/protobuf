@@ -212,7 +212,7 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
     if (ABSL_PREDICT_TRUE(size <= buffer_end_ + kSlopBytes - ptr)) {
       // This prevents constructing a string preventing an allocation and simultaneous preventing
       // a string appearing on the destructor list.
-      s->Set(ptr, size, arena);
+      s->DonateString(arena, ptr, size);
       return ptr + size;
     }
     return ReadArenaStringFallback(ptr, size, s, arena);

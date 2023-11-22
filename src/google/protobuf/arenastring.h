@@ -411,6 +411,29 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
     std::swap(lhs->tagged_ptr_, rhs->tagged_ptr_);
   }
 
+  inline void DonateString(Arena* arena, const char* s, size_t n) {
+#ifdef _LIBCPP_VERSION
+    constexpr int kMaxInlinedStringSize = 22;
+#elif defined(__GLIBCXX__)
+    constexpr int kMaxInlinedStringSize = 15;
+#elif 
+    constexpr int kMaxInlinedStringSize = 0;
+#endif
+    if (n <= kMaxInlinedStringSize) {
+      void* mem = arena->AllocateAligned(sizeof(std::string), alignof(std::string));
+      tagged_ptr_.SetFixedSizeArena(new (mem) std::string(s, n));
+    } else {
+      // Allocate enough for string + content + terminal 0
+      void* mem = arena->AllocateAligned(sizeof(std::string) + n + 1, alignof(std::string));
+      char* data = static_cast<char*>(mem) + sizeof(std::string);
+      memcpy(data, s, n);
+      data[n] = 0;
+      tagged_ptr_.SetFixedSizeArena(ConstructArenaString(mem, data, n));
+    }
+  }
+
+  std::string* ConstructArenaString(void* mem, char* s, size_t n);
+
   friend class ::google::protobuf::internal::SwapFieldHelper;
   friend class TcParser;
 

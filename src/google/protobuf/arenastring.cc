@@ -61,6 +61,18 @@ struct StringSetPointer {
 template
 struct Robber<StringSetPointer, &std::string::__set_long_pointer>;
 
+struct StringEraseToEnd {
+    using type = void (std::string::*)(std::string::size_type);
+    friend constexpr type Get(StringEraseToEnd);
+};
+
+template
+struct Robber<StringEraseToEnd, &std::string::__erase_to_end>;
+
+void EraseToEnd(std::string* s, std::string::size_type n) {
+  (s->*Get(StringEraseToEnd()))(n);
+}
+
 // Using this method makes this code automatically good both for
 // normal ABI and with the _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT flag.
 class StringRep : public std::string {
@@ -142,7 +154,13 @@ inline std::string* DonateString(Arena* arena, const char* s, size_t n) {
   }
 }
 
-std::string* ArenaStringPtr::ConstructArenaString(void* mem, char* s, size_t n) {
+std::string* ArenaStringPtr::ConstructSSODonatedString(void* mem, const char* s, size_t n) {
+  auto str = new (mem) std::string(s, StringRep::kMaxInlinedStringSize);
+  EraseToEnd(str, n);
+  return str;
+}
+
+std::string* ArenaStringPtr::ConstructDonatedString(void* mem, char* s, size_t n) {
   return new (mem) internal::StringRep(s, /*length=*/n, /*capacity=*/n);
 }
 

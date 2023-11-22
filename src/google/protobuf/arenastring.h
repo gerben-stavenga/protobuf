@@ -419,12 +419,10 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
   static constexpr int kMaxInlinedStringSize = 0;
 #endif
 
-  inline void DonateString(Arena* arena, const char* s, size_t n) {
-    if (n <= kMaxInlinedStringSize) {
+  inline void DonateString(Arena* arena, const char* s, size_t n, size_t bytes_left) {
+    if (n <= kMaxInlinedStringSize && bytes_left <= kMaxInlinedStringSize) {
       void* mem = arena->AllocateAligned(sizeof(std::string), alignof(std::string));
-      auto str = new (mem) std::string(s, kMaxInlinedStringSize);
-      [[clang::always_inline]]str->erase(n);
-      tagged_ptr_.SetFixedSizeArena(str);
+      tagged_ptr_.SetFixedSizeArena(ConstructSSODonatedString(mem, s, n));
 
     } else {
       // Allocate enough for string + content + terminal 0
@@ -432,11 +430,12 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
       char* data = static_cast<char*>(mem) + sizeof(std::string);
       memcpy(data, s, n);
       data[n] = 0;
-      tagged_ptr_.SetFixedSizeArena(ConstructArenaString(mem, data, n));
+      tagged_ptr_.SetFixedSizeArena(ConstructDonatedString(mem, data, n));
     }
   }
 
-  std::string* ConstructArenaString(void* mem, char* s, size_t n);
+  std::string* ConstructSSODonatedString(void* mem, const char* s, size_t n);
+  std::string* ConstructDonatedString(void* mem, char* s, size_t n);
 
   friend class ::google::protobuf::internal::SwapFieldHelper;
   friend class TcParser;

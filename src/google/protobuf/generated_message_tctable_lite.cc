@@ -1881,7 +1881,6 @@ const char* TcParser::MiniParseLoopImpl(MessageLite* const msg, const char* ptr,
   // Scalars
   while (!ctx->Done(&ptr)) {
     wt = UnalignedLoad<uint16_t>(ptr) & 7;
-    asm volatile("":"+r"(wt));
     tag = FastDecodeTag(&ptr, &value);
     if (ptr == nullptr) return nullptr;
     if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;
@@ -1951,7 +1950,6 @@ parse_scalar:
   // strings
   while (!ctx->Done(&ptr)) {
     wt = UnalignedLoad<uint16_t>(ptr) & 7;
-    asm volatile("":"+r"(wt));
     tag = FastDecodeTag(&ptr, &value);
     if (ptr == nullptr) return nullptr;
     if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;

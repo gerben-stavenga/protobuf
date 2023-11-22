@@ -420,7 +420,7 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
 #endif
 
   inline void DonateString(Arena* arena, const char* s, size_t n, size_t bytes_left) {
-    if (n <= kMaxInlinedStringSize && bytes_left <= kMaxInlinedStringSize) {
+    if (n <= kMaxInlinedStringSize && kMaxInlinedStringSize <= bytes_left) {
       void* mem = arena->AllocateAligned(sizeof(std::string), alignof(std::string));
       tagged_ptr_.SetFixedSizeArena(ConstructSSODonatedString(mem, s, n));
 

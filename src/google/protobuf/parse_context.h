@@ -204,6 +204,7 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
   PROTOBUF_NODISCARD const char* ReadArenaStringFallback(const char* ptr, int size,
                                                  ArenaStringPtr* s,
                                                  Arena* arena);
+  ABSL_ATTRIBUTE_ALWAYS_INLINE
   PROTOBUF_NODISCARD const char* ReadArenaString(const char* ptr, int size,
                                                  ArenaStringPtr* s,
                                                  Arena* arena) {

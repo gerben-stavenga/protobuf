@@ -434,8 +434,8 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
     }
   }
 
-  std::string* ConstructSSODonatedString(void* mem, const char* s, size_t n);
-  std::string* ConstructDonatedString(void* mem, char* s, size_t n);
+  static std::string* ConstructSSODonatedString(void* mem, const char* s, size_t n);
+  static std::string* ConstructDonatedString(void* mem, char* s, size_t n);
 
   friend class ::google::protobuf::internal::SwapFieldHelper;
   friend class TcParser;

@@ -209,7 +209,7 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
                                                  Arena* arena) {
     ABSL_DCHECK(arena != nullptr);
 
-    if (ABSL_PREDICT_TRUE(size <= buffer_end_ + kSlopBytes - ptr)) {
+    if (ABSL_PREDICT_TRUE(size <= buffer_end_ + kSlopBytes - ptr && buffer_end_ + kSlopBytes - ptr >= ArenaStringPtr::kMaxInlinedStringSize)) {
       // This prevents constructing a string preventing an allocation and simultaneous preventing
       // a string appearing on the destructor list.
       s->DonateString(arena, ptr, size);

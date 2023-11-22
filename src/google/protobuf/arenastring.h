@@ -411,17 +411,21 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
     std::swap(lhs->tagged_ptr_, rhs->tagged_ptr_);
   }
 
-  inline void DonateString(Arena* arena, const char* s, size_t n) {
 #ifdef _LIBCPP_VERSION
-    constexpr int kMaxInlinedStringSize = 22;
+  static constexpr int kMaxInlinedStringSize = 22;
 #elif defined(__GLIBCXX__)
-    constexpr int kMaxInlinedStringSize = 15;
+  static constexpr int kMaxInlinedStringSize = 15;
 #elif 
-    constexpr int kMaxInlinedStringSize = 0;
+  static constexpr int kMaxInlinedStringSize = 0;
 #endif
+
+  inline void DonateString(Arena* arena, const char* s, size_t n) {
     if (n <= kMaxInlinedStringSize) {
       void* mem = arena->AllocateAligned(sizeof(std::string), alignof(std::string));
-      tagged_ptr_.SetFixedSizeArena(new (mem) std::string(s, n));
+      auto str = new (mem) std::string(s, kMaxInlinedStringSize);
+      absl::strings_internal::STLStringResizeUninitialized(str, n);
+      tagged_ptr_.SetFixedSizeArena(str);
+
     } else {
       // Allocate enough for string + content + terminal 0
       void* mem = arena->AllocateAligned(sizeof(std::string) + n + 1, alignof(std::string));

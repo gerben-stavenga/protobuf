@@ -211,10 +211,10 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
                                                  Arena* arena) {
     ABSL_DCHECK(arena != nullptr);
 
-    if (ABSL_PREDICT_TRUE(size <= buffer_end_ + kSlopBytes - ptr)) {
-      // This prevents constructing a string preventing an allocation and simultaneous preventing
-      // a string appearing on the destructor list.
-      s->DonateString(arena, ptr, size, buffer_end_ + kSlopBytes - ptr);
+    auto bytes_left = buffer_end_ + kSlopBytes - ptr;
+    if (size <= ArenaStringPtr::kMaxInlinedStringSize && ArenaStringPtr::kMaxInlinedStringSize <= bytes_left) {
+      void* mem = arena->AllocateAligned(sizeof(std::string), alignof(std::string));
+      s->tagged_ptr_.SetFixedSizeArena(ArenaStringPtr::ConstructSSODonatedString(mem, ptr, size));
       return ptr + size;
     }
     return ReadArenaStringFallback(ptr, size, s, arena);

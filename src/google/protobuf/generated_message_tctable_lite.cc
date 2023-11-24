@@ -1595,16 +1595,10 @@ inline void Store(uint64_t value, void* out, uint32_t fd, void* dummy) {
     *static_cast<uint64_t*>(dst) = value;
 }
 
-#ifdef NOSPECIAL
-#define OPT 0
-#else
-#define OPT 1
-#endif
-
 template <typename FieldType>
 const char* MplRepeatedVarint(const char* ptr, const char* end, RepeatedField<FieldType>& field, bool zigzag, 
         uint32_t expected_tag, uint64_t value) {
-#if defined(__x86_64__) && OPT
+#if defined(__x86_64__)
     uint8_t buffer[8] = {};
     unsigned sz = io::CodedOutputStream::WriteVarint32ToArray(expected_tag, buffer) - buffer;
     auto image = UnalignedLoad<uint64_t>((void*)buffer);
@@ -1683,7 +1677,7 @@ const char* MplRepeatedFixed(const char* ptr, const char* end, RepeatedField<Fie
 }
 
 inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t& data) {
-#if defined(__x86_64__) && OPT
+#if defined(__x86_64__)
     static const uint64_t size_mask[] = {
         0xFF,
         0xFFFF,
@@ -1709,56 +1703,16 @@ inline const char* ParseScalarBranchless(const char* ptr, uint32_t wt, uint64_t&
     data &= size_mask[size - 1];
     data = _pext_u64(data, mask);
     return ptr + size;
-
 #else
-
-#if OPT
   if (ABSL_PREDICT_FALSE((data & (0x80 << wt)) & 0x80)) {
     ptr = VarintParse(ptr, &data);
   } else {
     ptr += wt & 1 ? (wt & 4 ? 4 : 8) : 1;
     data &= wt & 1 ? -1ull : 0xFF;
   }
-#else
-  if (wt == 0) {
-    ptr = VarintParse(ptr, &data);
-  } else {
-    ptr += wt & 4 ? 4 : 8;
-  }
-#endif
   return ptr;
-
 #endif
 }
-
-static struct Log {
-#ifdef PROTO_LOG_FREQS
-  ~Log() {
-    printf("primitives: %d wt=2: %d, messages: %d repeated messaged: %d it: %d, strings: %d total: %d\n", 
-      nump, numm + nums + numrm, 
-      numm, numrm, numrm_it, nums, 
-      nump + numm + numrm + nums);
-  }
-
-  void IncPrimitive() { nump++; }
-  void IncMessage() { numm++; }
-  void IncRepMessage() { numrm++; }
-  void IncRepIteration() { numrm_it++; }
-  void IncString() { nums++; }
-
-  int nump = 0;
-  int numm = 0;
-  int numrm = 0;
-  int numrm_it = 0;
-  int nums = 0;
-#else
-  void IncPrimitive() {}
-  void IncMessage() {}
-  void IncRepMessage() {}
-  void IncRepIteration() {}
-  void IncString() {}
-#endif
-} logger;
 
 ABSL_ATTRIBUTE_NOINLINE
 const char* TcParser::MiniParseFallback(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, const void* entry, uint32_t tag) {
@@ -1849,14 +1803,6 @@ static uint32_t FastReadSize(const char** pptr, uint64_t value) {
   return res >> 1;
 }
 
-const char* TcParser::MiniParseLoopExpectMessages(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group) {
-  return MiniParseLoopImpl<true>(msg, ptr, ctx, table, delta_or_group);
-}
-
-const char* TcParser::MiniParseLoopExpectStrings(MessageLite* msg, const char* ptr, ParseContext* ctx, const TcParseTableBase* table, int64_t delta_or_group) {
-  return MiniParseLoopImpl<false>(msg, ptr, ctx, table, delta_or_group);
-}
-
 bool FastFieldLookup(const TcParseTableBase* table, uint32_t tag, uint32_t* fd) {
   auto idx = (tag >> 3) - 1;
   if (ABSL_PREDICT_FALSE(idx >= table->num_fast_fields)) return false;
@@ -1864,8 +1810,7 @@ bool FastFieldLookup(const TcParseTableBase* table, uint32_t tag, uint32_t* fd) 
   return true;
 }
 
-template <bool expect_message>
-const char* TcParser::MiniParseLoopImpl(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
+const char* TcParser::MiniParseLoop(MessageLite* const msg, const char* ptr, ParseContext* const ctx, 
         const TcParseTableBase* const table, int64_t const delta_or_group) {
   using FFE = TcParseTableBase::FastFieldEntry;
   // TODO move into ParseContext
@@ -1905,9 +1850,7 @@ fast_fallback:
     if (wt != (fd & 7)) goto unusual;
     if (ABSL_PREDICT_FALSE((fd & (FFE::kRepMask | 7)) == (FFE::kRepMessage | 2))) goto parse_len_delim_submessage;
     if (ABSL_PREDICT_FALSE(wt == 2)) goto parse_string;
-    asm volatile ("");
 parse_scalar:
-    logger.IncPrimitive();
     if (ABSL_PREDICT_FALSE(wt == 3)) {
       ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
       value = ~static_cast<uint64_t>(tag + 1);
@@ -1958,10 +1901,8 @@ parse_scalar:
     if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) goto fast_fallback;
     if (wt != (fd & 7)) goto unusual;
     if (ABSL_PREDICT_FALSE(wt != 2)) goto parse_scalar;
-    asm volatile ("");  // prevent 
 parse_string:
     if (ABSL_PREDICT_FALSE((fd & FFE::kRepMask) != FFE::kRepBytes)) goto parse_len_delim_submessage;
-    logger.IncString();
     absl::string_view sv;
     if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
       SetHasBit(msg, fd, has_dummy);
@@ -2008,7 +1949,6 @@ parse_string:
   // messages
   while (!ctx->Done(&ptr)) {
     wt = UnalignedLoad<uint16_t>(ptr) & 7;
-    asm volatile("":"+r"(wt));
     tag = FastDecodeTag(&ptr, &value);
     if (ptr == nullptr) return nullptr;
     if (ABSL_PREDICT_FALSE(wt == 4)) goto endgroup;
@@ -2056,14 +1996,11 @@ parse_submessage:
         field = child_table->default_instance->New(arena);
       }
       auto child = field;
-      if (wt == 2) logger.IncMessage();
       ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
       if (ptr == nullptr) return nullptr;
     } else {
       auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
-      if (wt == 2) logger.IncRepMessage();
       while (true) {
-        if (wt == 2) logger.IncRepIteration();
         auto child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
         ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
         if (ptr == nullptr) return nullptr;
@@ -2215,7 +2152,6 @@ with_entry:
           default:
             break;
         }
-        logger.IncString();
         absl::string_view sv;
         sync();
         if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
@@ -2253,7 +2189,6 @@ with_entry:
         }
         continue;
       } else {
-        logger.IncPrimitive();
         if (ABSL_PREDICT_FALSE(wt == 3)) {
           ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
           // value = ~static_cast<uint64_t>(tag + 1);

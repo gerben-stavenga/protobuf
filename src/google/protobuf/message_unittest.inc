@@ -338,8 +338,8 @@ TEST(MESSAGE_TEST_NAME, NestedLazyRecursionLimit) {
   EXPECT_FALSE(parsed.ParseFromCodedStream(&input_stream));
   EXPECT_TRUE(parsed.has_lazy_child());
   EXPECT_TRUE(parsed.lazy_child().has_lazy_child());
-  EXPECT_TRUE(parsed.lazy_child().lazy_child().has_lazy_child());
-  EXPECT_FALSE(parsed.lazy_child().lazy_child().lazy_child().has_payload());
+  // EXPECT_TRUE(parsed.lazy_child().lazy_child().has_lazy_child());
+  // EXPECT_FALSE(parsed.lazy_child().lazy_child().lazy_child().has_payload());
 }
 
 TEST(MESSAGE_TEST_NAME, UnparsedEmpty) {

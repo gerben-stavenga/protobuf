@@ -76,7 +76,7 @@ cc_test(
         ":benchmark_descriptor_upb_proto",
         ":benchmark_descriptor_upb_proto_reflection",
         "//:protobuf",
-        #"@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest_main",
         "//upb:base",
         "//upb:base_internal",
         "//upb:descriptor_upb_proto",
@@ -84,33 +84,6 @@ cc_test(
         "//upb:reflection",
         "@com_github_google_benchmark//:benchmark_main",
         "@com_google_absl//absl/container:flat_hash_set",
-    ],
-)
-
-proto_library(
-    name = "test_proto",
-    srcs = ["test.proto"],
-)
-
-cc_proto_library(
-    name = "test_cc_proto",
-    deps = [":test_proto"],
-)
-
-upb_proto_library(
-    name = "test_upb_proto",
-    deps = [":test_proto"],
-)
-
-cc_test(
-    name = "test_gerben",
-    testonly = 1,
-    srcs = ["test.cc"],
-    deps = [
-        "//:protobuf",
-        ":test_cc_proto",
-        ":test_upb_proto",
-        "@com_github_google_benchmark//:benchmark_main",
     ],
 )
 

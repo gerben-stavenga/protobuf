@@ -12,7 +12,7 @@ load(
 )
 load(
     "//bazel:upb_proto_library.bzl",
-    "upb_proto_library",
+    "upb_c_proto_library",
     "upb_proto_reflection_library",
 )
 
@@ -29,9 +29,12 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":internal",
+        ":internal_types",
         ":message",
+        ":tagged_ptr",
         "//upb:base",
         "//upb:eps_copy_input_stream",
+        "//upb:mem",
         "//upb:mini_table",
         "//upb:mini_table_internal",
         "//upb:port",
@@ -49,6 +52,12 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":internal",
+        ":internal_types",
+        ":message",
+        ":tagged_ptr",
+        "//upb:base",
+        "//upb:mem",
+        "//upb:mini_table",
         "//upb:mini_table_internal",
         "//upb:port",
     ],
@@ -66,8 +75,10 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":accessors",
+        ":accessors_internal",
         ":internal",
         ":message",
+        ":tagged_ptr",
         ":types",
         "//upb:base",
         "//upb:mem",
@@ -95,6 +106,7 @@ cc_library(
         "internal/map_entry.h",
         "internal/map_sorter.h",
         "internal/message.h",
+        "internal/size_log2.h",
         "map_gencode_util.h",
     ],
     copts = UPB_DEFAULT_COPTS,
@@ -235,7 +247,7 @@ upb_minitable_proto_library(
     deps = [":message_test_proto"],
 )
 
-upb_proto_library(
+upb_c_proto_library(
     name = "message_test_upb_proto",
     testonly = 1,
     deps = [":message_test_proto"],
@@ -377,7 +389,7 @@ upb_minitable_proto_library(
     deps = [":utf8_test_proto"],
 )
 
-upb_proto_library(
+upb_c_proto_library(
     name = "utf8_test_upb_proto",
     testonly = 1,
     deps = [":utf8_test_proto"],

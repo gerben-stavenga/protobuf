@@ -26,8 +26,8 @@ namespace UnitTest.Issues.TestProtos {
           string.Concat(
             "Cihjc2hhcnAvcHJvdG9zL3VuaXR0ZXN0X2lzc3VlNjkzNl9iLnByb3RvEg91",
             "bml0dGVzdF9pc3N1ZXMaKGNzaGFycC9wcm90b3MvdW5pdHRlc3RfaXNzdWU2",
-            "OTM2X2EucHJvdG8iDgoDRm9vOgeCtRgDZm9vQh2qAhpVbml0VGVzdC5Jc3N1",
-            "ZXMuVGVzdFByb3Rvc2IGcHJvdG8z"));
+            "OTM2X2EucHJvdG9iBnByb3RvMyIOCgNGb286B4K1GANmb29CHaoCGlVuaXRU",
+            "ZXN0Lklzc3Vlcy5UZXN0UHJvdG9z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::UnitTest.Issues.TestProtos.UnittestIssue6936AReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {

@@ -27,9 +27,9 @@ namespace UnitTest.Issues.TestProtos {
             "Cihjc2hhcnAvcHJvdG9zL3VuaXR0ZXN0X2lzc3VlNjkzNl9jLnByb3RvEg91",
             "bml0dGVzdF9pc3N1ZXMaKGNzaGFycC9wcm90b3MvdW5pdHRlc3RfaXNzdWU2",
             "OTM2X2EucHJvdG8aKGNzaGFycC9wcm90b3MvdW5pdHRlc3RfaXNzdWU2OTM2",
-            "X2IucHJvdG8iMQoDQmFyEiEKA2ZvbxgBIAEoCzIULnVuaXR0ZXN0X2lzc3Vl",
-            "cy5Gb286B4K1GANiYXJCHaoCGlVuaXRUZXN0Lklzc3Vlcy5UZXN0UHJvdG9z",
-            "YgZwcm90bzM="));
+            "X2IucHJvdG9iBnByb3RvMyIxCgNCYXISIRgBCgNmb28yFC51bml0dGVzdF9p",
+            "c3N1ZXMuRm9vIAEoCzoHgrUYA2JhckIdqgIaVW5pdFRlc3QuSXNzdWVzLlRl",
+            "c3RQcm90b3M="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::UnitTest.Issues.TestProtos.UnittestIssue6936AReflection.Descriptor, global::UnitTest.Issues.TestProtos.UnittestIssue6936BReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {

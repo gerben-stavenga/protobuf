@@ -204,8 +204,14 @@ class DynamicMessage final : public Message {
 
   Message* New(Arena* arena) const override;
 
-  internal::CachedSize* AccessCachedSize() const final {
-    return &cached_byte_size_;
+  const ClassData* GetClassData() const final {
+    ABSL_CONST_INIT static const ClassData data = {
+        &MergeImpl,
+        nullptr,  // on_demand_register_arena_dtor
+        &kDescriptorMethods,
+        PROTOBUF_FIELD_OFFSET(DynamicMessage, cached_byte_size_),
+    };
+    return &data;
   }
 
   Metadata GetMetadata() const override;
@@ -349,6 +355,7 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
   // constructor.)
 
   const Descriptor* descriptor = type_info_->type;
+  Arena* arena = GetArena();
   // Initialize oneof cases.
   int oneof_count = 0;
   for (int i = 0; i < descriptor->oneof_decl_count(); ++i) {
@@ -358,7 +365,7 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
   }
 
   if (type_info_->extensions_offset != -1) {
-    new (MutableExtensionsRaw()) ExtensionSet(GetArena());
+    new (MutableExtensionsRaw()) ExtensionSet(arena);
   }
   for (int i = 0; i < descriptor->field_count(); i++) {
     const FieldDescriptor* field = descriptor->field(i);
@@ -372,7 +379,7 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
     if (!field->is_repeated()) {                           \
       new (field_ptr) TYPE(field->default_value_##TYPE()); \
     } else {                                               \
-      new (field_ptr) RepeatedField<TYPE>(GetArena());     \
+      new (field_ptr) RepeatedField<TYPE>(arena);          \
     }                                                      \
     break;
 
@@ -389,7 +396,7 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
         if (!field->is_repeated()) {
           new (field_ptr) int{field->default_value_enum()->number()};
         } else {
-          new (field_ptr) RepeatedField<int>(GetArena());
+          new (field_ptr) RepeatedField<int>(arena);
         }
         break;
 
@@ -401,7 +408,7 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
               ArenaStringPtr* asp = new (field_ptr) ArenaStringPtr();
               asp->InitDefault();
             } else {
-              new (field_ptr) RepeatedPtrField<std::string>(GetArena());
+              new (field_ptr) RepeatedPtrField<std::string>(arena);
             }
             break;
         }
@@ -416,20 +423,20 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
             // when the constructor is called inside GetPrototype(), in which
             // case we have already locked the factory.
             if (lock_factory) {
-              if (GetArena() != nullptr) {
+              if (arena != nullptr) {
                 new (field_ptr) DynamicMapField(
                     type_info_->factory->GetPrototype(field->message_type()),
-                    GetArena());
+                    arena);
               } else {
                 new (field_ptr) DynamicMapField(
                     type_info_->factory->GetPrototype(field->message_type()));
               }
             } else {
-              if (GetArena() != nullptr) {
+              if (arena != nullptr) {
                 new (field_ptr)
                     DynamicMapField(type_info_->factory->GetPrototypeNoLock(
                                         field->message_type()),
-                                    GetArena());
+                                    arena);
               } else {
                 new (field_ptr)
                     DynamicMapField(type_info_->factory->GetPrototypeNoLock(
@@ -437,7 +444,7 @@ void DynamicMessage::SharedCtor(bool lock_factory) {
               }
             }
           } else {
-            new (field_ptr) RepeatedPtrField<Message>(GetArena());
+            new (field_ptr) RepeatedPtrField<Message>(arena);
           }
         }
         break;

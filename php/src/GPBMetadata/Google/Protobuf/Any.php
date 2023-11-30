@@ -17,11 +17,11 @@ class Any
         $pool->internalAddGeneratedFile(
             '
 Ô
-google/protobuf/any.protogoogle.protobuf"&
-Any
-type_url (	
-value (Bv
-com.google.protobufBAnyProtoPZ,google.golang.org/protobuf/types/known/anypb¢GPBªGoogle.Protobuf.WellKnownTypesbproto3'
+google/protobuf/any.protogoogle.protobufbproto3"&
+Any
+type_url (	
+value (BvP
+com.google.protobufBAnyProtoZ,google.golang.org/protobuf/types/known/anypb¢GPBªGoogle.Protobuf.WellKnownTypes'
         , true);
 
         static::$is_initialized = true;

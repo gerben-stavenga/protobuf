@@ -58,16 +58,18 @@ using internal::ReflectionOps;
 using internal::WireFormat;
 using internal::WireFormatLite;
 
+void Message::MergeImpl(MessageLite& to, const MessageLite& from) {
+  ReflectionOps::Merge(DownCast<const Message&>(from), DownCast<Message*>(&to));
+}
+
 void Message::MergeFrom(const Message& from) {
   auto* class_to = GetClassData();
   auto* class_from = from.GetClassData();
-  auto* merge_to_from = class_to ? class_to->merge_to_from : nullptr;
   if (class_to == nullptr || class_to != class_from) {
-    merge_to_from = [](Message& to, const Message& from) {
-      ReflectionOps::Merge(from, &to);
-    };
+    ReflectionOps::Merge(from, this);
+  } else {
+    class_to->merge_to_from(*this, from);
   }
-  merge_to_from(*this, from);
 }
 
 void Message::CheckTypeAndMergeFrom(const MessageLite& other) {
@@ -97,10 +99,6 @@ void Message::CopyFrom(const Message& from) {
         << from.GetDescriptor()->full_name();
     ReflectionOps::Copy(from, this);
   }
-}
-
-std::string Message::GetTypeName() const {
-  return GetDescriptor()->full_name();
 }
 
 void Message::Clear() { ReflectionOps::Clear(this); }
@@ -149,14 +147,7 @@ uint8_t* Message::_InternalSerialize(uint8_t* target,
 
 size_t Message::ByteSizeLong() const {
   size_t size = WireFormat::ByteSize(*this);
-
-  auto* cached_size = AccessCachedSize();
-  ABSL_CHECK(cached_size != nullptr)
-      << "Message class \"" << GetDescriptor()->full_name()
-      << "\" implements neither AccessCachedSize() nor ByteSizeLong().  "
-         "Must implement one or the other.";
-  cached_size->Set(internal::ToCachedSize(size));
-
+  AccessCachedSize().Set(internal::ToCachedSize(size));
   return size;
 }
 
@@ -179,8 +170,27 @@ size_t Message::MaybeComputeUnknownFieldsSize(
 }
 
 size_t Message::SpaceUsedLong() const {
-  return GetReflection()->SpaceUsedLong(*this);
+  auto* reflection = GetReflection();
+  if (PROTOBUF_PREDICT_TRUE(reflection != nullptr)) {
+    return reflection->SpaceUsedLong(*this);
+  }
+  // The only case that does not have reflection is RawMessage.
+  return internal::DownCast<const internal::RawMessageBase&>(*this)
+      .SpaceUsedLong();
 }
+
+static std::string GetTypeNameImpl(const MessageLite& msg) {
+  return DownCast<const Message&>(msg).GetDescriptor()->full_name();
+}
+
+static std::string InitializationErrorStringImpl(const MessageLite& msg) {
+  return DownCast<const Message&>(msg).InitializationErrorString();
+}
+
+constexpr MessageLite::DescriptorMethods Message::kDescriptorMethods = {
+    GetTypeNameImpl,
+    InitializationErrorStringImpl,
+};
 
 namespace internal {
 void* CreateSplitMessageGeneric(Arena* arena, const void* default_split,

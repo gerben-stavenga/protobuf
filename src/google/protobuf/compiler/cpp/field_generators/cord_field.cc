@@ -65,9 +65,6 @@ class CordFieldGenerator : public FieldGeneratorBase {
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateSwappingCode(io::Printer* printer) const override;
   void GenerateConstructorCode(io::Printer* printer) const override;
-#ifndef PROTOBUF_EXPLICIT_CONSTRUCTORS
-  void GenerateDestructorCode(io::Printer* printer) const override;
-#endif  // !PROTOBUF_EXPLICIT_CONSTRUCTORS
   void GenerateArenaDestructorCode(io::Printer* printer) const override;
   void GenerateSerializeWithCachedSizesToArray(
       io::Printer* printer) const override;
@@ -244,17 +241,6 @@ void CordFieldGenerator::GenerateConstructorCode(io::Printer* printer) const {
   }
 }
 
-#ifndef PROTOBUF_EXPLICIT_CONSTRUCTORS
-void CordFieldGenerator::GenerateDestructorCode(io::Printer* printer) const {
-  Formatter format(printer, variables_);
-  if (should_split()) {
-    // A cord field in the `Split` struct is automatically destroyed when the
-    // split pointer is deleted and should not be explicitly destroyed here.
-    return;
-  }
-  format("$field$.~Cord();\n");
-}
-#endif  // !PROTOBUF_EXPLICIT_CONSTRUCTORS
 
 void CordFieldGenerator::GenerateArenaDestructorCode(
     io::Printer* printer) const {
@@ -366,8 +352,9 @@ void CordOneofFieldGenerator::GenerateInlineAccessorDefinitions(
         clear_$oneof_name$();
         set_has_$name$();
         $field$ = new ::absl::Cord;
-        if (GetArena() != nullptr) {
-          GetArena()->Own($field$);
+        ::$proto_ns$::Arena* arena = GetArena();
+        if (arena != nullptr) {
+          arena->Own($field$);
         }
       }
       *$field$ = value;
@@ -386,8 +373,9 @@ void CordOneofFieldGenerator::GenerateInlineAccessorDefinitions(
         clear_$oneof_name$();
         set_has_$name$();
         $field$ = new ::absl::Cord;
-        if (GetArena() != nullptr) {
-          GetArena()->Own($field$);
+        ::$proto_ns$::Arena* arena = GetArena();
+        if (arena != nullptr) {
+          arena->Own($field$);
         }
       }
       *$field$ = value;
@@ -401,8 +389,9 @@ void CordOneofFieldGenerator::GenerateInlineAccessorDefinitions(
         clear_$oneof_name$();
         set_has_$name$();
         $field$ = new ::absl::Cord;
-        if (GetArena() != nullptr) {
-          GetArena()->Own($field$);
+        ::$proto_ns$::Arena* arena = GetArena();
+        if (arena != nullptr) {
+          arena->Own($field$);
         }
       }
       return $field$;

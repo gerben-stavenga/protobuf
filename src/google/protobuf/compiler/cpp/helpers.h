@@ -15,6 +15,7 @@
 #include <iterator>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/absl_check.h"
@@ -331,7 +332,7 @@ inline bool IsCord(const FieldDescriptor* field) {
          internal::cpp::EffectiveStringCType(field) == FieldOptions::CORD;
 }
 
-inline bool IsString(const FieldDescriptor* field, const Options& options) {
+inline bool IsString(const FieldDescriptor* field) {
   return field->cpp_type() == FieldDescriptor::CPPTYPE_STRING &&
          internal::cpp::EffectiveStringCType(field) == FieldOptions::STRING;
 }
@@ -355,8 +356,20 @@ float GetPresenceProbability(const FieldDescriptor* field,
 
 bool IsStringInliningEnabled(const Options& options);
 
-// Returns true if `field` should be inlined based on PDProto profile.
+// Returns true if the provided field is a singular string and can be inlined.
+bool CanStringBeInlined(const FieldDescriptor* field);
+
+// Returns true if `field` is a string field that can and should be inlined
+// based on PDProto profile.
 bool IsStringInlined(const FieldDescriptor* field, const Options& options);
+
+// Returns true if `field` should be inlined based on PDProto profile.
+// Currently we only enable inlining for string fields backed by a std::string
+// instance, but in the future we may expand this to message types.
+inline bool IsFieldInlined(const FieldDescriptor* field,
+                           const Options& options) {
+  return IsStringInlined(field, options);
+}
 
 // Does the given FileDescriptor use lazy fields?
 bool HasLazyFields(const FileDescriptor* file, const Options& options,
@@ -416,6 +429,10 @@ bool ShouldForceAllocationOnConstruction(const Descriptor* desc,
 
 // Returns true if the message is present based on PDProto profile.
 bool IsPresentMessage(const Descriptor* descriptor, const Options& options);
+
+// Returns the most likely present field. Returns nullptr if not profile driven.
+const FieldDescriptor* FindHottestField(
+    const std::vector<const FieldDescriptor*>& fields, const Options& options);
 
 // Does the file contain any definitions that need extension_set.h?
 bool HasExtensionsOrExtendableMessage(const FileDescriptor* file);
@@ -529,8 +546,8 @@ inline std::string MakeVarintCachedSizeFieldName(const FieldDescriptor* field,
 // while the two functions below use FileDescriptor::name(). In a sane world the
 // two approaches should be equivalent. But if you are dealing with descriptors
 // from untrusted sources, you might need to match semantics across libraries.
-bool IsAnyMessage(const FileDescriptor* descriptor, const Options& options);
-bool IsAnyMessage(const Descriptor* descriptor, const Options& options);
+bool IsAnyMessage(const FileDescriptor* descriptor);
+bool IsAnyMessage(const Descriptor* descriptor);
 
 bool IsWellKnownMessage(const FileDescriptor* descriptor);
 
@@ -611,6 +628,9 @@ inline std::vector<const Descriptor*> FlattenMessagesInFile(
   FlattenMessagesInFile(file, &result);
   return result;
 }
+
+std::vector<const Descriptor*> TopologicalSortMessagesInFile(
+    const FileDescriptor* file, MessageSCCAnalyzer& scc_analyzer);
 
 template <typename F>
 void ForEachMessage(const Descriptor* descriptor, F&& func) {

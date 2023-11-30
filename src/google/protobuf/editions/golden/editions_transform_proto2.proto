@@ -10,7 +10,7 @@ edition = "2023";
 // This file contains various edge cases we've collected from migrating real
 // protos in order to lock down the transformations.
 
-// LINT:ALLOW_GROUPS
+// LINT: ALLOW_GROUPS
 
 package protobuf_editions_test;
 
@@ -21,7 +21,6 @@ import "google/protobuf/editions/proto/editions_transform_proto3.proto";
 option features.enum_type = CLOSED;
 option features.repeated_field_encoding = EXPANDED;
 option features.utf8_validation = NONE;
-option features.json_format = LEGACY_BEST_EFFORT;
 option java_multiple_files = true;
 option cc_enable_arenas = true;
 
@@ -35,7 +34,7 @@ service EmptyService {
 }
 
 service BasicService {
-  rpc BasicMethod(EmptyMessage) returns (EmptyMessage);
+  rpc BasicMethod(EmptyMessage) returns (EmptyMessage) {}
 }
 
 // clang-format off

@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <type_traits>
 
 #include "absl/base/call_once.h"
 #include "absl/base/casts.h"
@@ -91,6 +92,9 @@ void InitializeFileDescriptorDefaultInstances() {
       (InitializeFileDescriptorDefaultInstancesSlow(), std::true_type{});
   (void)init;
 #endif  // !defined(PROTOBUF_CONSTINIT_DEFAULT_INSTANCES)
+}
+
+void InitializeLazyExtensionSet() {
 }
 
 bool ParseNamedEnum(const EnumDescriptor* descriptor, absl::string_view name,
@@ -1040,21 +1044,24 @@ void Reflection::SwapOneofField(Message* lhs, Message* rhs,
   }
 }
 
-void Reflection::Swap(Message* message1, Message* message2) const {
-  if (message1 == message2) return;
+void Reflection::Swap(Message* lhs, Message* rhs) const {
+  if (lhs == rhs) return;
+
+  Arena* lhs_arena = lhs->GetArena();
+  Arena* rhs_arena = rhs->GetArena();
 
   // TODO:  Other Reflection methods should probably check this too.
-  ABSL_CHECK_EQ(message1->GetReflection(), this)
+  ABSL_CHECK_EQ(lhs->GetReflection(), this)
       << "First argument to Swap() (of type \""
-      << message1->GetDescriptor()->full_name()
+      << lhs->GetDescriptor()->full_name()
       << "\") is not compatible with this reflection object (which is for type "
          "\""
       << descriptor_->full_name()
       << "\").  Note that the exact same class is required; not just the same "
          "descriptor.";
-  ABSL_CHECK_EQ(message2->GetReflection(), this)
+  ABSL_CHECK_EQ(rhs->GetReflection(), this)
       << "Second argument to Swap() (of type \""
-      << message2->GetDescriptor()->full_name()
+      << rhs->GetDescriptor()->full_name()
       << "\") is not compatible with this reflection object (which is for type "
          "\""
       << descriptor_->full_name()
@@ -1064,32 +1071,31 @@ void Reflection::Swap(Message* message1, Message* message2) const {
   // Check that both messages are in the same arena (or both on the heap). We
   // need to copy all data if not, due to ownership semantics.
 #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-  if (message1->GetArena() == nullptr ||
-      message1->GetArena() != message2->GetArena()) {
+  if (lhs_arena == nullptr || lhs_arena != rhs_arena) {
 #else   // PROTOBUF_FORCE_COPY_IN_SWAP
-  if (message1->GetArena() != message2->GetArena()) {
+  if (lhs_arena != rhs_arena) {
 #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
     // One of the two is guaranteed to have an arena.  Switch things around
-    // to guarantee that message1 has an arena.
-    Arena* arena = message1->GetArena();
+    // to guarantee that lhs has an arena.
+    Arena* arena = lhs_arena;
     if (arena == nullptr) {
-      arena = message2->GetArena();
-      std::swap(message1, message2);  // Swapping names for pointers!
+      arena = rhs_arena;
+      std::swap(lhs, rhs);  // Swapping names for pointers!
     }
 
-    Message* temp = message1->New(arena);
-    temp->MergeFrom(*message2);
-    message2->CopyFrom(*message1);
+    Message* temp = lhs->New(arena);
+    temp->MergeFrom(*rhs);
+    rhs->CopyFrom(*lhs);
 #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    message1->CopyFrom(*temp);
+    lhs->CopyFrom(*temp);
     if (arena == nullptr) delete temp;
 #else   // PROTOBUF_FORCE_COPY_IN_SWAP
-    Swap(message1, temp);
+    Swap(lhs, temp);
 #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
     return;
   }
 
-  UnsafeArenaSwap(message1, message2);
+  UnsafeArenaSwap(lhs, rhs);
 }
 
 template <bool unsafe_shallow_swap>
@@ -2314,27 +2320,34 @@ void Reflection::SetAllocatedMessage(Message* message, Message* sub_message,
   ABSL_DCHECK(sub_message == nullptr || sub_message->GetArena() == nullptr ||
               sub_message->GetArena() == message->GetArena());
 
+  if (sub_message == nullptr) {
+    UnsafeArenaSetAllocatedMessage(message, nullptr, field);
+    return;
+  }
+
+  Arena* arena = message->GetArena();
+  Arena* sub_arena = sub_message->GetArena();
+  if (arena == sub_arena) {
+    UnsafeArenaSetAllocatedMessage(message, sub_message, field);
+    return;
+  }
+
   // If message and sub-message are in different memory ownership domains
   // (different arenas, or one is on heap and one is not), then we may need to
   // do a copy.
-  if (sub_message != nullptr &&
-      sub_message->GetArena() != message->GetArena()) {
-    if (sub_message->GetArena() == nullptr && message->GetArena() != nullptr) {
-      // Case 1: parent is on an arena and child is heap-allocated. We can add
-      // the child to the arena's Own() list to free on arena destruction, then
-      // set our pointer.
-      message->GetArena()->Own(sub_message);
-      UnsafeArenaSetAllocatedMessage(message, sub_message, field);
-    } else {
-      // Case 2: all other cases. We need to make a copy. MutableMessage() will
-      // either get the existing message object, or instantiate a new one as
-      // appropriate w.r.t. our arena.
-      Message* sub_message_copy = MutableMessage(message, field);
-      sub_message_copy->CopyFrom(*sub_message);
-    }
-  } else {
-    // Same memory ownership domains.
+  if (sub_arena == nullptr) {
+    ABSL_DCHECK_NE(arena, nullptr);
+    // Case 1: parent is on an arena and child is heap-allocated. We can add
+    // the child to the arena's Own() list to free on arena destruction, then
+    // set our pointer.
+    arena->Own(sub_message);
     UnsafeArenaSetAllocatedMessage(message, sub_message, field);
+  } else {
+    // Case 2: all other cases. We need to make a copy. MutableMessage() will
+    // either get the existing message object, or instantiate a new one as
+    // appropriate w.r.t. our arena.
+    Message* sub_message_copy = MutableMessage(message, field);
+    sub_message_copy->CopyFrom(*sub_message);
   }
 }
 
@@ -3202,8 +3215,19 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTableReflectionOnly()
   // `operator delete` unconditionally.
   void* p = ::operator new(sizeof(Table));
   auto* full_table = ::new (p)
-      Table{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, schema_.default_instance_, nullptr},
+      Table{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, schema_.default_instance_, nullptr
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+             ,
+             nullptr
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+            },
             {{{&internal::TcParser::ReflectionParseLoop, {}}}}};
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+  // We'll prefetch `to_prefetch->to_prefetch` unconditionally to avoid
+  // branches. Here we don't know which field is the hottest, so set the pointer
+  // to itself to avoid nullptr.
+  full_table->header.to_prefetch = &full_table->header;
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   ABSL_DCHECK_EQ(static_cast<void*>(&full_table->header),
                  static_cast<void*>(full_table));
   return &full_table->header;
@@ -3403,6 +3427,7 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTable() const {
       {
           /* is_lite */ false,
           /* uses_codegen */ false,
+          /* should_profile_driven_cluster_aux_table */ false,
       },
       ReflectionOptionProvider(*this), has_bit_indices, inlined_string_indices);
 
@@ -3437,7 +3462,18 @@ const internal::TcParseTableBase* Reflection::CreateTcParseTable() const {
       static_cast<uint16_t>(table_info.aux_entries.size()),
       aux_offset,
       schema_.default_instance_,
-      &internal::TcParser::ReflectionFallback};
+      &internal::TcParser::ReflectionFallback
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+      ,
+      nullptr
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+  };
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+  // We'll prefetch `to_prefetch->to_prefetch` unconditionally to avoid
+  // branches. Here we don't know which field is the hottest, so set the pointer
+  // to itself to avoid nullptr.
+  res->to_prefetch = res;
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
 
   // Now copy the rest of the payloads
   PopulateTcParseFastEntries(table_info, res->fast_entry(0));
@@ -3649,6 +3685,7 @@ void AddDescriptorsImpl(const DescriptorTable* table) {
   // Reflection refers to the default fields so make sure they are initialized.
   internal::InitProtobufDefaults();
   internal::InitializeFileDescriptorDefaultInstances();
+  internal::InitializeLazyExtensionSet();
 
   // Ensure all dependent descriptors are registered to the generated descriptor
   // pool and message factory.

@@ -73,15 +73,6 @@
 #define PROTOBUF_has_warning_DEFINED_
 #endif
 
-#ifdef ADDRESS_SANITIZER
-#include <sanitizer/asan_interface.h>
-#define PROTOBUF_POISON_MEMORY_REGION(p, n) ASAN_POISON_MEMORY_REGION(p, n)
-#define PROTOBUF_UNPOISON_MEMORY_REGION(p, n) ASAN_UNPOISON_MEMORY_REGION(p, n)
-#else  // ADDRESS_SANITIZER
-#define PROTOBUF_POISON_MEMORY_REGION(p, n)
-#define PROTOBUF_UNPOISON_MEMORY_REGION(p, n)
-#endif  // ADDRESS_SANITIZER
-
 // Portable PROTOBUF_BUILTIN_BSWAPxx definitions
 // Code must check for availability, e.g.: `defined(PROTOBUF_BUILTIN_BSWAP32)`
 #ifdef PROTOBUF_BUILTIN_BSWAP16
@@ -201,20 +192,12 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 
 #endif
 
+// Defines the Protobuf C++ Version for checking version compatibility at
+// compilation time.
 #ifdef PROTOBUF_VERSION
 #error PROTOBUF_VERSION was previously defined
 #endif
-#define PROTOBUF_VERSION 4024000
-
-#ifdef PROTOBUF_MIN_HEADER_VERSION_FOR_PROTOC
-#error PROTOBUF_MIN_HEADER_VERSION_FOR_PROTOC was previously defined
-#endif
-#define PROTOBUF_MIN_HEADER_VERSION_FOR_PROTOC 4024000
-
-#ifdef PROTOBUF_MIN_PROTOC_VERSION
-#error PROTOBUF_MIN_PROTOC_VERSION was previously defined
-#endif
-#define PROTOBUF_MIN_PROTOC_VERSION 4024000
+#define PROTOBUF_VERSION 4026000
 
 #ifdef PROTOBUF_VERSION_SUFFIX
 #error PROTOBUF_VERSION_SUFFIX was previously defined
@@ -311,64 +294,6 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 #define PROTOBUF_TAILCALL false
 #endif
 
-#ifdef PROTOBUF_EXCLUSIVE_LOCKS_REQUIRED
-#error PROTOBUF_EXCLUSIVE_LOCKS_REQUIRED was previously defined
-#endif
-#if ABSL_HAVE_ATTRIBUTE(exclusive_locks_required)
-#define PROTOBUF_EXCLUSIVE_LOCKS_REQUIRED(...) \
-  __attribute__((exclusive_locks_required(__VA_ARGS__)))
-#else
-#define PROTOBUF_EXCLUSIVE_LOCKS_REQUIRED(...)
-#endif
-
-#ifdef PROTOBUF_NO_THREAD_SAFETY_ANALYSIS
-#error PROTOBUF_NO_THREAD_SAFETY_ANALYSIS was previously defined
-#endif
-#if ABSL_HAVE_ATTRIBUTE(no_thread_safety_analysis)
-#define PROTOBUF_NO_THREAD_SAFETY_ANALYSIS \
-  __attribute__((no_thread_safety_analysis))
-#else
-#define PROTOBUF_NO_THREAD_SAFETY_ANALYSIS
-#endif
-
-#ifdef PROTOBUF_GUARDED_BY
-#error PROTOBUF_GUARDED_BY was previously defined
-#endif
-#if ABSL_HAVE_ATTRIBUTE(guarded_by)
-#define PROTOBUF_GUARDED_BY(x) __attribute__((guarded_by(x)))
-#else
-#define PROTOBUF_GUARDED_BY(x)
-#endif
-
-#ifdef PROTOBUF_LOCKS_EXCLUDED
-#error PROTOBUF_LOCKS_EXCLUDED was previously defined
-#endif
-#if ABSL_HAVE_ATTRIBUTE(locks_excluded)
-#define PROTOBUF_LOCKS_EXCLUDED(...) \
-  __attribute__((locks_excluded(__VA_ARGS__)))
-#else
-#define PROTOBUF_LOCKS_EXCLUDED(...)
-#endif
-
-#ifdef PROTOBUF_COLD
-#error PROTOBUF_COLD was previously defined
-#endif
-#if ABSL_HAVE_ATTRIBUTE(cold) || defined(__GNUC__)
-# define PROTOBUF_COLD __attribute__((cold))
-#else
-# define PROTOBUF_COLD
-#endif
-
-#ifdef PROTOBUF_SECTION_VARIABLE
-#error PROTOBUF_SECTION_VARIABLE was previously defined
-#endif
-#if (ABSL_HAVE_ATTRIBUTE(section) || defined(__GNUC__)) && defined(__ELF__)
-// Place a variable in the given ELF section.
-# define PROTOBUF_SECTION_VARIABLE(x) __attribute__((section(#x)))
-#else
-# define PROTOBUF_SECTION_VARIABLE(x)
-#endif
-
 #if defined(__clang__)
 #define PROTOBUF_IGNORE_DEPRECATION_START                     \
   _Pragma("clang diagnostic push")                                  \
@@ -385,28 +310,6 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 #define PROTOBUF_IGNORE_DEPRECATION_START
 #define PROTOBUF_IGNORE_DEPRECATION_STOP
 #endif
-
-#ifdef PROTOBUF_RETURNS_NONNULL
-#error PROTOBUF_RETURNS_NONNULL was previously defined
-#endif
-#if ABSL_HAVE_ATTRIBUTE(returns_nonnull) || defined(__GNUC__)
-#define PROTOBUF_RETURNS_NONNULL __attribute__((returns_nonnull))
-#else
-#define PROTOBUF_RETURNS_NONNULL
-#endif
-
-#ifdef PROTOBUF_ATTRIBUTE_REINITIALIZES
-#error PROTOBUF_ATTRIBUTE_REINITIALIZES was previously defined
-#endif
-#if ABSL_HAVE_CPP_ATTRIBUTE(clang::reinitializes)
-#define PROTOBUF_ATTRIBUTE_REINITIALIZES [[clang::reinitializes]]
-#else
-#define PROTOBUF_ATTRIBUTE_REINITIALIZES
-#endif
-
-// The minimum library version which works with the current version of the
-// headers.
-#define GOOGLE_PROTOBUF_MIN_LIBRARY_VERSION 4024000
 
 #ifdef PROTOBUF_RTTI
 #error PROTOBUF_RTTI was previously defined
@@ -572,30 +475,8 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 #error PROTOBUF_FORCE_COPY_DEFAULT_STRING was previously defined
 #endif
 
-// Set (and leave set) PROTOBUF_EXPLICIT_CONSTRUCTORS
-// This flag changes the internal implementation class and its uses from using
-// aggregate initialization to using explicit constructor based initialization.
-// TODO: remove this flag and make the code permanent.
-#ifndef PROTOBUF_EXPLICIT_CONSTRUCTORS
-#define PROTOBUF_EXPLICIT_CONSTRUCTORS
-#endif
-
 #ifdef PROTOBUF_FORCE_ALLOCATION_ON_CONSTRUCTION
 #error PROTOBUF_FORCE_ALLOCATION_ON_CONSTRUCTION was previously defined
-#endif
-
-#ifdef PROTOBUF_FALLTHROUGH_INTENDED
-#error PROTOBUF_FALLTHROUGH_INTENDED was previously defined
-#endif
-#if ABSL_HAVE_CPP_ATTRIBUTE(fallthrough)
-#define PROTOBUF_FALLTHROUGH_INTENDED [[fallthrough]]
-#elif ABSL_HAVE_FEATURE(cxx_attributes) && \
-    __has_warning("-Wimplicit-fallthrough")
-#define PROTOBUF_FALLTHROUGH_INTENDED [[clang::fallthrough]]
-#elif defined(__GNUC__)
-#define PROTOBUF_FALLTHROUGH_INTENDED [[gnu::fallthrough]]
-#else
-#define PROTOBUF_FALLTHROUGH_INTENDED
 #endif
 
 // Specify memory alignment for structs, classes, etc.
@@ -643,22 +524,6 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 #define PROTOBUF_THREAD_LOCAL __declspec(thread)
 #else
 #define PROTOBUF_THREAD_LOCAL __thread
-#endif
-
-// TODO: cleanup PROTOBUF_LITTLE_ENDIAN in various 3p forks.
-#if (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
-     __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-#define PROTOBUF_LITTLE_ENDIAN 1
-#ifdef PROTOBUF_BIG_ENDIAN
-#error Conflicting PROTOBUF_BIG_ENDIAN was previously defined
-#endif
-#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && \
-    __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define PROTOBUF_BIG_ENDIAN 1
-#elif defined(_WIN32) || defined(__x86_64__) || defined(__aarch64__)
-#define PROTOBUF_LITTLE_ENDIAN 1
-#else
-#error "endian detection failed for current compiler"
 #endif
 
 #ifdef PROTOBUF_CONSTINIT
@@ -806,7 +671,21 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 #    define PROTOBUF_TSAN 1
 #  endif
 #  endif
+#  ifdef __SANITIZE_MEMORY__
+#  if    __SANITIZE_MEMORY__
+#    define PROTOBUF_ASAN 1
+#  endif
+#  endif
 #endif
+
+#ifdef PROTOBUF_ASAN
+#include <sanitizer/asan_interface.h>
+#define PROTOBUF_POISON_MEMORY_REGION(p, n) ASAN_POISON_MEMORY_REGION(p, n)
+#define PROTOBUF_UNPOISON_MEMORY_REGION(p, n) ASAN_UNPOISON_MEMORY_REGION(p, n)
+#else  // PROTOBUF_ASAN
+#define PROTOBUF_POISON_MEMORY_REGION(p, n)
+#define PROTOBUF_UNPOISON_MEMORY_REGION(p, n)
+#endif  // PROTOBUF_ASAN
 
 #ifdef PROTOBUF_TSAN_READ
 #error PROTOBUF_TSAN_READ was previously defined
@@ -873,7 +752,20 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 #define PROTOBUF_BUILTIN_CONSTANT_P(x) false
 #endif
 
+
+// TODO: Enable the feature by default and remove this flag.
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+#error PROTOBUF_PREFETCH_PARSE_TABLE was previously defined
+#endif
+
 // ThreadSafeArenaz is turned off completely in opensource builds.
+
+// noreturn is defined as a macro in C's stdnoreturn.h
+#ifdef noreturn
+#define PROTOBUF_DID_UNDEF_noreturn
+#pragma push_macro("noreturn")
+#undef noreturn
+#endif
 
 // autoheader defines this in some circumstances
 #ifdef PACKAGE
@@ -1103,8 +995,9 @@ static_assert(PROTOBUF_ABSL_MIN(20230125, 3),
 namespace google {
 namespace protobuf {
 namespace internal {
-PROTOBUF_EXPORT void protobuf_assumption_failed(const char *pred,
-                                                const char *file, int line);
+[[noreturn]] PROTOBUF_EXPORT void protobuf_assumption_failed(const char *pred,
+                                                             const char *file,
+                                                             int line);
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google

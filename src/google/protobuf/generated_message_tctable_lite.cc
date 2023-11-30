@@ -18,6 +18,7 @@
 #include "absl/log/absl_check.h"
 #include "absl/log/absl_log.h"
 #include "absl/numeric/bits.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "google/protobuf/generated_message_tctable_decl.h"
 #include "google/protobuf/generated_message_tctable_impl.h"
@@ -26,6 +27,7 @@
 #include "google/protobuf/map.h"
 #include "google/protobuf/message_lite.h"
 #include "google/protobuf/parse_context.h"
+#include "google/protobuf/port.h"
 #include "google/protobuf/repeated_field.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "google/protobuf/varint_shuffle.h"
@@ -128,7 +130,7 @@ const TcParseTableBase::FieldEntry* TcParser::FindFieldEntry(
   }
   const uint16_t* lookup_table = table->field_lookup_begin();
   for (;;) {
-#ifdef PROTOBUF_LITTLE_ENDIAN
+#ifdef ABSL_IS_LITTLE_ENDIAN
     memcpy(&fstart, lookup_table, sizeof(fstart));
 #else
     fstart = lookup_table[0] | (lookup_table[1] << 16);
@@ -787,14 +789,14 @@ PROTOBUF_NOINLINE const char* TcParser::MpRepeatedVarint(
               is_split, uint32_t, (is_split ? 0 : field_layout::kTvRange)>(
               msg, ptr, ctx, table, data);
         default:
-          PROTOBUF_ASSUME(false);
+          Unreachable();
       }
     case field_layout::kRep8Bits >> field_layout::kRepShift:
       return MpRepeatedVarintT<is_split, bool, 0>(
           msg, ptr, ctx, table, data);
 
     default:
-      PROTOBUF_ASSUME(false);
+      Unreachable();
       return nullptr;  // To silence -Werror=return-type in some toolchains
   }
 }
@@ -880,14 +882,14 @@ PROTOBUF_NOINLINE const char* TcParser::MpPackedVarint(MessageLite *msg, const c
               is_split, uint32_t, (is_split ? 0 : field_layout::kTvRange)>(
               msg, ptr, ctx, table, data);
         default:
-          PROTOBUF_ASSUME(false);
+          Unreachable();
       }
     case field_layout::kRep8Bits >> field_layout::kRepShift:
       return MpPackedVarintT<is_split, bool, 0>(
           msg, ptr, ctx, table, data);
 
     default:
-      PROTOBUF_ASSUME(false);
+      Unreachable();
       return nullptr;  // To silence -Werror=return-type in some toolchains
   }
 }
@@ -988,7 +990,7 @@ PROTOBUF_NOINLINE const char* TcParser::MpString(MessageLite *msg, const char *p
     }
 
     default:
-      PROTOBUF_ASSUME(false);
+      Unreachable();
   }
 
   if (PROTOBUF_PREDICT_FALSE(ptr == nullptr || !is_valid)) {
@@ -1197,8 +1199,7 @@ const char* TcParser::MpRepeatedMessageOrGroup(MessageLite *msg, const char *ptr
     const char* ptr2 = ptr;
     uint32_t next_tag;
     do {
-      MessageLite* value =
-          field.template Add<GenericTypeHandler<MessageLite>>(default_instance);
+      MessageLite* value = field.AddMessage(default_instance);
       ptr = is_group ? ctx->ParseGroup<TcParser>(value, ptr2, decoded_tag,
                                                  inner_table)
                      : ctx->ParseMessage<TcParser>(value, ptr2, inner_table);
@@ -1219,8 +1220,7 @@ const char* TcParser::MpRepeatedMessageOrGroup(MessageLite *msg, const char *ptr
     const char* ptr2 = ptr;
     uint32_t next_tag;
     do {
-      MessageLite* value =
-          field.template Add<GenericTypeHandler<MessageLite>>(default_instance);
+      MessageLite* value = field.AddMessage(default_instance);
       ptr = is_group ? ctx->ParseGroup(value, ptr2, decoded_tag)
                      : ctx->ParseMessage(value, ptr2);
       if (PROTOBUF_PREDICT_FALSE(ptr == nullptr)) goto error;
@@ -1276,7 +1276,7 @@ static void SerializeMapKey(const NodeBase* node, MapTypeCard type_card,
           }
           break;
         default:
-          PROTOBUF_ASSUME(false);
+          Unreachable();
       }
       break;
     case WireFormatLite::WIRETYPE_FIXED32:
@@ -1295,7 +1295,7 @@ static void SerializeMapKey(const NodeBase* node, MapTypeCard type_card,
           &coded_output);
       break;
     default:
-      PROTOBUF_ASSUME(false);
+      Unreachable();
   }
 }
 
@@ -1340,7 +1340,7 @@ PROTOBUF_ALWAYS_INLINE inline void TcParser::InitializeMapNodeEntry(
       aux[1].create_in_arena(map.arena(), reinterpret_cast<MessageLite*>(obj));
       break;
     default:
-      PROTOBUF_ASSUME(false);
+      Unreachable();
   }
 }
 
@@ -1434,7 +1434,7 @@ const char* TcParser::ParseOneMapEntry(
             memcpy(obj, &tmp, sizeof(tmp));
             continue;
           default:
-            PROTOBUF_ASSUME(false);
+            Unreachable();
         }
       case WFL::WIRETYPE_FIXED32:
         ptr = ReadFixed<uint32_t>(obj, ptr);
@@ -1470,7 +1470,7 @@ const char* TcParser::ParseOneMapEntry(
           continue;
         }
       default:
-        PROTOBUF_ASSUME(false);
+        Unreachable();
     }
   }
   return ptr;
@@ -1545,7 +1545,7 @@ PROTOBUF_NOINLINE const char* TcParser::MpMap(MessageLite *msg, const char *ptr,
                     static_cast<KeyMapBase<std::string>::KeyNode*>(node));
             break;
           default:
-            PROTOBUF_ASSUME(false);
+            Unreachable();
         }
       }
     }
@@ -2001,7 +2001,7 @@ parse_submessage:
     } else {
       auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
       while (true) {
-        auto child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
+        auto child = field.AddMessage(child_table->default_instance);
         ptr = MiniParseLoop(child, ptr, ctx, child_table, value);
         if (ptr == nullptr) return nullptr;
         if (!ctx->DataAvailable(ptr)) break;
@@ -2046,229 +2046,137 @@ unusual_end:
   return ptr;
 }
 
-struct StackEntry {
-  MessageLite* msg;
-  const TcParseTableBase* table;
-  ptrdiff_t limit_delta;
-  uint32_t groupend;
-};
+std::string TypeCardToString(uint16_t type_card) {
+  // In here we convert the runtime value of entry.type_card back into a
+  // sequence of literal enum labels. We use the mnenonic labels for nicer
+  // codegen.
+  namespace fl = internal::field_layout;
+  const int rep_index = (type_card & fl::kRepMask) >> fl::kRepShift;
+  const int tv_index = (type_card & fl::kTvMask) >> fl::kTvShift;
 
-#if 0
-const char* TcParser::MiniParseLoopIt(MessageLite* msg, const char* ptr, ParseContext* const ctx, const TcParseTableBase* table) {
-    using FFE = TcParseTableBase::FastFieldEntry;
-    // TODO move into ParseContext
-    char dummy[8] = {};
-    char has_dummy[8] = {};
-    Arena* arena = msg->GetArena();
+  static constexpr const char* kFieldCardNames[] = {"Singular", "Optional",
+                                                    "Repeated", "Oneof"};
+  static_assert((fl::kFcSingular >> fl::kFcShift) == 0, "");
+  static_assert((fl::kFcOptional >> fl::kFcShift) == 1, "");
+  static_assert((fl::kFcRepeated >> fl::kFcShift) == 2, "");
+  static_assert((fl::kFcOneof >> fl::kFcShift) == 3, "");
 
-    constexpr int kMax = 20;
-    StackEntry stack[kMax + 1];
-    intptr_t d = kMax;
-    stack[d].msg = msg;
-    stack[d].table = table;
-    stack[d].limit_delta = 0;
-    stack[d].groupend = 0;
+  std::string out;
 
-start:
-    ptrdiff_t limit = ctx->limit_;
+  absl::StrAppend(&out, "::_fl::kFc",
+                  kFieldCardNames[(type_card & fl::kFcMask) >> fl::kFcShift]);
 
-    auto sync = [&]() {
-      ctx->limit_ = limit;
-      ctx->limit_end_ = ctx->buffer_end_ + std::min<ptrdiff_t>(0, limit);
-    };
+#define PROTOBUF_INTERNAL_TYPE_CARD_CASE(x)  \
+  case fl::k##x:                             \
+    absl::StrAppend(&out, " | ::_fl::k" #x); \
+    break
 
-    while (ptr < ctx->buffer_end_) {
-      ptrdiff_t delta = ptr - ctx->buffer_end_;
-      if (delta > limit) return nullptr;
-      if (delta == limit) d++;
-      if (d > kMax) return ptr;
-      limit += stack[d].limit_delta;
-      stack[d].limit_delta = 0;
-      msg = stack[d].msg; table = stack[d].table;
-      ABSL_CHECK(delta < limit);
-
-      uint32_t wt = UnalignedLoad<uint16_t>(ptr) & 7;
-      uint64_t value;
-      uint32_t tag = FastDecodeTag(&ptr, &value);
-      if (ptr == nullptr) return nullptr;
-      if (ABSL_PREDICT_FALSE(wt == 4)) {
-unusual_end:
-        if (d == kMax) {
-          ctx->SetLastTag(tag);
-          return ptr;
-        }
-        if (tag != stack[d].groupend) return nullptr;
-        d++;
-        continue;
+  switch (type_card & fl::kFkMask) {
+    case fl::kFkString: {
+      switch (type_card & ~fl::kFcMask & ~fl::kRepMask & ~fl::kSplitMask) {
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Bytes);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(RawString);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Utf8String);
+        default:
+          ABSL_LOG(FATAL) << "Unknown type_card: 0x" << type_card;
       }
 
-      auto idx = (tag >> 3) - 1;
-      const TcParseTableBase::FieldEntry* entry;
-      if (ABSL_PREDICT_FALSE(idx >= table->num_fast_fields)) {
-        if (tag == 0) goto unusual_end;
-unusual:
-        entry = nullptr;
-with_entry:
-        sync();
-        ptr = MiniParseFallback(msg, ptr, ctx, table, entry, tag);
-        limit = ctx->limit_;
-        if (ptr == nullptr) return nullptr;
-        continue;
+      static constexpr const char* kRepNames[] = {"AString", "IString", "Cord",
+                                                  "SPiece", "SString"};
+      static_assert((fl::kRepAString >> fl::kRepShift) == 0, "");
+      static_assert((fl::kRepIString >> fl::kRepShift) == 1, "");
+      static_assert((fl::kRepCord >> fl::kRepShift) == 2, "");
+      static_assert((fl::kRepSPiece >> fl::kRepShift) == 3, "");
+      static_assert((fl::kRepSString >> fl::kRepShift) == 4, "");
+
+      absl::StrAppend(&out, " | ::_fl::kRep", kRepNames[rep_index]);
+      break;
+    }
+
+    case fl::kFkMessage: {
+      absl::StrAppend(&out, " | ::_fl::kMessage");
+
+      static constexpr const char* kRepNames[] = {nullptr, "Group", "Lazy"};
+      static_assert((fl::kRepGroup >> fl::kRepShift) == 1, "");
+      static_assert((fl::kRepLazy >> fl::kRepShift) == 2, "");
+
+      if (auto* rep = kRepNames[rep_index]) {
+        absl::StrAppend(&out, " | ::_fl::kRep", rep);
       }
-      auto fd = table->fast_entry(idx)->bits;
-      if (ABSL_PREDICT_FALSE((fd & FFE::kCardMask) == FFE::kFallback)) {
-        if (ABSL_PREDICT_FALSE(fd == 0x1F)) goto unusual;
-        entry = table->field_entries_begin() + (fd >> 5); 
-        goto with_entry;
+
+      static constexpr const char* kXFormNames[2][4] = {
+          {nullptr, "Default", "Table", "WeakPtr"}, {nullptr, "Eager", "Lazy"}};
+
+      static_assert((fl::kTvDefault >> fl::kTvShift) == 1, "");
+      static_assert((fl::kTvTable >> fl::kTvShift) == 2, "");
+      static_assert((fl::kTvWeakPtr >> fl::kTvShift) == 3, "");
+      static_assert((fl::kTvEager >> fl::kTvShift) == 1, "");
+      static_assert((fl::kTvLazy >> fl::kTvShift) == 2, "");
+
+      if (auto* xform = kXFormNames[rep_index == 2][tv_index]) {
+        absl::StrAppend(&out, " | ::_fl::kTv", xform);
       }
-      if (wt != (fd & 7)) goto unusual;
-      if (wt == 2) {
-        switch (__builtin_expect(fd & FFE::kRepMask, FFE::kRepBytes)) {
-          case FFE::kRepBytes:
-            break;
-          case FFE::kRepMessage: {
-            auto sz = FastReadSize(&ptr, value);
-            if (ptr == nullptr) return nullptr;
-            value = limit;
-            limit = ptr - ctx->buffer_end_ + sz;
-            value -= limit;
-            if (value == 0) {
-              d++;
-            } else {
-              stack[d].limit_delta = value;
-            }
-            tag = 0;
-            // TODO: this check is necessary to prevent negative size to immitate a group end
-            // A test is failing because it expects presence of a submsg after a failed parse.
-            // if (static_cast<int64_t>(value) < 0) return nullptr;
-            goto parse_submessage;
-          }
-          case FFE::kRepPackedFixed: {
-            goto unusual;
-          }
-          case FFE::kRepPackedVarint: {
-            goto unusual;
-          }
-          default:
-            break;
-        }
-        absl::string_view sv;
-        sync();
-        if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
-          SetHasBit(msg, fd, has_dummy);
-          auto& field = RefAt<ArenaStringPtr>(msg, fd >> FFE::kOffsetShift);
-          if (arena) {
-            ptr = ctx->ReadArenaString(ptr, &field, arena);
-          } else {
-            auto sz = ReadSize(&ptr);
-            if (ptr == nullptr) return nullptr;
-            ptr = ctx->ReadString(ptr, sz, field.MutableNoCopy(nullptr));
-          }
-          sv = field.Get();
-        } else {
-          auto& field = RefAt<RepeatedPtrField<std::string>>(msg, fd >> FFE::kOffsetShift);
-          auto sz = ReadSize(&ptr);
-          if (ptr == nullptr) return nullptr;
-          auto s = field.Add();
-          ptr = ctx->ReadString(ptr, sz, s);
-          sv = *s;
-        }
-        limit = ctx->limit_;
-        if (ptr == nullptr) return nullptr;
-#ifdef NDEBUG
-        constexpr bool kUtf8Debug = false;
-#else
-        constexpr bool kUtf8Debug = true;
-#endif
-        if (((fd & FFE::kTransformMask) != FFE::kBytes && kUtf8Debug) ||
-            ((fd & FFE::kTransformMask) == FFE::kUtf8 && !kUtf8Debug)) { 
-          if (ABSL_PREDICT_FALSE(!utf8_range::IsStructurallyValid(sv))) {
-            ReportFastUtf8Error(tag, table);
-            if ((fd & FFE::kTransformMask) == FFE::kUtf8) return nullptr;
-          }
-        }
-        continue;
-      } else {
-        if (ABSL_PREDICT_FALSE(wt == 3)) {
-          ABSL_DCHECK((fd & FFE::kRepMask) == FFE::kRepMessage);
-          // value = ~static_cast<uint64_t>(tag + 1);
-          // ctx->IncGroupDepth();
-          goto parse_submessage;
-        }
-        ptr = ParseScalarBranchless(ptr, wt, value);
-        if (ptr == nullptr) return ptr;
-        if (fd & FFE::kZigZag) value = WireFormatLite::ZigZagDecode64(value);
-        if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
-          SetHasBit(msg, fd, has_dummy);
-        } else {
-          auto end = ctx->buffer_end_ + std::min<ptrdiff_t>(0, limit);
-          if ((fd & FFE::kRepMask) == FFE::kRepBool) {
-            auto& field = RefAt<RepeatedField<bool>>(msg, fd >> FFE::kOffsetShift);
-            ptr = MplRepeatedVarint(ptr, end, field, false, tag, value);
-          } else if ((fd & FFE::kRepMask) == FFE::kRep32Bit) {
-            auto& field = RefAt<RepeatedField<uint32_t>>(msg, fd >> FFE::kOffsetShift);
-            if ((tag & 1) == 0) {
-              bool zigzag = fd & FFE::kZigZag;
-              ptr = MplRepeatedVarint(ptr, end, field, zigzag, tag, value);
-            } else {
-              ptr = MplRepeatedFixed(ptr, end, field, tag, value);
-            }
-          } else {
-            auto& field = RefAt<RepeatedField<uint64_t>>(msg, fd >> FFE::kOffsetShift);
-            if ((tag & 1) == 0) {
-              bool zigzag = fd & FFE::kZigZag;
-              ptr = MplRepeatedVarint(ptr, end, field, zigzag, tag, value);
-            } else {
-              ptr = MplRepeatedFixed(ptr, end, field, tag, value);
-            }
-          }
-          if (ptr == nullptr) return nullptr;
-          continue;
-        }
-        Store(value, msg, fd, dummy);
-        continue;
+      break;
+    }
+
+    case fl::kFkMap:
+      absl::StrAppend(&out, " | ::_fl::kMap");
+      break;
+
+    case fl::kFkNone:
+      break;
+
+    case fl::kFkVarint:
+    case fl::kFkPackedVarint:
+    case fl::kFkFixed:
+    case fl::kFkPackedFixed: {
+      switch (type_card & ~fl::kFcMask & ~fl::kSplitMask) {
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Bool);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Fixed32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(UInt32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(SFixed32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Int32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(SInt32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Float);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Enum);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(EnumRange);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(OpenEnum);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Fixed64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(UInt64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(SFixed64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Int64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(SInt64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(Double);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedBool);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedFixed32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedUInt32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedSFixed32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedInt32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedSInt32);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedFloat);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedEnum);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedEnumRange);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedOpenEnum);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedFixed64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedUInt64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedSFixed64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedInt64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedSInt64);
+        PROTOBUF_INTERNAL_TYPE_CARD_CASE(PackedDouble);
+        default:
+          ABSL_LOG(FATAL) << "Unknown type_card: 0x" << type_card;
       }
-parse_submessage:
-      {
-        auto entry_idx = fd >> FFE::kOffsetShift;
-        auto entry = table->field_entries_begin() + entry_idx;
-        auto child_table = table->field_aux(entry->aux_idx)->table;
-        auto offset = entry->offset;
-        MessageLite* child;
-        if (ABSL_PREDICT_TRUE((fd & FFE::kCardMask) <= FFE::kOptional)) {
-          SetHasBit(msg, fd, has_dummy);
-          auto& field = RefAt<MessageLite*>(msg, offset);
-          if (field == nullptr) {
-            field = child_table->default_instance->New(arena);
-          }
-          child = field;
-        } else {
-          auto& field = RefAt<RepeatedPtrFieldBase>(msg, offset);
-          child = field.template Add<GenericTypeHandler<MessageLite>>(child_table->default_instance);
-        }
-        if (d == 0) return nullptr;
-        d--;
-        stack[d].limit_delta = 0;
-        stack[d].msg = child;
-        stack[d].table = child_table;
-        stack[d].groupend = tag + 1;
-        continue;
-      }
-    }  // while
-    if (ptr == nullptr) return nullptr;
-    auto delta = ptr - ctx->buffer_end_;
-    ABSL_DCHECK(delta >= 0);
-    if (delta > limit) return nullptr;
-    if (delta == limit) d++;
-    if (d > kMax) return ptr;
-    limit += stack[d].limit_delta;
-    stack[d].limit_delta = 0;
-    sync();
-    if (!ctx->Done(&ptr)) goto start;
-    if (d != kMax) return nullptr;
-    return ptr;    
+    }
+  }
+
+  if (type_card & fl::kSplitMask) {
+    absl::StrAppend(&out, " | ::_fl::kSplitTrue");
+  }
+
+#undef PROTOBUF_INTERNAL_TYPE_CARD_CASE
+
+  return out;
 }
-#endif
 
 }  // namespace internal
 }  // namespace protobuf

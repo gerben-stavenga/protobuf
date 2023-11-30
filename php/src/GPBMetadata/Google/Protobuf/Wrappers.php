@@ -17,30 +17,30 @@ class Wrappers
         $pool->internalAddGeneratedFile(
             '
 Ç
-google/protobuf/wrappers.protogoogle.protobuf"
-DoubleValue
-value ("
+google/protobuf/wrappers.protogoogle.protobufbproto3"
+DoubleValue
+value ("
 
-FloatValue
-value ("
+FloatValue
+value ("
 
-Int64Value
-value ("
-UInt64Value
-value ("
+Int64Value
+value ("
+UInt64Value
+value ("
 
-Int32Value
-value ("
-UInt32Value
-value ("
-	BoolValue
-value ("
-StringValue
-value (	"
+Int32Value
+value ("
+UInt32Value
+value ("
+	BoolValue
+value ("
+StringValue
+value (	"
 
-BytesValue
-value (Bƒ
-com.google.protobufBWrappersProtoPZ1google.golang.org/protobuf/types/known/wrapperspbø¢GPBªGoogle.Protobuf.WellKnownTypesbproto3'
+BytesValue
+value (BƒPø
+com.google.protobufBWrappersProtoZ1google.golang.org/protobuf/types/known/wrapperspb¢GPBªGoogle.Protobuf.WellKnownTypes'
         , true);
 
         static::$is_initialized = true;

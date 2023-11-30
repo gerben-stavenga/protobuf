@@ -566,6 +566,10 @@ class PROTOBUF_EXPORT TcParser final {
   PROTOBUF_NOINLINE static const char* MpMap(MessageLite *msg, const char *ptr, ParseContext *ctx, const TcParseTableBase *table, TcFieldData data);
 };
 
+// Prints the type card as or of labels, using known higher level labels.
+// Used for code generation, but also useful for debugging.
+PROTOBUF_EXPORT std::string TypeCardToString(uint16_t type_card);
+
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google

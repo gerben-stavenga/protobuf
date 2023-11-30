@@ -8,6 +8,7 @@
 #include "absl/strings/string_view.h"
 #include "google/protobuf/compiler/cpp/helpers.h"
 #include "google/protobuf/compiler/rust/accessors/accessor_generator.h"
+#include "google/protobuf/compiler/rust/accessors/helpers.h"
 #include "google/protobuf/compiler/rust/context.h"
 #include "google/protobuf/compiler/rust/naming.h"
 #include "google/protobuf/descriptor.h"
@@ -23,6 +24,7 @@ void SingularScalar::InMsgImpl(Context<FieldDescriptor> field) const {
           {"field", field.desc().name()},
           {"Scalar", PrimitiveRsTypeName(field.desc())},
           {"hazzer_thunk", Thunk(field, "has")},
+          {"default_value", DefaultValue(field)},
           {"getter",
            [&] {
              field.Emit({}, R"rs(
@@ -38,7 +40,7 @@ void SingularScalar::InMsgImpl(Context<FieldDescriptor> field) const {
              field.Emit({}, R"rs(
                   pub fn r#$field$_opt(&self) -> $pb$::Optional<$Scalar$> {
                     if !unsafe { $hazzer_thunk$(self.inner.msg) } {
-                      return $pb$::Optional::Unset(<$Scalar$>::default());
+                      return $pb$::Optional::Unset($default_value$);
                     }
                     let value = unsafe { $getter_thunk$(self.inner.msg) };
                     $pb$::Optional::Set(value)
@@ -64,11 +66,31 @@ void SingularScalar::InMsgImpl(Context<FieldDescriptor> field) const {
           {"field_mutator_getter",
            [&] {
              if (field.desc().has_presence()) {
-               // TODO: implement mutator for fields with presence.
-               return;
+               field.Emit({}, R"rs(
+                  pub fn r#$field$_mut(&mut self) -> $pb$::FieldEntry<'_, $Scalar$> {
+                    static VTABLE: $pbi$::PrimitiveOptionalMutVTable<$Scalar$> =
+                      $pbi$::PrimitiveOptionalMutVTable::new(
+                        $pbi$::Private,
+                        $getter_thunk$,
+                        $setter_thunk$,
+                        $clearer_thunk$,
+                        $default_value$,
+                      );
+
+                      unsafe {
+                        let has = $hazzer_thunk$(self.inner.msg);
+                        $pbi$::new_vtable_field_entry::<$Scalar$>(
+                          $pbi$::Private,
+                          $pbr$::MutatorMessageRef::new($pbi$::Private, &mut self.inner),
+                          &VTABLE,
+                          has,
+                        )
+                      }
+                  }
+                )rs");
              } else {
                field.Emit({}, R"rs(
-                  pub fn r#$field$_mut(&mut self) -> $pb$::PrimitiveMut<'_, $Scalar$> {
+                  pub fn r#$field$_mut(&mut self) -> $pb$::Mut<'_, $Scalar$> {
                     static VTABLE: $pbi$::PrimitiveVTable<$Scalar$> =
                       $pbi$::PrimitiveVTable::new(
                         $pbi$::Private,
@@ -76,7 +98,7 @@ void SingularScalar::InMsgImpl(Context<FieldDescriptor> field) const {
                         $setter_thunk$,
                       );
 
-                      $pb$::PrimitiveMut::from_inner(
+                      $pb$::PrimitiveMut::from_singular(
                         $pbi$::Private,
                         unsafe {
                           $pbi$::RawVTableMutator::new(

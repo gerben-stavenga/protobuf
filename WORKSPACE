@@ -1,5 +1,10 @@
 workspace(name = "com_google_protobuf")
 
+# An explicit self-reference to work around changes in Bazel 7.0
+# See https://github.com/bazelbuild/bazel/issues/19973#issuecomment-1787814450
+# buildifier: disable=duplicated-name
+local_repository(name = "com_google_protobuf", path = ".")
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -12,6 +17,10 @@ local_repository(
 load("//:protobuf_deps.bzl", "PROTOBUF_MAVEN_ARTIFACTS", "protobuf_deps")
 
 protobuf_deps()
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
 
 # Bazel platform rules.
 http_archive(
@@ -152,20 +161,26 @@ load("@pip_deps//:requirements.bzl", "install_deps")
 
 install_deps()
 
-load("@utf8_range//:workspace_deps.bzl", "utf8_range_deps")
-
-utf8_range_deps()
-
 http_archive(
     name = "rules_fuzzing",
-    sha256 = "d9002dd3cd6437017f08593124fdd1b13b3473c7b929ceb0e60d317cb9346118",
-    strip_prefix = "rules_fuzzing-0.3.2",
-    urls = ["https://github.com/bazelbuild/rules_fuzzing/archive/v0.3.2.zip"],
+    sha256 = "ff52ef4845ab00e95d29c02a9e32e9eff4e0a4c9c8a6bcf8407a2f19eb3f9190",
+    strip_prefix = "rules_fuzzing-0.4.1",
+    urls = ["https://github.com/bazelbuild/rules_fuzzing/releases/download/v0.4.1/rules_fuzzing-0.4.1.zip"],
+    patches = ["//third_party:rules_fuzzing.patch"],
+    patch_args = ["-p1"],
 )
 
 load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
 
 rules_fuzzing_dependencies()
+
+load("@rules_fuzzing//fuzzing:init.bzl", "rules_fuzzing_init")
+
+rules_fuzzing_init()
+
+load("@fuzzing_py_deps//:requirements.bzl", fuzzing_py_deps_install_deps = "install_deps")
+
+fuzzing_py_deps_install_deps()
 
 bind(
     name = "python_headers",
@@ -174,8 +189,8 @@ bind(
 
 http_archive(
     name = "rules_rust",
-    sha256 = "4a9cb4fda6ccd5b5ec393b2e944822a62e050c7c06f1ea41607f14c4fdec57a2",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.25.1/rules_rust-v0.25.1.tar.gz"],
+    sha256 = "9ecd0f2144f0a24e6bc71ebcc50a1ee5128cedeceb32187004532c9710cb2334",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.29.1/rules_rust-v0.29.1.tar.gz"],
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
@@ -183,3 +198,21 @@ load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_regi
 rules_rust_dependencies()
 
 rust_register_toolchains(edition = "2021")
+load("@rules_rust//crate_universe:defs.bzl", "crate", "crates_repository")
+# to repin, invoke `CARGO_BAZEL_REPIN=1 bazel sync --only=crate_index`
+crates_repository(
+    name = "crate_index",
+    cargo_lockfile = "//:Cargo.lock",
+    lockfile = "//:Cargo.bazel.lock",
+    packages = {
+        "googletest": crate.spec(
+            version = ">0.0.0",
+        ),
+        "paste": crate.spec(
+          version = ">=1",
+        ),
+    },
+)
+
+load("@crate_index//:defs.bzl", "crate_repositories")
+crate_repositories()

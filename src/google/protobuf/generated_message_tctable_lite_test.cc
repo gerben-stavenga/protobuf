@@ -14,12 +14,18 @@
 #include "google/protobuf/unittest.pb.h"
 #include "google/protobuf/wire_format_lite.h"
 
+
+// clang-format off
+#include "google/protobuf/port_def.inc"
+// clang-format on
+
 namespace google {
 namespace protobuf {
 namespace internal {
 
 namespace {
 
+using ::testing::ElementsAreArray;
 using ::testing::Eq;
 using ::testing::Not;
 using ::testing::Optional;
@@ -73,6 +79,9 @@ TEST(IsEntryForFieldNumTest, Matcher) {
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
           nullptr,     // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       }};
   // clang-format on
   int table_field_numbers[] = {1, 2, 3};
@@ -141,6 +150,9 @@ TEST_F(FindFieldEntryTest, SequentialFieldRange) {
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       // field_lookup_table for 2, 3, 4, 5, 111:
@@ -181,6 +193,9 @@ TEST_F(FindFieldEntryTest, SmallScanRange) {
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       // field_lookup_table for 1, 3, 4, 5, 7, 111:
@@ -229,6 +244,9 @@ TEST_F(FindFieldEntryTest, BinarySearchRange) {
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       // field_lookup_table for 1, 3, 4, 5, 6, 8, 9, 11, 12, 70
@@ -274,6 +292,9 @@ TEST_F(FindFieldEntryTest, OutOfRange) {
           offsetof(decltype(table), field_names),  // no aux_entries
           nullptr,     // default instance
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       {{// field lookup table
@@ -324,6 +345,9 @@ TEST_F(FindFieldEntryTest, EmptyMessage) {
           offsetof(TableType, field_names),
           nullptr,     // default instance
           nullptr,     // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       {{// empty field lookup table
@@ -374,6 +398,9 @@ const TcParseTable<5, 134, 5, 2176, 55> test_all_types_table = {
         offsetof(decltype(test_all_types_table), aux_entries),
         nullptr,     // default instance
         nullptr,     // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+        nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     },
     {{
         // tail-call table
@@ -605,7 +632,7 @@ TEST_F(FindFieldEntryTest, BigMessage) {
 // This test checks that the parser doesn't overflow an int32 when computing the
 // array's new length.
 TEST(GeneratedMessageTctableLiteTest, PackedEnumSmallRangeLargeSize) {
-#ifdef ABSL_HAVE_MEMORY_SANITIZER
+#ifdef PROTOBUF_MSAN
   // This test attempts to allocate 8GB of memory, which OOMs MSAN.
   return;
 #endif
@@ -672,6 +699,7 @@ TEST(GeneratedMessageTctableLiteTest,
   proto.MergeFromString(serialized);
   EXPECT_LE(proto.vals().Capacity(), 2048);
 }
+
 
 }  // namespace internal
 }  // namespace protobuf

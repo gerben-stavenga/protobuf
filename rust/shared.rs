@@ -17,11 +17,13 @@ use std::fmt;
 /// These are the items protobuf users can access directly.
 #[doc(hidden)]
 pub mod __public {
+    pub use crate::map::{MapMut, MapView};
     pub use crate::optional::{AbsentField, FieldEntry, Optional, PresentField};
-    pub use crate::primitive::PrimitiveMut;
+    pub use crate::primitive::{PrimitiveMut, SingularPrimitiveMut};
     pub use crate::proxied::{
         Mut, MutProxy, Proxied, ProxiedWithPresence, SettableValue, View, ViewProxy,
     };
+    pub use crate::repeated::{RepeatedFieldRef, RepeatedMut, RepeatedView};
     pub use crate::string::{BytesMut, ProtoStr, ProtoStrMut};
 }
 pub use __public::*;
@@ -43,9 +45,11 @@ pub mod __runtime;
 pub mod __runtime;
 
 mod macros;
+mod map;
 mod optional;
 mod primitive;
 mod proxied;
+mod repeated;
 mod string;
 mod vtable;
 

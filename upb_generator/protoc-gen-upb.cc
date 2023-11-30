@@ -1,32 +1,9 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2023 Google LLC.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google LLC nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
 
 #include <algorithm>
 #include <cmath>
@@ -97,7 +74,6 @@ std::string EnumMiniTableRef(upb::EnumDefPtr descriptor,
 
 std::string ExtensionIdentBase(upb::FieldDefPtr ext) {
   assert(ext.is_extension());
-  std::string ext_scope;
   if (ext.extension_scope()) {
     return MessageName(ext.extension_scope());
   } else {
@@ -306,7 +282,7 @@ void GenerateExtensionInHeader(const DefPoolPair& pools, upb::FieldDefPtr ext,
         R"cc(
           UPB_INLINE $0 $1_$2(const struct $3* msg) {
             const upb_MiniTableExtension* ext = &$4;
-            UPB_ASSUME(!upb_IsRepeatedOrMap(&ext->field));
+            UPB_ASSUME(!upb_MiniTableField_IsRepeatedOrMap(&ext->field));
             UPB_ASSUME(_upb_MiniTableField_GetRep(&ext->field) == $5);
             $0 default_val = $6;
             $0 ret;
@@ -321,7 +297,7 @@ void GenerateExtensionInHeader(const DefPoolPair& pools, upb::FieldDefPtr ext,
         R"cc(
           UPB_INLINE void $1_set_$2(struct $3* msg, $0 val, upb_Arena* arena) {
             const upb_MiniTableExtension* ext = &$4;
-            UPB_ASSUME(!upb_IsRepeatedOrMap(&ext->field));
+            UPB_ASSUME(!upb_MiniTableField_IsRepeatedOrMap(&ext->field));
             UPB_ASSUME(_upb_MiniTableField_GetRep(&ext->field) == $5);
             bool ok = _upb_Message_SetExtensionField(msg, ext, &val, arena);
             UPB_ASSERT(ok);
@@ -487,6 +463,27 @@ void GenerateMapGetters(upb::FieldDefPtr field, const DefPoolPair& pools,
       )cc",
       CTypeConst(field), msg_name, resolved_name,
       FieldInitializer(pools, field, options));
+  // Generate private getter returning a upb_Map or NULL for immutable and
+  // a upb_Map for mutable.
+  //
+  // Example:
+  //   UPB_INLINE const upb_Map* _name_immutable_upb_map(Foo* msg)
+  //   UPB_INLINE upb_Map* _name_mutable_upb_map(Foo* msg, upb_Arena* a)
+  output(
+      R"cc(
+        UPB_INLINE const upb_Map* _$0_$1_$2($0* msg) {
+          const upb_MiniTableField field = $4;
+          return upb_Message_GetMap(msg, &field);
+        }
+        UPB_INLINE upb_Map* _$0_$1_$3($0* msg, upb_Arena* a) {
+          const upb_MiniTableField field = $4;
+          return _upb_Message_GetOrCreateMutableMap(msg, &field, $5, $6, a);
+        }
+      )cc",
+      msg_name, resolved_name, kMapGetterPostfix, kMutableMapGetterPostfix,
+      FieldInitializer(pools, field, options),
+      MapKeySize(field, MapKeyCType(field)),
+      MapValueSize(field, MapValueCType(field)));
 }
 
 void GenerateMapEntryGetters(upb::FieldDefPtr field, absl::string_view msg_name,
@@ -814,15 +811,6 @@ void GenerateMessageInHeader(upb::MessageDefPtr message,
   output("\n");
 }
 
-void ForwardDeclareMiniTableInit(upb::MessageDefPtr message,
-                                 const Options& options, Output& output) {
-  if (options.bootstrap) {
-    output("extern const upb_MiniTable* $0();\n", MessageInitName(message));
-  } else {
-    output("extern const upb_MiniTable $0;\n", MessageInitName(message));
-  }
-}
-
 std::vector<upb::MessageDefPtr> SortedForwardMessages(
     const std::vector<upb::MessageDefPtr>& this_file_messages,
     const std::vector<upb::FieldDefPtr>& this_file_exts) {
@@ -856,7 +844,7 @@ void WriteHeader(const DefPoolPair& pools, upb::FileDefPtr file,
   const std::vector<upb::MessageDefPtr> this_file_messages =
       SortedMessages(file);
   const std::vector<upb::FieldDefPtr> this_file_exts = SortedExtensions(file);
-  std::vector<upb::EnumDefPtr> this_file_enums = SortedEnums(file);
+  std::vector<upb::EnumDefPtr> this_file_enums = SortedEnums(file, kAllEnums);
   std::vector<upb::MessageDefPtr> forward_messages =
       SortedForwardMessages(this_file_messages, this_file_exts);
 
@@ -1085,7 +1073,7 @@ void WriteMiniDescriptorSource(const DefPoolPair& pools, upb::FileDefPtr file,
     WriteMessageMiniDescriptorInitializer(msg, options, output);
   }
 
-  for (const auto msg : SortedEnums(file)) {
+  for (const auto msg : SortedEnums(file, kClosedEnums)) {
     WriteEnumMiniDescriptorInitializer(msg, options, output);
   }
 }
@@ -1137,17 +1125,17 @@ int main(int argc, char** argv) {
   upb::generator::Plugin plugin;
   upb::generator::Options options;
   if (!ParseOptions(&plugin, &options)) return 0;
-  plugin.GenerateFilesRaw([&](const UPB_DESC(FileDescriptorProto) * file_proto,
-                              bool generate) {
-    upb::Status status;
-    upb::FileDefPtr file = pools.AddFile(file_proto, &status);
-    if (!file) {
-      absl::string_view name = upb::generator::ToStringView(
-          UPB_DESC(FileDescriptorProto_name)(file_proto));
-      ABSL_LOG(FATAL) << "Couldn't add file " << name
-                      << " to DefPool: " << status.error_message();
-    }
-    if (generate) GenerateFile(pools, file, options, &plugin);
-  });
+  plugin.GenerateFilesRaw(
+      [&](const UPB_DESC(FileDescriptorProto) * file_proto, bool generate) {
+        upb::Status status;
+        upb::FileDefPtr file = pools.AddFile(file_proto, &status);
+        if (!file) {
+          absl::string_view name = upb::generator::ToStringView(
+              UPB_DESC(FileDescriptorProto_name)(file_proto));
+          ABSL_LOG(FATAL) << "Couldn't add file " << name
+                          << " to DefPool: " << status.error_message();
+        }
+        if (generate) GenerateFile(pools, file, options, &plugin);
+      });
   return 0;
 }

@@ -36,6 +36,7 @@
 #include "absl/log/absl_check.h"
 #include "absl/log/absl_log.h"
 #include "absl/memory/memory.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/escaping.h"
@@ -1092,14 +1093,16 @@ bool AllowedExtendeeInProto3(const std::string& name) {
 }
 
 const FeatureSetDefaults& GetCppFeatureSetDefaults() {
-  static const FeatureSetDefaults* default_spec = [] {
-    auto* defaults = new FeatureSetDefaults();
-    internal::ParseNoReflection(
-        absl::string_view{PROTOBUF_INTERNAL_CPP_EDITION_DEFAULTS,
-                          sizeof(PROTOBUF_INTERNAL_CPP_EDITION_DEFAULTS) - 1},
-        *defaults);
-    return defaults;
-  }();
+  static const FeatureSetDefaults* default_spec =
+      internal::OnShutdownDelete([] {
+        auto* defaults = new FeatureSetDefaults();
+        internal::ParseNoReflection(
+            absl::string_view{
+                PROTOBUF_INTERNAL_CPP_EDITION_DEFAULTS,
+                sizeof(PROTOBUF_INTERNAL_CPP_EDITION_DEFAULTS) - 1},
+            *defaults);
+        return defaults;
+      }());
   return *default_spec;
 }
 
@@ -1266,7 +1269,7 @@ class FileDescriptorTables {
   FieldsByNumberSet fields_by_number_;  // Not including extensions.
   EnumValuesByNumberSet enum_values_by_number_;
   mutable EnumValuesByNumberSet unknown_enum_values_by_number_
-      PROTOBUF_GUARDED_BY(unknown_enum_values_mu_);
+      ABSL_GUARDED_BY(unknown_enum_values_mu_);
 
   // Populated on first request to save space, hence constness games.
   mutable absl::once_flag locations_by_path_once_;
@@ -4555,12 +4558,34 @@ const FileDescriptor* DescriptorPool::BuildFileFromDatabase(
   return result;
 }
 
-void DescriptorPool::SetFeatureSetDefaults(FeatureSetDefaults spec) {
-  ABSL_CHECK(!build_started_)
-      << "Feature set defaults can't be changed once the pool has started "
-         "building.";
+absl::Status DescriptorPool::SetFeatureSetDefaults(FeatureSetDefaults spec) {
+  if (build_started_) {
+    return absl::FailedPreconditionError(
+        "Feature set defaults can't be changed once the pool has started "
+        "building.");
+  }
+  if (spec.minimum_edition() > spec.maximum_edition()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Invalid edition range ", spec.minimum_edition(), " to ",
+                     spec.maximum_edition(), "."));
+  }
+  Edition prev_edition = EDITION_UNKNOWN;
+  for (const auto& edition_default : spec.defaults()) {
+    if (edition_default.edition() == EDITION_UNKNOWN) {
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Invalid edition ", edition_default.edition(), " specified."));
+    }
+    if (edition_default.edition() <= prev_edition) {
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Feature set defaults are not strictly increasing.  Edition ",
+          prev_edition, " is greater than or equal to edition ",
+          edition_default.edition(), "."));
+    }
+    prev_edition = edition_default.edition();
+  }
   feature_set_defaults_spec_ =
       absl::make_unique<FeatureSetDefaults>(std::move(spec));
+  return absl::OkStatus();
 }
 
 DescriptorBuilder::DescriptorBuilder(
@@ -7688,17 +7713,13 @@ void DescriptorBuilder::ValidateProto3Field(const FieldDescriptor* field,
              "Explicit default values are not allowed in proto3.");
   }
   if (field->cpp_type() == FieldDescriptor::CPPTYPE_ENUM &&
-      field->enum_type() &&
-      FileDescriptorLegacy(field->enum_type()->file()).syntax() !=
-          FileDescriptorLegacy::Syntax::SYNTAX_PROTO3 &&
-      FileDescriptorLegacy(field->enum_type()->file()).syntax() !=
-          FileDescriptorLegacy::Syntax::SYNTAX_UNKNOWN) {
-    // Proto3 messages can only use Proto3 enum types; otherwise we can't
+      field->enum_type() && field->enum_type()->is_closed()) {
+    // Proto3 messages can only use open enum types; otherwise we can't
     // guarantee that the default value is zero.
     AddError(
         field->full_name(), proto, DescriptorPool::ErrorCollector::TYPE, [&] {
           return absl::StrCat("Enum type \"", field->enum_type()->full_name(),
-                              "\" is not a proto3 enum, but is used in \"",
+                              "\" is not an open enum, but is used in \"",
                               field->containing_type()->full_name(),
                               "\" which is a proto3 message type.");
         });
@@ -7877,9 +7898,21 @@ static bool IsStringMapType(const FieldDescriptor& field) {
 
 void DescriptorBuilder::ValidateFileFeatures(const FileDescriptor* file,
                                              const FileDescriptorProto& proto) {
+  // Rely on our legacy validation for proto2/proto3 files.
+  if (FileDescriptorLegacy(file).syntax() !=
+      FileDescriptorLegacy::SYNTAX_EDITIONS) {
+    return;
+  }
+
   if (file->features().field_presence() == FeatureSet::LEGACY_REQUIRED) {
     AddError(file->name(), proto, DescriptorPool::ErrorCollector::EDITIONS,
              "Required presence can't be specified by default.");
+  }
+  if (file->options().java_string_check_utf8()) {
+    AddError(
+        file->name(), proto, DescriptorPool::ErrorCollector::EDITIONS,
+        "File option java_string_check_utf8 is not allowed under editions. Use "
+        "the (pb.java).utf8_validation feature to control this behavior.");
   }
 }
 

@@ -166,21 +166,21 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_google_2fprotobuf_2fstruct_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\034google/protobuf/struct.proto\022\017google.p"
-    "rotobufb\006proto3\"\204\001\n\006Struct\0223\030\001\n\006fields2#"
-    ".google.protobuf.Struct.FieldsEntry \003(\013\032"
-    "E\n\013FieldsEntry\022\013\030\001\n\003key \001(\t\022%\030\002\n\005value2\026"
-    ".google.protobuf.Value \001(\013:\0028\001\"\352\001\n\005Value"
-    "\0220\030\001H\000\n\nnull_value2\032.google.protobuf.Nul"
-    "lValue \001(\016\022\026\030\002H\000\n\014number_value \001(\001\022\026\030\003H\000"
-    "\n\014string_value \001(\t\022\024\030\004H\000\n\nbool_value \001(\010"
-    "\022/\030\005H\000\n\014struct_value2\027.google.protobuf.S"
-    "truct \001(\013\0220\030\006H\000\n\nlist_value2\032.google.pro"
-    "tobuf.ListValue \001(\013B\006\n\004kind\"3\n\tListValue"
-    "\022&\030\001\n\006values2\026.google.protobuf.Value \003(\013"
-    "*\033\n\tNullValue\022\016\020\000\n\nNULL_VALUEB\177P\001\370\001\001\n\023co"
-    "m.google.protobufB\013StructProtoZ/google.g"
-    "olang.org/protobuf/types/known/structpb\242"
-    "\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes"
+    "rotobuf\"\204\001\n\006Struct\0223\n\006fields\030\001 \003(\0132#.goo"
+    "gle.protobuf.Struct.FieldsEntry\032E\n\013Field"
+    "sEntry\022\013\n\003key\030\001 \001(\t\022%\n\005value\030\002 \001(\0132\026.goo"
+    "gle.protobuf.Value:\0028\001\"\352\001\n\005Value\0220\n\nnull"
+    "_value\030\001 \001(\0162\032.google.protobuf.NullValue"
+    "H\000\022\026\n\014number_value\030\002 \001(\001H\000\022\026\n\014string_val"
+    "ue\030\003 \001(\tH\000\022\024\n\nbool_value\030\004 \001(\010H\000\022/\n\014stru"
+    "ct_value\030\005 \001(\0132\027.google.protobuf.StructH"
+    "\000\0220\n\nlist_value\030\006 \001(\0132\032.google.protobuf."
+    "ListValueH\000B\006\n\004kind\"3\n\tListValue\022&\n\006valu"
+    "es\030\001 \003(\0132\026.google.protobuf.Value*\033\n\tNull"
+    "Value\022\016\n\nNULL_VALUE\020\000B\177\n\023com.google.prot"
+    "obufB\013StructProtoP\001Z/google.golang.org/p"
+    "rotobuf/types/known/structpb\370\001\001\242\002\003GPB\252\002\036"
+    "Google.Protobuf.WellKnownTypesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_google_2fprotobuf_2fstruct_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_google_2fprotobuf_2fstruct_2eproto = {
@@ -358,7 +358,6 @@ const ::_pbi::TcParseTable<1, 1, 2, 37, 2> Struct::_table_ = {
     ::uint8_t* target,
     ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Struct)
-  #if 0
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -394,40 +393,6 @@ const ::_pbi::TcParseTable<1, 1, 2, 37, 2> Struct::_table_ = {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  #else   // 
-  // map<string, .google.protobuf.Value> fields = 1;
-  if (!_internal_fields().empty()) {
-    using MapType = ::google::protobuf::Map<std::string, ::google::protobuf::Value>;
-    using WireHelper = _pbi::MapEntryFuncs<std::string, ::google::protobuf::Value,
-                                   _pbi::WireFormatLite::TYPE_STRING,
-                                   _pbi::WireFormatLite::TYPE_MESSAGE>;
-    const auto& field = _internal_fields();
-
-    if (stream->IsSerializationDeterministic() && field.size() > 1) {
-      for (const auto& entry : ::google::protobuf::internal::MapSorterPtr<MapType>(field)) {
-        target = WireHelper::InternalSerialize(
-            1, entry.first, entry.second, target, stream);
-        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "google.protobuf.Struct.fields");
-      }
-    } else {
-      for (const auto& entry : field) {
-        target = WireHelper::InternalSerialize(
-            1, entry.first, entry.second, target, stream);
-        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            entry.first.data(), static_cast<int>(entry.first.length()),
- ::google::protobuf::internal::WireFormatLite::SERIALIZE, "google.protobuf.Struct.fields");
-      }
-    }
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  #endif  // !NDEBUG
   // @@protoc_insertion_point(serialize_to_array_end:google.protobuf.Struct)
   return target;
 }
@@ -716,7 +681,6 @@ const ::_pbi::TcParseTable<6, 6, 2, 42, 2> Value::_table_ = {
     ::uint8_t* target,
     ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Value)
-  #if 0
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -764,54 +728,6 @@ const ::_pbi::TcParseTable<6, 6, 2, 42, 2> Value::_table_ = {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  #else   // 
-  // .google.protobuf.NullValue null_value = 1;
-  if (kind_case() == kNullValue) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteEnumToArray(
-        1, this->_internal_null_value(), target);
-  }
-
-  // double number_value = 2;
-  if (kind_case() == kNumberValue) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteDoubleToArray(
-        2, this->_internal_number_value(), target);
-  }
-
-  // string string_value = 3;
-  if (kind_case() == kStringValue) {
-    const std::string& _s = this->_internal_string_value();
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-        _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "google.protobuf.Value.string_value");
-    target = stream->WriteStringMaybeAliased(3, _s, target);
-  }
-
-  // bool bool_value = 4;
-  if (kind_case() == kBoolValue) {
-    target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteBoolToArray(
-        4, this->_internal_bool_value(), target);
-  }
-
-  // .google.protobuf.Struct struct_value = 5;
-  if (kind_case() == kStructValue) {
-    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-        5, *_impl_.kind_.struct_value_, _impl_.kind_.struct_value_->GetCachedSize(), target, stream);
-  }
-
-  // .google.protobuf.ListValue list_value = 6;
-  if (kind_case() == kListValue) {
-    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-        6, *_impl_.kind_.list_value_, _impl_.kind_.list_value_->GetCachedSize(), target, stream);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  #endif  // !NDEBUG
   // @@protoc_insertion_point(serialize_to_array_end:google.protobuf.Value)
   return target;
 }
@@ -1045,7 +961,6 @@ const ::_pbi::TcParseTable<1, 1, 1, 0, 2> ListValue::_table_ = {
     ::uint8_t* target,
     ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.ListValue)
-  #if 0
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -1062,21 +977,6 @@ const ::_pbi::TcParseTable<1, 1, 1, 0, 2> ListValue::_table_ = {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  #else   // 
-  // repeated .google.protobuf.Value values = 1;
-  for (unsigned i = 0,
-      n = static_cast<unsigned>(this->_internal_values_size()); i < n; i++) {
-    const auto& repfield = this->_internal_values().Get(i);
-    target = ::google::protobuf::internal::WireFormatLite::
-        InternalWriteMessage(1, repfield, repfield.GetCachedSize(), target, stream);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  #endif  // !NDEBUG
   // @@protoc_insertion_point(serialize_to_array_end:google.protobuf.ListValue)
   return target;
 }

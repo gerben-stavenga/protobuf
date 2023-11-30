@@ -24,13 +24,13 @@ namespace Google.Protobuf.TestProtos {
     static UnittestImportProto3Reflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "UAAKKmNzaGFycC9wcm90b3MvdW5pdHRlc3RfaW1wb3J0X3Byb3RvMy5wcm90",
-            "bxIYcHJvdG9idWZfdW5pdHRlc3RfaW1wb3J0GjFjc2hhcnAvcHJvdG9zL3Vu",
-            "aXR0ZXN0X2ltcG9ydF9wdWJsaWNfcHJvdG8zLnByb3RvYgZwcm90bzMiGgoN",
-            "SW1wb3J0TWVzc2FnZRIJGAEKAWQgASgFKlkKCkltcG9ydEVudW0SGxAAChdJ",
-            "TVBPUlRfRU5VTV9VTlNQRUNJRklFRBIOEAcKCklNUE9SVF9GT08SDhAICgpJ",
-            "TVBPUlRfQkFSEg4QCQoKSU1QT1JUX0JBWkIdqgIaR29vZ2xlLlByb3RvYnVm",
-            "LlRlc3RQcm90b3M="));
+            "Cipjc2hhcnAvcHJvdG9zL3VuaXR0ZXN0X2ltcG9ydF9wcm90bzMucHJvdG8S",
+            "GHByb3RvYnVmX3VuaXR0ZXN0X2ltcG9ydBoxY3NoYXJwL3Byb3Rvcy91bml0",
+            "dGVzdF9pbXBvcnRfcHVibGljX3Byb3RvMy5wcm90byIaCg1JbXBvcnRNZXNz",
+            "YWdlEgkKAWQYASABKAUqWQoKSW1wb3J0RW51bRIbChdJTVBPUlRfRU5VTV9V",
+            "TlNQRUNJRklFRBAAEg4KCklNUE9SVF9GT08QBxIOCgpJTVBPUlRfQkFSEAgS",
+            "DgoKSU1QT1JUX0JBWhAJQh2qAhpHb29nbGUuUHJvdG9idWYuVGVzdFByb3Rv",
+            "c1AAYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.TestProtos.UnittestImportPublicProto3Reflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Google.Protobuf.TestProtos.ImportEnum), }, null, new pbr::GeneratedClrTypeInfo[] {

@@ -74,11 +74,11 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_google_2fprotobuf_2ffield_5fmask_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n google/protobuf/field_mask.proto\022\017goog"
-    "le.protobufb\006proto3\"\032\n\tFieldMask\022\r\030\001\n\005pa"
-    "ths \003(\tB\205\001P\001\370\001\001\n\023com.google.protobufB\016Fi"
-    "eldMaskProtoZ2google.golang.org/protobuf"
-    "/types/known/fieldmaskpb\242\002\003GPB\252\002\036Google."
-    "Protobuf.WellKnownTypes"
+    "le.protobuf\"\032\n\tFieldMask\022\r\n\005paths\030\001 \003(\tB"
+    "\205\001\n\023com.google.protobufB\016FieldMaskProtoP"
+    "\001Z2google.golang.org/protobuf/types/know"
+    "n/fieldmaskpb\370\001\001\242\002\003GPB\252\002\036Google.Protobuf"
+    ".WellKnownTypesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_google_2fprotobuf_2ffield_5fmask_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_google_2fprotobuf_2ffield_5fmask_2eproto = {
@@ -234,7 +234,6 @@ const ::_pbi::TcParseTable<1, 1, 0, 39, 2> FieldMask::_table_ = {
     ::uint8_t* target,
     ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.FieldMask)
-  #if 0
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -251,21 +250,6 @@ const ::_pbi::TcParseTable<1, 1, 0, 39, 2> FieldMask::_table_ = {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  #else   // 
-  // repeated string paths = 1;
-  for (int i = 0, n = this->_internal_paths_size(); i < n; ++i) {
-    const auto& s = this->_internal_paths().Get(i);
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-        s.data(), static_cast<int>(s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "google.protobuf.FieldMask.paths");
-    target = stream->WriteString(1, s, target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  #endif  // !NDEBUG
   // @@protoc_insertion_point(serialize_to_array_end:google.protobuf.FieldMask)
   return target;
 }

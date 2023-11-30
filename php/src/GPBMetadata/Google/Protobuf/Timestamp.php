@@ -17,11 +17,11 @@ class Timestamp
         $pool->internalAddGeneratedFile(
             '
 ï
-google/protobuf/timestamp.protogoogle.protobufbproto3"+
-	Timestamp
-seconds (
-nanos (B…Pø
-com.google.protobufBTimestampProtoZ2google.golang.org/protobuf/types/known/timestamppb¢GPBªGoogle.Protobuf.WellKnownTypes'
+google/protobuf/timestamp.protogoogle.protobuf"+
+	Timestamp
+seconds (
+nanos (B…
+com.google.protobufBTimestampProtoPZ2google.golang.org/protobuf/types/known/timestamppbø¢GPBªGoogle.Protobuf.WellKnownTypesbproto3'
         , true);
 
         static::$is_initialized = true;

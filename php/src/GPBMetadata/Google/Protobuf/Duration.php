@@ -17,11 +17,11 @@ class Duration
         $pool->internalAddGeneratedFile(
             '
 ë
-google/protobuf/duration.protogoogle.protobufbproto3"*
-Duration
-seconds (
-nanos (BƒPø
-com.google.protobufBDurationProtoZ1google.golang.org/protobuf/types/known/durationpb¢GPBªGoogle.Protobuf.WellKnownTypes'
+google/protobuf/duration.protogoogle.protobuf"*
+Duration
+seconds (
+nanos (Bƒ
+com.google.protobufBDurationProtoPZ1google.golang.org/protobuf/types/known/durationpbø¢GPBªGoogle.Protobuf.WellKnownTypesbproto3'
         , true);
 
         static::$is_initialized = true;

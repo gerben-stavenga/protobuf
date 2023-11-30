@@ -85,11 +85,11 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_google_2fprotobuf_2fany_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\031google/protobuf/any.proto\022\017google.prot"
-    "obufb\006proto3\"&\n\003Any\022\020\030\001\n\010type_url \001(\t\022\r\030"
-    "\002\n\005value \001(\014BvP\001\n\023com.google.protobufB\010A"
-    "nyProtoZ,google.golang.org/protobuf/type"
-    "s/known/anypb\242\002\003GPB\252\002\036Google.Protobuf.We"
-    "llKnownTypes"
+    "obuf\"&\n\003Any\022\020\n\010type_url\030\001 \001(\t\022\r\n\005value\030\002"
+    " \001(\014Bv\n\023com.google.protobufB\010AnyProtoP\001Z"
+    ",google.golang.org/protobuf/types/known/"
+    "anypb\242\002\003GPB\252\002\036Google.Protobuf.WellKnownT"
+    "ypesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_google_2fprotobuf_2fany_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_google_2fprotobuf_2fany_2eproto = {
@@ -270,7 +270,6 @@ const ::_pbi::TcParseTable<2, 2, 0, 36, 2> Any::_table_ = {
     ::uint8_t* target,
     ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Any)
-  #if 0
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -293,27 +292,6 @@ const ::_pbi::TcParseTable<2, 2, 0, 36, 2> Any::_table_ = {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  #else   // 
-  // string type_url = 1;
-  if (!this->_internal_type_url().empty()) {
-    const std::string& _s = this->_internal_type_url();
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-        _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "google.protobuf.Any.type_url");
-    target = stream->WriteStringMaybeAliased(1, _s, target);
-  }
-
-  // bytes value = 2;
-  if (!this->_internal_value().empty()) {
-    const std::string& _s = this->_internal_value();
-    target = stream->WriteBytesMaybeAliased(2, _s, target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  #endif  // !NDEBUG
   // @@protoc_insertion_point(serialize_to_array_end:google.protobuf.Any)
   return target;
 }

@@ -19,27 +19,27 @@ class Api
         $pool->internalAddGeneratedFile(
             '
 …
-google/protobuf/api.protogoogle.protobufgoogle/protobuf/type.protobproto3"Å
-Api
-name (	(
-methods2.google.protobuf.Method ((
-options2.google.protobuf.Option (
-version (	6
-source_context2.google.protobuf.SourceContext (&
-mixins2.google.protobuf.Mixin (\'
-syntax2.google.protobuf.Syntax ("’
-Method
-name (	
-request_type_url (	
-request_streaming (
-response_type_url (	
-response_streaming ((
-options2.google.protobuf.Option (\'
-syntax2.google.protobuf.Syntax ("#
-Mixin
-name (	
-root (	BvP
-com.google.protobufBApiProtoZ,google.golang.org/protobuf/types/known/apipb¢GPB™Google.Protobuf.WellKnownTypes'
+google/protobuf/api.protogoogle.protobufgoogle/protobuf/type.proto"Å
+Api
+name (	(
+methods (2.google.protobuf.Method(
+options (2.google.protobuf.Option
+version (	6
+source_context (2.google.protobuf.SourceContext&
+mixins (2.google.protobuf.Mixin\'
+syntax (2.google.protobuf.Syntax"’
+Method
+name (	
+request_type_url (	
+request_streaming (
+response_type_url (	
+response_streaming ((
+options (2.google.protobuf.Option\'
+syntax (2.google.protobuf.Syntax"#
+Mixin
+name (	
+root (	Bv
+com.google.protobufBApiProtoPZ,google.golang.org/protobuf/types/known/apipb¢GPB™Google.Protobuf.WellKnownTypesbproto3'
         , true);
 
         static::$is_initialized = true;

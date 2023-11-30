@@ -76,11 +76,11 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_google_2fprotobuf_2ftimestamp_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\037google/protobuf/timestamp.proto\022\017googl"
-    "e.protobufb\006proto3\"+\n\tTimestamp\022\017\030\001\n\007sec"
-    "onds \001(\003\022\r\030\002\n\005nanos \001(\005B\205\001P\001\370\001\001\n\023com.goo"
-    "gle.protobufB\016TimestampProtoZ2google.gol"
-    "ang.org/protobuf/types/known/timestamppb"
-    "\242\002\003GPB\252\002\036Google.Protobuf.WellKnownTypes"
+    "e.protobuf\"+\n\tTimestamp\022\017\n\007seconds\030\001 \001(\003"
+    "\022\r\n\005nanos\030\002 \001(\005B\205\001\n\023com.google.protobufB"
+    "\016TimestampProtoP\001Z2google.golang.org/pro"
+    "tobuf/types/known/timestamppb\370\001\001\242\002\003GPB\252\002"
+    "\036Google.Protobuf.WellKnownTypesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_google_2fprotobuf_2ftimestamp_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_google_2fprotobuf_2ftimestamp_2eproto = {
@@ -232,7 +232,6 @@ const ::_pbi::TcParseTable<2, 2, 0, 0, 2> Timestamp::_table_ = {
     ::uint8_t* target,
     ::google::protobuf::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Timestamp)
-  #if 0
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -255,27 +254,6 @@ const ::_pbi::TcParseTable<2, 2, 0, 0, 2> Timestamp::_table_ = {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  #else   // 
-  // int64 seconds = 1;
-  if (this->_internal_seconds() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::
-        WriteInt64ToArrayWithField<1>(
-            stream, this->_internal_seconds(), target);
-  }
-
-  // int32 nanos = 2;
-  if (this->_internal_nanos() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::
-        WriteInt32ToArrayWithField<2>(
-            stream, this->_internal_nanos(), target);
-  }
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  #endif  // !NDEBUG
   // @@protoc_insertion_point(serialize_to_array_end:google.protobuf.Timestamp)
   return target;
 }

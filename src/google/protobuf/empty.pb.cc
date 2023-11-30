@@ -66,10 +66,10 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_google_2fprotobuf_2fempty_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\033google/protobuf/empty.proto\022\017google.pr"
-    "otobufb\006proto3\"\007\n\005EmptyB}P\001\370\001\001\n\023com.goog"
-    "le.protobufB\nEmptyProtoZ.google.golang.o"
-    "rg/protobuf/types/known/emptypb\242\002\003GPB\252\002\036"
-    "Google.Protobuf.WellKnownTypes"
+    "otobuf\"\007\n\005EmptyB}\n\023com.google.protobufB\n"
+    "EmptyProtoP\001Z.google.golang.org/protobuf"
+    "/types/known/emptypb\370\001\001\242\002\003GPB\252\002\036Google.P"
+    "rotobuf.WellKnownTypesb\006proto3"
 };
 static ::absl::once_flag descriptor_table_google_2fprotobuf_2fempty_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_google_2fprotobuf_2fempty_2eproto = {

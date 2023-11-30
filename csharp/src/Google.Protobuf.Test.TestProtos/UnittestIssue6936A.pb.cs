@@ -26,8 +26,8 @@ namespace UnitTest.Issues.TestProtos {
           string.Concat(
             "Cihjc2hhcnAvcHJvdG9zL3VuaXR0ZXN0X2lzc3VlNjkzNl9hLnByb3RvEg91",
             "bml0dGVzdF9pc3N1ZXMaIGdvb2dsZS9wcm90b2J1Zi9kZXNjcmlwdG9yLnBy",
-            "b3RvYgZwcm90bzM6LhjQhgMKA29wdBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNz",
-            "YWdlT3B0aW9ucyABKAlCHaoCGlVuaXRUZXN0Lklzc3Vlcy5UZXN0UHJvdG9z"));
+            "b3RvOi4KA29wdBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxjQ",
+            "hgMgASgJQh2qAhpVbml0VGVzdC5Jc3N1ZXMuVGVzdFByb3Rvc2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.Reflection.DescriptorReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pb::Extension[] { UnittestIssue6936AExtensions.Opt }, null));

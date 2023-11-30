@@ -25,9 +25,9 @@ namespace Google.Protobuf.TestProtos {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CjFjc2hhcnAvcHJvdG9zL3VuaXR0ZXN0X2ltcG9ydF9wdWJsaWNfcHJvdG8z",
-            "LnByb3RvEhhwcm90b2J1Zl91bml0dGVzdF9pbXBvcnRiBnByb3RvMyIgChNQ",
-            "dWJsaWNJbXBvcnRNZXNzYWdlEgkYAQoBZSABKAVCHaoCGkdvb2dsZS5Qcm90",
-            "b2J1Zi5UZXN0UHJvdG9z"));
+            "LnByb3RvEhhwcm90b2J1Zl91bml0dGVzdF9pbXBvcnQiIAoTUHVibGljSW1w",
+            "b3J0TWVzc2FnZRIJCgFlGAEgASgFQh2qAhpHb29nbGUuUHJvdG9idWYuVGVz",
+            "dFByb3Rvc2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {

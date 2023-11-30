@@ -278,8 +278,9 @@ void CollectMapInfo(
 // --a ranage of message names that are allowed to stay in order (true)
 bool ShouldSerializeInOrder(const Descriptor* descriptor,
                             const Options& options) {
+  if (descriptor->options().message_set_wire_format()) return true;
+  if (descriptor->file()->package() == FileDescriptorProto::default_instance().GetDescriptor()->file()->package()) return true;
   return false;
-  // return true;
 }
 
 bool IsCrossFileMapField(const FieldDescriptor* field) {

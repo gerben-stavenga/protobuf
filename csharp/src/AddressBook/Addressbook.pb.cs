@@ -25,17 +25,17 @@ namespace Google.Protobuf.Examples.AddressBook {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChFhZGRyZXNzYm9vay5wcm90bxIIdHV0b3JpYWwaH2dvb2dsZS9wcm90b2J1",
-            "Zi90aW1lc3RhbXAucHJvdG8ihwIKBlBlcnNvbhIMCgRuYW1lGAEgASgJEgoK",
-            "AmlkGAIgASgFEg0KBWVtYWlsGAMgASgJEiwKBnBob25lcxgEIAMoCzIcLnR1",
-            "dG9yaWFsLlBlcnNvbi5QaG9uZU51bWJlchIwCgxsYXN0X3VwZGF0ZWQYBSAB",
-            "KAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wGkcKC1Bob25lTnVtYmVy",
-            "Eg4KBm51bWJlchgBIAEoCRIoCgR0eXBlGAIgASgOMhoudHV0b3JpYWwuUGVy",
-            "c29uLlBob25lVHlwZSIrCglQaG9uZVR5cGUSCgoGTU9CSUxFEAASCAoESE9N",
-            "RRABEggKBFdPUksQAiIvCgtBZGRyZXNzQm9vaxIgCgZwZW9wbGUYASADKAsy",
-            "EC50dXRvcmlhbC5QZXJzb25ClQEKG2NvbS5leGFtcGxlLnR1dG9yaWFsLnBy",
-            "b3Rvc0IRQWRkcmVzc0Jvb2tQcm90b3NQAVo6Z2l0aHViLmNvbS9wcm90b2Nv",
-            "bGJ1ZmZlcnMvcHJvdG9idWYvZXhhbXBsZXMvZ28vdHV0b3JpYWxwYqoCJEdv",
-            "b2dsZS5Qcm90b2J1Zi5FeGFtcGxlcy5BZGRyZXNzQm9va2IGcHJvdG8z"));
+            "Zi90aW1lc3RhbXAucHJvdG9iBnByb3RvMyKHAgoGUGVyc29uEgwYAQoEbmFt",
+            "ZSABKAkSChgCCgJpZCABKAUSDRgDCgVlbWFpbCABKAkSLBgECgZwaG9uZXMy",
+            "HC50dXRvcmlhbC5QZXJzb24uUGhvbmVOdW1iZXIgAygLEjAYBQoMbGFzdF91",
+            "cGRhdGVkMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCABKAsaRwoLUGhv",
+            "bmVOdW1iZXISDhgBCgZudW1iZXIgASgJEigYAgoEdHlwZTIaLnR1dG9yaWFs",
+            "LlBlcnNvbi5QaG9uZVR5cGUgASgOIisKCVBob25lVHlwZRIKEAAKBk1PQklM",
+            "RRIIEAEKBEhPTUUSCBACCgRXT1JLIi8KC0FkZHJlc3NCb29rEiAYAQoGcGVv",
+            "cGxlMhAudHV0b3JpYWwuUGVyc29uIAMoC0KVAVABChtjb20uZXhhbXBsZS50",
+            "dXRvcmlhbC5wcm90b3NCEUFkZHJlc3NCb29rUHJvdG9zWjpnaXRodWIuY29t",
+            "L3Byb3RvY29sYnVmZmVycy9wcm90b2J1Zi9leGFtcGxlcy9nby90dXRvcmlh",
+            "bHBiqgIkR29vZ2xlLlByb3RvYnVmLkV4YW1wbGVzLkFkZHJlc3NCb29r"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {

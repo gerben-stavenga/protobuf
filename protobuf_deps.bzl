@@ -1,6 +1,5 @@
 """Load dependencies needed to compile the protobuf library as a 3rd-party consumer."""
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//bazel:python_downloads.bzl", "python_nuget_package", "python_source_archive")
 
@@ -67,13 +66,6 @@ def protobuf_deps():
             commit = "9059f5cad030ba11d37818847443a53918c327b1",  # 1.9.4
             sha256 = "c0c583c7b53a53bcd1f7385f15439dcdf0314d550362379e2db9919a918d1996",
             build_file = Label("//:third_party/jsoncpp.BUILD"),
-        )
-
-    if not native.existing_rule("utf8_range"):
-        git_repository(
-            name = "utf8_range",
-            remote = "git@code.byted.org:bpt/utf8_range.git",
-            branch = "bytedance-main",
         )
 
     if not native.existing_rule("rules_cc"):

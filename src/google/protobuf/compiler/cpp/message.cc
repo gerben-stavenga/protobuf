@@ -279,6 +279,7 @@ void CollectMapInfo(
 bool ShouldSerializeInOrder(const Descriptor* descriptor,
                             const Options& options) {
   if (descriptor->options().message_set_wire_format()) return true;
+  // Keep the diff of generated files small. Can be removed.
   if (descriptor->file()->package() == FileDescriptorProto::default_instance().GetDescriptor()->file()->package()) return true;
   return false;
 }
